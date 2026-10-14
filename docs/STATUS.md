@@ -1,6 +1,9 @@
 # Estado
 
-**Fase actual: 1 — Viento en consola** (terminada el 2026-10-14: los 6 pasos hechos y el juez ejecutado)
+**Fase actual: 2 — Rutas circulares + GPX** (sin empezar)
+
+Fase 1 — Viento en consola: terminada el 2026-10-14 (los 6 pasos hechos y el juez ejecutado).
+El resto de este documento describe lo hecho en la fase 1.
 
 ## Qué funciona
 
