@@ -87,3 +87,16 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: media aritmética de grados (descartada: falla al cruzar el norte); dirección de la hora más
   ventosa (descartada: ignora el resto de la salida); ponderar más la segunda mitad de la ruta (se deja
   para la fase 3, cuando se sepa a qué hora se pasa por cada tramo).
+
+## 008 — Alcance global; Madrid y León como referencia
+- Contexto: el autor sale sobre todo por Madrid y por la provincia de León, pero quiere que la app sirva en cualquier sitio.
+- Decisión: nada en Core puede depender de una región. Madrid y León son los casos de referencia para probar
+  y validar, no el alcance. Consecuencias:
+  - Las fuentes principales deben ser globales: Open-Meteo para la previsión y METAR (archivo mundial de IEM)
+    para el juez, con las estaciones más cercanas a la ubicación, no una lista fija.
+  - AEMET es un complemento para España (más estaciones en zonas sin aeródromos, como la montaña de León),
+    no una dependencia.
+  - Los modelos regionales (AROME) solo se mantienen por delante de `best_match` si el juez demuestra que aciertan
+    más; si no, `best_match` (que ya elige el mejor modelo disponible en cada sitio) es la opción más sencilla
+    para una app global.
+- Alternativas: centrarse en España con AEMET como fuente principal (descartada: limita la app sin necesidad).
