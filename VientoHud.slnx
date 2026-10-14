@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VientoHud.Console/VientoHud.Console.csproj" />
+    <Project Path="src/VientoHud.Core/VientoHud.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VientoHud.Core.Tests/VientoHud.Core.Tests.csproj" />
+  </Folder>
+</Solution>
