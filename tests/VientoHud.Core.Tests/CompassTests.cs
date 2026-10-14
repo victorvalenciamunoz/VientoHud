@@ -27,4 +27,17 @@ public class CompassTests
     [InlineData(double.PositiveInfinity)]
     public void Rejects_non_finite_angles(double degrees) =>
         Assert.Throws<ArgumentOutOfRangeException>(() => Compass.ToCompassPoint(degrees));
+
+    [Theory]
+    [InlineData(10, 350, 20)]
+    [InlineData(0, 180, 180)]
+    [InlineData(0, 0, 0)]
+    [InlineData(-90, 90, 180)]
+    [InlineData(720, 45, 45)]
+    [InlineData(200, 10, 170)]
+    public void Angle_between_is_the_smallest_one(double a, double b, double expected)
+    {
+        Assert.Equal(expected, Compass.AngleBetween(a, b), precision: 9);
+        Assert.Equal(expected, Compass.AngleBetween(b, a), precision: 9);
+    }
 }

@@ -58,7 +58,7 @@ internal sealed class WindCommand(IWindForecastProvider forecasts, ILocationProv
             output.WriteLine(string.Join("  ",
                 local.ToString("ddd dd HH:mm", Spanish).PadRight(14),
                 Kmh(hour.SpeedKmh).PadLeft(7),
-                Kmh(hour.GustKmh).PadLeft(7),
+                (hour.GustKmh is { } gust ? Kmh(gust) : "—").PadLeft(7),
                 $"{point,-3} ({hour.DirectionFromDegrees.ToString("0", Spanish),3}°)".PadRight(14),
                 ModelNames.GetValueOrDefault(hour.Model, hour.Model)));
         }

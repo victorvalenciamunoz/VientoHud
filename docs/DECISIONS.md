@@ -133,5 +133,22 @@ Formato: contexto → decisión → alternativas descartadas.
   archivo desde enero de 2024 (antes devuelven `null`), y varias ubicaciones en una sola llamada.
   Si el modelo no cubre alguna de las ubicaciones, Open-Meteo rechaza la llamada entera; entonces se repite
   ubicación por ubicación y las no cubiertas quedan marcadas (sin celda ni horas), sin error.
+  ECMWF IFS no archiva rachas a un día vista: la racha es opcional en `WindSample` (la consola muestra "—").
 - Alternativas: Single Runs API (cada pasada completa; más fiel a un plazo exacto, pero muchas más llamadas);
   guardar nosotros las previsiones cada día (descartado: el archivo ya existe y llega a 2024).
+
+## 011 — Cómo mide el juez el error del viento
+- Contexto: hay que comparar previsión (horaria, en punto) con METAR (cada 30-60 min más avisos especiales).
+- Decisión (`WindVerification`):
+  - **Emparejar:** cada hora prevista con la observación de esa estación más cercana en el tiempo, como mucho
+    a ±15 min (en empate, la anterior). Las horas sin observación cercana no cuentan.
+  - **Velocidad:** sesgo (media de previsto − observado; negativo = el modelo se queda corto) y error absoluto medio.
+  - **Dirección:** solo cuando la observación tiene dirección (fuera calma y VRB). Ángulo más corto entre ambas
+    (0-180°), su media y el porcentaje de horas dentro de ±45°.
+  - **Por viento observado:** todas las horas, flojo (< 12 km/h) y con viento (≥ 12 km/h, fuerza 3 Beaufort).
+    Lo que importa para la bici es el segundo grupo. Separar por lo observado sesga el error de velocidad de cada
+    grupo, así que se comparan modelos dentro de un mismo grupo, no grupos entre sí.
+  - **Rachas:** fuera, no son comparables (DECISIONS 009).
+- Alternativas: interpolar la observación a la hora en punto (descartado: el METAR en punto existe casi siempre);
+  RMSE en lugar de error absoluto medio (penaliza mucho los fallos grandes aislados; se puede añadir si hace falta);
+  separar por viento previsto (mide otra cosa: si fiarse de la previsión cuando dice que hará viento).

@@ -33,6 +33,10 @@ public class WindSampleTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new WindSample(Noon, 10, -1, 0, "m"));
 
     [Fact]
+    public void Gust_may_be_missing() =>
+        Assert.Null(new WindSample(Noon, 10, null, 0, "m").GustKmh);
+
+    [Fact]
     public void Rejects_non_finite_direction() =>
         Assert.Throws<ArgumentOutOfRangeException>(() => new WindSample(Noon, 10, 15, double.NaN, "m"));
 }

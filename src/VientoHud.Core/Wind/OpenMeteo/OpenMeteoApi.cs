@@ -113,8 +113,8 @@ internal static class OpenMeteoApi
     public static double Elevation(JsonElement location) => location.GetProperty("elevation").GetDouble();
 
     /// <summary>
-    /// Hours with speed, direction and gust all present. With one model per request Open-Meteo names the
-    /// variables without a model suffix, only with <paramref name="variableSuffix"/> for archived leads.
+    /// Hours with speed and direction present; the gust may be missing. With one model per request Open-Meteo
+    /// names the variables without a model suffix, only with <paramref name="variableSuffix"/> for archived leads.
     /// </summary>
     public static Dictionary<DateTimeOffset, WindSample> HourlySamples(
         JsonElement location,
@@ -130,10 +130,10 @@ internal static class OpenMeteoApi
         var samples = new Dictionary<DateTimeOffset, WindSample>();
         for (var i = 0; i < times.GetArrayLength(); i++)
         {
-            if (ValueAt(speeds, i) is { } speed && ValueAt(directions, i) is { } direction && ValueAt(gusts, i) is { } gust)
+            if (ValueAt(speeds, i) is { } speed && ValueAt(directions, i) is { } direction)
             {
                 var time = DateTimeOffset.FromUnixTimeSeconds(times[i].GetInt64());
-                samples[time] = new WindSample(time, speed, gust, direction, model);
+                samples[time] = new WindSample(time, speed, ValueAt(gusts, i), direction, model);
             }
         }
         return samples;

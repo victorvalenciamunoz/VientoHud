@@ -9,6 +9,7 @@ namespace VientoHud.Core.Tests.Wind;
 public class OpenMeteoPastWindForecastSourceTests
 {
     private const string Arome = "meteofrance_arome_france";
+    private const string EcmwfIfs = "ecmwf_ifs";
     private const string HistoricalHost = "historical-forecast-api.open-meteo.com";
     private const string PreviousRunsHost = "previous-runs-api.open-meteo.com";
 
@@ -20,25 +21,28 @@ public class OpenMeteoPastWindForecastSourceTests
     private static readonly DateTimeOffset October1 = new(2026, 10, 1, 0, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset October3 = October1.AddDays(2);
 
-    // Recorded 2026-10-14 for 2026-10-01T00:00Z .. 2026-10-02T23:00Z, keyed by host and latitude parameter.
-    private static readonly Dictionary<(string Host, string Latitudes), (HttpStatusCode, string)> Responses = new()
+    // Recorded 2026-10-14 for 2026-10-01T00:00Z .. 2026-10-02T23:00Z, keyed by host, latitude and model parameters.
+    private static readonly Dictionary<(string Host, string Latitudes, string Model), (HttpStatusCode, string)> Responses = new()
     {
-        [(HistoricalHost, "40.46667,42.58889")] =
+        [(HistoricalHost, "40.46667,42.58889", Arome)] =
             (HttpStatusCode.OK, Fixture.Read("OpenMeteo/archive-short-arome-lemd-leln-2026-10-01.json")),
-        [(PreviousRunsHost, "40.46667,42.58889")] =
+        [(PreviousRunsHost, "40.46667,42.58889", Arome)] =
             (HttpStatusCode.OK, Fixture.Read("OpenMeteo/archive-dayahead-arome-lemd-leln-2026-10-01.json")),
-        [(HistoricalHost, "40.46667,36.01")] =
+        [(HistoricalHost, "40.46667,36.01", Arome)] =
             (HttpStatusCode.BadRequest, Fixture.Read("OpenMeteo/error-no-data-for-location-lemd-tarifa-arome.json")),
-        [(HistoricalHost, "40.46667")] =
+        [(HistoricalHost, "40.46667", Arome)] =
             (HttpStatusCode.OK, Fixture.Read("OpenMeteo/archive-short-arome-lemd-2026-10-01.json")),
-        [(HistoricalHost, "36.01")] =
+        [(HistoricalHost, "36.01", Arome)] =
             (HttpStatusCode.BadRequest, Fixture.Read("OpenMeteo/error-no-data-for-location-tarifa-arome.json")),
+        // ECMWF IFS archives no gusts a day ahead.
+        [(PreviousRunsHost, "40.46667,42.58889", EcmwfIfs)] =
+            (HttpStatusCode.OK, Fixture.Read("OpenMeteo/archive-dayahead-ecmwf-ifs-lemd-leln-2026-10-01.json")),
     };
 
     private static (OpenMeteoPastWindForecastSource Source, StubHttpMessageHandler Handler) Create()
     {
         var handler = new StubHttpMessageHandler(uri =>
-            Responses.TryGetValue((uri.Host, Query(uri)["latitude"]!), out var response)
+            Responses.TryGetValue((uri.Host, Query(uri)["latitude"]!, Query(uri)["models"]!), out var response)
                 ? response
                 : (HttpStatusCode.NotFound, $"No fixture for {uri}"));
         return (new OpenMeteoPastWindForecastSource(new HttpClient(handler)), handler);
@@ -101,6 +105,18 @@ public class OpenMeteoPastWindForecastSourceTests
         Assert.All(forecasts, f => Assert.Equal(ForecastLead.DayAhead, f.Lead));
         Assert.Equal(new WindSample(October1, 17.2, 31.3, 296, Arome), forecasts[1].Hours[0]);
         Assert.Equal(new WindSample(October1.AddHours(47), 11.0, 16.6, 19, Arome), forecasts[1].Hours[47]);
+    }
+
+    [Fact]
+    public async Task Keeps_hours_whose_gust_was_not_archived()
+    {
+        var (source, _) = Create();
+
+        var forecasts = await source.GetAsync([Lemd, Leln], EcmwfIfs, ForecastLead.DayAhead, October1, October3);
+
+        Assert.All(forecasts, f => Assert.Equal(48, f.Hours.Count));
+        Assert.All(forecasts.SelectMany(f => f.Hours), s => Assert.Null(s.GustKmh));
+        Assert.Equal(new WindSample(October1, 4.0, null, 185, EcmwfIfs), forecasts[0].Hours[0]);
     }
 
     [Fact]

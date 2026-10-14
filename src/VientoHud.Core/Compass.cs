@@ -23,4 +23,11 @@ public static class Compass
         var sector = (int)Math.Floor(normalized / SectorDegrees + 0.5) % 16;
         return (CompassPoint)sector;
     }
+
+    /// <summary>Smallest angle between two directions, in [0, 180]: 350° and 10° are 20° apart.</summary>
+    public static double AngleBetween(double degreesA, double degreesB)
+    {
+        var difference = Math.Abs(degreesA - degreesB) % 360;
+        return difference > 180 ? 360 - difference : difference;
+    }
 }
