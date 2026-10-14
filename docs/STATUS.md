@@ -1,17 +1,24 @@
 # Estado
 
-**Fase actual: 2 — Rutas circulares + GPX** (paso 1 de 7 hecho)
+**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 y 2 de 7 hechos)
 
 Fase 1 — Viento en consola: terminada el 2026-10-14 (los 6 pasos hechos y el juez ejecutado).
 Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
 
 ## Fase 2
 
+### Qué funciona (fase 2)
+
+- **Escritor de GPX** (`VientoHud.Core.Gpx`): `GpxTrack` (nombre, puntos, hora UTC, descripción y copyright opcionales),
+  `GpxTrackPoint` (coordenada y altitud opcional) y `GpxWriter`. Escribe GPX 1.1 con un track y un segmento (lo que los
+  GPS de bici importan como curso), UTF-8 sin BOM, punto decimal siempre, coordenadas a 7 decimales y altitud al
+  decímetro. `GpxCopyright.OpenStreetMap` pone la atribución que pide la licencia ODbL.
+
 ### Qué falta (fase 2)
 
 - [x] 1. Elegir el motor de rutas: **BRouter** con perfil estricto propio y puntos de paso calculados en Core
   (`DECISIONS.md` 013).
-- [ ] 2. Escritor de GPX 1.1 en Core (track con puntos), validado en los tests contra el esquema oficial.
+- [x] 2. Escritor de GPX 1.1 en Core (track con puntos), validado en los tests contra el esquema oficial.
 - [ ] 3. Cliente de BRouter detrás de una interfaz: perfil estricto en el repositorio (añadir que prohíba
   `highway=construction`; decidir qué hacer con `trunk` fuera de España), subida del perfil, ruta entre puntos de paso,
   lectura de las etiquetas de cada tramo, errores ("target island", 400, 500) y fixtures grabadas.
@@ -31,6 +38,11 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   GraphHopper responden 401 sin clave. Vueltas desde Madrid centro, Tres Cantos y León capital contando km por tipo
   de vía y firme con las etiquetas que devuelve BRouter (y `trace_attributes` en Valhalla). Resultados en
   `DECISIONS.md` 013. Los scripts de prueba no se han guardado en el repositorio: el cliente real llega en el paso 3.
+- Paso 2 (2026-10-14): 13 tests nuevos (130 en total). Cada GPX se valida contra el esquema oficial `gpx.xsd` de
+  TopoGrafix, guardado en `Fixtures/Gpx/`; un test comprueba que la validación detecta una coma decimal. Otro fuerza la
+  configuración española (`es-ES`) para comprobar que los decimales salen con punto. Se escribieron con `GpxWriter` dos
+  vueltas reales de BRouter del paso 1 (León 103 km, Madrid 54 km): ~2.000 puntos y ~175 KB cada una.
+  **Pendiente:** abrirlas en gpx.studio y cargarlas en el GPS de la bici.
 
 ## Fase 1
 
