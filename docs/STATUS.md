@@ -98,6 +98,8 @@
   guardándola durante días. Útil sobre todo donde no hay aeródromos (montaña de León).
 - **Clave de AEMET:** pedida el 2026-10-14; el enlace de confirmación respondió 204 (éxito, sin contenido).
   Falta el correo con la clave. Solo hace falta para el complemento de AEMET.
+  Es dudoso que llegue. **Riesgo para la fase 4:** el plan parte del radar de AEMET, que también pide clave;
+  si no llega, habrá que buscar otra fuente de radar en esa fase (licencia, cobertura, clave).
 - **Elegir el modelo por zona:** el juez muestra que el mejor modelo cambia según la zona (León, Navarra y
   A Coruña frente al centro y el este). La app podría ejecutar el juez en las estaciones cercanas al usuario
   y elegir el modelo allí. No es de la fase 1; anotado como mejora posible.
