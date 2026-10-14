@@ -40,3 +40,8 @@
   durante varios días o buscar otra fuente de datos históricos horarios. Decidirlo en el paso 6,
   pero conviene empezar a guardar observaciones pronto.
 - **Clave de AEMET:** hace falta pedirla en opendata.aemet.es (gratuita, por correo) para el paso 6.
+- **Posible fuente alternativa para el juez (sin clave):** el archivo METAR de Iowa Environmental Mesonet
+  devuelve observaciones horarias pasadas de Barajas (LEMD), Cuatro Vientos (LEVS), Getafe (LEGT)
+  y Torrejón (LETO): dirección en grados, velocidad en nudos y rachas cuando se reportan.
+  Probado el 2026-10-14 con 7 y 8 de octubre: 24 registros por estación y día. Falta verificar licencia y límites
+  y decidir en el paso 6 (son aeródromos, no carreteras).
