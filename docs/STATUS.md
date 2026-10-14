@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 y 2 de 7 hechos)
+**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 a 3 de 7 hechos)
 
 Fase 1 — Viento en consola: terminada el 2026-10-14 (los 6 pasos hechos y el juez ejecutado).
 Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
@@ -13,14 +13,23 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   `GpxTrackPoint` (coordenada y altitud opcional) y `GpxWriter`. Escribe GPX 1.1 con un track y un segmento (lo que los
   GPS de bici importan como curso), UTF-8 sin BOM, punto decimal siempre, coordenadas a 7 decimales y altitud al
   decímetro. `GpxCopyright.OpenStreetMap` pone la atribución que pide la licencia ODbL.
+- **Motor de rutas** (`VientoHud.Core.Routing`): interfaz `IRouteEngine` (ruta por una lista de puntos de paso; para una
+  vuelta, el último es la salida), `Route` (puntos con altitud, distancia, desnivel, atribución) y `RouteSegment`
+  (tramos consecutivos con las etiquetas OSM, p. ej. `highway`, `surface`). Los fallos son `RouteException` con
+  `RouteFailure.Unreachable` (algún punto no se puede unir: moverlo puede ayudar) o `RouteFailure.Service`
+  (red, servidor o respuesta rara).
+- **Cliente de BRouter** (`BRouterRouteEngine`): sube el perfil estricto `road-strict.brf` (recurso incrustado en Core)
+  una vez y pide rutas en GeoJSON con el id que devuelve el servidor. Si el servidor responde 500 sin texto (perfil
+  perdido) lo sube de nuevo y repite una vez. Como mucho una petición por segundo (configurable). También admite un
+  perfil del servidor (`ServerProfile`, p. ej. `fastbike`) sin subir nada.
 
 ### Qué falta (fase 2)
 
 - [x] 1. Elegir el motor de rutas: **BRouter** con perfil estricto propio y puntos de paso calculados en Core
   (`DECISIONS.md` 013).
 - [x] 2. Escritor de GPX 1.1 en Core (track con puntos), validado en los tests contra el esquema oficial.
-- [ ] 3. Cliente de BRouter detrás de una interfaz: perfil estricto en el repositorio (añadir que prohíba
-  `highway=construction`; decidir qué hacer con `trunk` fuera de España), subida del perfil, ruta entre puntos de paso,
+- [x] 3. Cliente de BRouter detrás de una interfaz: perfil estricto en el repositorio (prohíbe también carreteras en
+  obras; `trunk` prohibido en todo el mundo, `DECISIONS.md` 013), subida del perfil, ruta entre puntos de paso,
   lectura de las etiquetas de cada tramo, errores ("target island", 400, 500) y fixtures grabadas.
 - [ ] 4. Generador de vueltas: puntos de paso según rumbo y distancia, ajuste de la distancia (±10 %), medida de la
   repetición y del desvío de cada punto, reintentos, descarte de candidatas con tramos prohibidos y varias candidatas.
@@ -42,7 +51,27 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   TopoGrafix, guardado en `Fixtures/Gpx/`; un test comprueba que la validación detecta una coma decimal. Otro fuerza la
   configuración española (`es-ES`) para comprobar que los decimales salen con punto. Se escribieron con `GpxWriter` dos
   vueltas reales de BRouter del paso 1 (León 103 km, Madrid 54 km): ~2.000 puntos y ~175 KB cada una.
-  **Pendiente:** abrirlas en gpx.studio y cargarlas en el GPS de la bici.
+  Se abren bien en gpx.studio (comprobado por el autor). **Pendiente:** cargar una en el Hammerhead Karoo del autor
+  (dashboard de Hammerhead → Routes → New Route → Import, y sincronizar).
+- Paso 3 (2026-10-14): 20 tests nuevos (150 en total) con respuestas reales grabadas en `Fixtures/BRouter/` (vuelta de
+  17,4 km en León, "target island", subida de perfil bien y con error). Comprueban la URL y el orden lon,lat de los
+  puntos (también con cultura `es-ES`), la subida única del perfil, la lectura de puntos, distancia, desnivel y
+  etiquetas, que los tramos cubren la ruta de punta a punta (la suma coincide al metro con la distancia de BRouter),
+  la nueva subida cuando el servidor pierde el perfil, cada tipo de error y la espera entre peticiones.
+  Prueba en vivo contra brouter.de, con el cliente subiendo el perfil él mismo: Madrid centro hacia el este 72,9 km,
+  Tres Cantos hacia el oeste 113,6 km, León hacia el este 80,2 km, **0 km prohibidos** en las tres (sin `trunk`,
+  pistas, obras ni firmes sin asfaltar). León hacia el oeste con radio 11 km da `Unreachable` ("target island").
+  Las distancias siguen muy lejos de lo pedido: eso es el paso 4.
+
+### Riesgos y pendientes (fase 2)
+
+- **BRouter lleva cada punto de paso a la vía permitida más cercana, aunque esté lejos:** un punto en el mar a 50 km
+  de Galicia dio HTTP 200 y una ruta de 446 km hasta la costa. El generador (paso 4) tiene que medir a qué distancia
+  pasa la ruta de cada punto pedido. La opción de BRouter para devolver los puntos (`exportWaypoints`) no sirve:
+  devuelve los pedidos, no los corregidos, y con JSON mal formado.
+- **HTTP 500 sin texto es ambiguo:** BRouter lo devuelve por perfil inexistente, por un solo punto y por coordenadas
+  inválidas. El cliente valida los puntos antes de llamar y lo trata como perfil perdido (vuelve a subirlo una vez).
+- **brouter.de sin política de uso publicada** (`DECISIONS.md` 013): si cae, no hay rutas.
 
 ## Fase 1
 

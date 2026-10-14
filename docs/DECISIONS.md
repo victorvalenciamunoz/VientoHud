@@ -215,6 +215,10 @@ Formato: contexto → decisión → alternativas descartadas.
   - Para la consola se usa el servidor público brouter.de con mesura: como mucho una petición por segundo y
     User-Agent propio.
   - El juez de la fase 2 comprueba las etiquetas OSM de cada tramo; el GPX lo escribimos nosotros, no el motor.
+  - Perfil (`src/VientoHud.Core/Routing/BRouter/road-strict.brf`, paso 3): `trunk` prohibido en todo el mundo, no solo
+    en España. En algunos países es una carretera normal y allí habrá más rodeos o rutas imposibles; se acepta antes que
+    arriesgarse a meter una autovía. También prohíbe carreteras en obras, escaleras y ferris. BRouter descarta cualquier
+    tramo con coste mayor de 9998, así que el tope de 9999 del perfil sigue siendo una prohibición.
 - Alternativas:
   - openrouteservice: la mejor opción con clave, pero vueltas de 100 km como máximo, no prohíbe `trunk` ni la tierra,
     y sus resultados quedan bajo CC BY-SA.

@@ -1,3 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <EmbeddedResource Include="Routing\BRouter\road-strict.brf" LogicalName="VientoHud.Core.Routing.BRouter.road-strict.brf" />
+  </ItemGroup>
+
 </Project>
