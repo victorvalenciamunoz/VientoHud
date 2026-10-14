@@ -3,14 +3,20 @@ using System.Text;
 
 namespace VientoHud.Core.Tests.Support;
 
-/// <summary>Returns a canned response and remembers the requests it received.</summary>
-internal sealed class StubHttpMessageHandler(HttpStatusCode status, string body) : HttpMessageHandler
+/// <summary>Answers each request with a canned response and remembers the requests it received.</summary>
+internal sealed class StubHttpMessageHandler(Func<Uri, (HttpStatusCode Status, string Body)> respond) : HttpMessageHandler
 {
+    public StubHttpMessageHandler(HttpStatusCode status, string body)
+        : this(_ => (status, body))
+    {
+    }
+
     public List<Uri> Requests { get; } = [];
 
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Requests.Add(request.RequestUri!);
+        var (status, body) = respond(request.RequestUri!);
         return Task.FromResult(new HttpResponseMessage(status)
         {
             Content = new StringContent(body, Encoding.UTF8, "application/json"),

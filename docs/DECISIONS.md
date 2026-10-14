@@ -49,7 +49,10 @@ Formato: contexto → decisión → alternativas descartadas.
 
 - Decisión: Open-Meteo como proveedor de previsión, detrás de una interfaz.
   Modelo por defecto `meteofrance_arome_france` (2,5 km, cubre Madrid, rachas por hora),
-  con `best_match` como alternativa cuando se pida más allá de 48 h. El modelo es configurable:
+  con `best_match` como alternativa para las horas que AROME no cubre (más allá de ~48 h) y para los sitios
+  fuera de su dominio (p. ej. Tarifa). Se pide un modelo por llamada y solo mientras falten horas: si se piden
+  varios en una llamada y alguno no cubre el sitio, Open-Meteo lo descarta en silencio y devuelve los campos sin
+  sufijo, y ya no se sabe de qué modelo es cada dato (descubierto en el paso 5). El modelo es configurable:
   el juez (paso 6) decidirá con datos cuál acierta más en la zona.
   Atribución a Open-Meteo en la salida de la consola y, en el futuro, en la app.
 - Alternativas descartadas:
@@ -71,3 +74,16 @@ Formato: contexto → decisión → alternativas descartadas.
   externa); exigir siempre `--lat/--lon` (descartada: va contra el principio de cero entrada manual).
 - Consecuencia: la consola solo compila y corre en Windows. El SDK descarga el paquete de referencia
   `Microsoft.Windows.SDK.NET.Ref` (de Microsoft) como parte del framework de destino; no es un `PackageReference` nuestro.
+
+## 007 — Regla "empieza hacia X"
+- Contexto: la fase 1 pide una regla básica para el sentido de salida, contra el viento medio de las próximas horas.
+- Decisión: media vectorial del viento de las horas de la salida (cada hora pesa según su velocidad;
+  350° y 10° dan 0°, no 180°). Se sale hacia la dirección de la que viene el viento medio: ida de cara,
+  vuelta a favor. Dos casos sin recomendación:
+  - Viento flojo: velocidad media < 5 km/h (tope de fuerza 1 Beaufort, poco frente a los 25-30 km/h de la bici).
+  - Viento variable: constancia (velocidad vectorial / velocidad media) < 0,7, más o menos direcciones repartidas
+    en ±80° alrededor de la media.
+  Los umbrales son configurables (`StartDirectionOptions`) y se afinarán con datos en la fase 3.
+- Alternativas: media aritmética de grados (descartada: falla al cruzar el norte); dirección de la hora más
+  ventosa (descartada: ignora el resto de la salida); ponderar más la segunda mitad de la ruta (se deja
+  para la fase 3, cuando se sepa a qué hora se pasa por cada tramo).

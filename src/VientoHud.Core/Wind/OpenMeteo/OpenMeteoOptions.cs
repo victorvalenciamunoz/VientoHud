@@ -7,7 +7,8 @@ public sealed record OpenMeteoOptions
 
     /// <summary>
     /// Models in order of preference. For each hour the first model with data wins, so a short-range,
-    /// high-resolution model can be listed before a long-range one that covers the rest (see DECISIONS 005).
+    /// high-resolution model can be listed before a long-range one that covers the rest, or the places outside
+    /// its domain (see DECISIONS 005).
     /// </summary>
     public IReadOnlyList<string> Models { get; init; } = ["meteofrance_arome_france", "best_match"];
 }
