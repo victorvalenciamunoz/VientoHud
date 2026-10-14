@@ -1,37 +1,40 @@
 # Estado
 
-**Fase actual: 1 — Viento en consola** (pasos 1 a 3 de 6 hechos)
+**Fase actual: 1 — Viento en consola** (pasos 1 a 4 de 6 hechos)
 
 ## Qué funciona
 
 - Solución .NET 10 (`VientoHud.slnx`) con tres proyectos:
-  - `src/VientoHud.Core`: tipos `Coordinate`, `WindSample`, `WindForecast`; interfaz `IWindForecastProvider`;
-    cliente `OpenMeteoWindForecastProvider`.
-  - `src/VientoHud.Console` (referencia a Core; solo imprime el nombre).
-  - `tests/VientoHud.Core.Tests` (xUnit, 29 tests).
+  - `src/VientoHud.Core`: tipos `Coordinate`, `WindSample`, `WindForecast`, `LocationFix`; interfaces `IWindForecastProvider`
+    e `ILocationProvider`; cliente `OpenMeteoWindForecastProvider`; `Compass` (grados a 16 rumbos).
+  - `src/VientoHud.Console` (ejecutable `vientohud`): comando `wind`.
+  - `tests/VientoHud.Core.Tests` (xUnit, 47 tests).
 - `global.json` fija el SDK 10.0.x (en la máquina hay una preview de .NET 11 que, si no, se usaría por defecto).
 - `Directory.Build.props` con ajustes comunes: `net10.0`, nullable, implicit usings y warnings como errores.
 - Repositorio git inicializado con `.gitignore` estándar de .NET.
 - **Cliente Open-Meteo:** pide un rango de horas en UTC con varios modelos en una sola llamada
   (por defecto AROME France y `best_match`). Para cada hora usa el primer modelo que tenga dato y lo apunta
-  en `WindSample.Model`, así que más allá de las ~36-48 h de AROME sigue con `best_match`.
+  en `WindSample.Model`, así que cuando AROME se acaba (unas 48 h) sigue con `best_match`.
   Errores de red, timeout, HTTP de error y JSON inválido acaban en `WindForecastException`.
 - **Proveedor falso** `FakeWindForecastProvider` en el proyecto de tests, para probar código que consume previsiones.
+- **Comando `wind`:** `dotnet run --project src/VientoHud.Console -- wind [--lat <grados> --lon <grados>] [--hours <1-168>]`.
+  Sin `--lat/--lon` usa la ubicación de Windows. Tabla por horas en hora local: viento, racha, de dónde viene
+  (16 rumbos en español y grados) y modelo. Termina con la atribución de Open-Meteo.
+  Códigos de salida: 0 bien, 1 error de previsión o ubicación, 2 argumentos incorrectos, 130 cancelado.
 
 ## Qué falta (fase 1)
 
 - [x] Crear la solución .NET 10: `VientoHud.Core`, `VientoHud.Console`, `VientoHud.Core.Tests`.
 - [x] Elegir el proveedor de previsión: **Open-Meteo**, modelo AROME France (ver `DECISIONS.md` 005).
 - [x] Interfaz del proveedor de previsión + implementación real + implementación falsa + fixtures grabados.
-- [ ] Comando de consola `wind [--lat --lon] [--hours 6]` con tabla por horas (velocidad, rachas, dirección).
+- [x] Comando de consola `wind [--lat --lon] [--hours 6]` con tabla por horas (velocidad, rachas, dirección).
 - [ ] Regla "empieza hacia X" (contra el viento medio de las próximas horas).
 - [ ] Juez: previsión vs observación de estaciones AEMET cercanas, al menos 5 días. Tabla de error aquí.
 
 ## Cómo se ha validado
 
 - `dotnet build`: 0 advertencias, 0 errores.
-- `dotnet test`: 29/29 superados.
-- `dotnet run --project src/VientoHud.Console` imprime `VientoHud`.
+- `dotnet test`: 47/47 superados.
 - Paso 2: llamadas reales a Open-Meteo para Madrid (40.4168, -3.7038). AROME France, AROME France HD,
   ICON-EU, ECMWF IFS y `best_match` devuelven 48/48 horas con velocidad, dirección y rachas.
   ICON-D2 y HARMONIE (KNMI, DMI) responden "No data is available for this location".
@@ -43,6 +46,11 @@
   al grabar; no se guardó el código HTTP, el test asume 503). Los tests comprueban la URL, los valores leídos,
   el cambio de modelo hora a hora y cada tipo de error. Aún no se ha llamado al cliente contra la API real
   desde código: se verá con el comando `wind` del paso 4.
+- Paso 4 (2026-10-14, 15:30): `wind` con la ubicación del dispositivo (Windows la dio con ±149 m) y con
+  coordenadas de Madrid devuelve datos reales. Con `--hours 72` salen 48 horas de AROME y 24 de `best_match`.
+  Probados argumentos erróneos (lat sin lon, latitud 95, `--hours 0`, opción desconocida) y coma decimal.
+  El formateo de la tabla y el análisis de argumentos no tienen tests automáticos: viven en la consola,
+  que no tiene proyecto de tests.
 
 ## Riesgos y pendientes detectados
 

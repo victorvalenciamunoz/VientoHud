@@ -60,3 +60,14 @@ Formato: contexto → decisión → alternativas descartadas.
   - AEMET sigue haciendo falta como juez: es la fuente de observaciones de estaciones (requiere clave).
   - El plan gratuito de Open-Meteo es no comercial. Si la app llegara a tener anuncios o suscripciones,
     habría que pasar a un plan de pago.
+
+## 006 — Ubicación en la consola: servicio de ubicación de Windows
+- Contexto: la ubicación debe salir del dispositivo (cero entrada manual). La consola corre en Windows.
+- Decisión: interfaz `ILocationProvider` en Core. La consola la implementa con `Windows.Devices.Geolocation`
+  (usa GPS, Wi-Fi o IP según lo que tenga Windows) y por eso apunta a `net10.0-windows10.0.19041.0`.
+  Core sigue en `net10.0` sin dependencias de plataforma. `--lat/--lon` quedan para probar otras ubicaciones.
+  La app MAUI aportará su propia implementación con el GPS del móvil.
+- Alternativas: geolocalización por IP con un servicio externo (descartada: menos precisa y otra dependencia
+  externa); exigir siempre `--lat/--lon` (descartada: va contra el principio de cero entrada manual).
+- Consecuencia: la consola solo compila y corre en Windows. El SDK descarga el paquete de referencia
+  `Microsoft.Windows.SDK.NET.Ref` (de Microsoft) como parte del framework de destino; no es un `PackageReference` nuestro.

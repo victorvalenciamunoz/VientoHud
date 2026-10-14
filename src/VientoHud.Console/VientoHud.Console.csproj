@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- Windows target only for the device location API (Windows.Devices.Geolocation). Core stays portable. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <!-- Avoid a VientoHud.Console namespace, which would shadow System.Console. -->
+    <RootNamespace>VientoHud.ConsoleApp</RootNamespace>
+    <AssemblyName>vientohud</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
