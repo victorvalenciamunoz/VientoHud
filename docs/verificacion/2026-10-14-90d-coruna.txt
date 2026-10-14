@@ -1,0 +1,26 @@
+Juez del viento · 90 días: 16 jul 2026 – 13 oct 2026 (UTC)
+Cerca de 43.3623, -8.4115 (indicada con --lat/--lon)
+Estaciones (METAR): LECO La Coruna (7 km) · LEST Santiago (53 km)
+Observaciones: 8.861
+
+                      Todas las horas                       Con viento (observado ≥ 12 km/h)
+Plazo  Modelo         Horas  Sesgo  Vel.  Dir.  ±45°        Horas  Sesgo  Vel.  Dir.  ±45°
+-----  -----------  ------  -----  ----  ----  ----      ------  -----  ----  ----  ----
+corto  AROME         4.317   -1,4   3,1   30°   80%       1.108   -3,4   4,2   15°   96%
+corto  best_match    4.317   -1,1   2,8   30°   80%       1.108   -2,8   3,6   20°   91%
+corto  ECMWF IFS     4.317   +0,5   3,0   30°   80%       1.108   -1,5   3,0   20°   91%
+24 h   AROME         3.244   -1,0   3,3   33°   78%         829   -3,1   4,2   17°   93%
+24 h   best_match    4.317   -0,9   3,0   32°   77%       1.108   -2,6   3,7   21°   92%
+24 h   ECMWF IFS     4.317   +0,6   3,2   33°   77%       1.108   -1,4   3,2   21°   89%
+
+Con viento (≥ 12 km/h), por estación: error de velocidad (km/h) · dirección dentro de ±45°
+                   AROME corto        AROME 24 h  best_match corto   best_match 24 h   ECMWF IFS corto    ECMWF IFS 24 h
+LECO                 3,8 · 94%         3,7 · 91%         3,6 · 87%         3,6 · 86%         3,0 · 84%         3,3 · 83%
+LEST                 4,5 · 98%         4,6 · 95%         3,6 · 95%         3,8 · 96%         3,0 · 98%         3,2 · 95%
+
+Sesgo: previsto − observado (negativo = el modelo se queda corto). Vel.: error medio de velocidad.
+Dir.: error medio de dirección (sin calma ni viento variable). ±45°: horas con la dirección dentro de ±45°.
+Corto: previsión de pocas horas antes. 24 h: previsión del día anterior.
+
+Weather data by Open-Meteo.com (CC BY 4.0)
+Observations: Iowa Environmental Mesonet, Iowa State University

@@ -1,0 +1,26 @@
+Juez del viento · 90 días: 16 jul 2026 – 13 oct 2026 (UTC)
+Cerca de 39.4699, -0.3763 (indicada con --lat/--lon)
+Estaciones (METAR): LEVC Valencia (9 km) · LEBT Valencia Betera (14 km)
+Observaciones: 8.640
+
+                      Todas las horas                       Con viento (observado ≥ 12 km/h)
+Plazo  Modelo         Horas  Sesgo  Vel.  Dir.  ±45°        Horas  Sesgo  Vel.  Dir.  ±45°
+-----  -----------  ------  -----  ----  ----  ----      ------  -----  ----  ----  ----
+corto  AROME         4.300   +0,3   3,2   29°   80%       1.234   -2,0   3,3   15°   96%
+corto  best_match    4.300   -1,7   3,5   29°   82%       1.234   -4,1   4,8   17°   96%
+corto  ECMWF IFS     4.300   -1,8   3,7   29°   81%       1.234   -4,8   5,3   18°   93%
+24 h   AROME         3.246   +0,8   3,7   34°   75%         886   -2,3   3,8   19°   91%
+24 h   best_match    4.300   -1,6   3,5   31°   80%       1.234   -4,1   4,9   18°   94%
+24 h   ECMWF IFS     4.300   -1,8   3,8   32°   79%       1.234   -5,0   5,5   20°   92%
+
+Con viento (≥ 12 km/h), por estación: error de velocidad (km/h) · dirección dentro de ±45°
+                   AROME corto        AROME 24 h  best_match corto   best_match 24 h   ECMWF IFS corto    ECMWF IFS 24 h
+LEVC                 3,8 · 95%         4,3 · 90%         6,3 · 95%         6,3 · 93%         6,8 · 92%         7,0 · 90%
+LEBT                 2,5 · 97%         2,7 · 94%         2,3 · 97%         2,5 · 96%         2,7 · 96%         3,0 · 95%
+
+Sesgo: previsto − observado (negativo = el modelo se queda corto). Vel.: error medio de velocidad.
+Dir.: error medio de dirección (sin calma ni viento variable). ±45°: horas con la dirección dentro de ±45°.
+Corto: previsión de pocas horas antes. 24 h: previsión del día anterior.
+
+Weather data by Open-Meteo.com (CC BY 4.0)
+Observations: Iowa Environmental Mesonet, Iowa State University

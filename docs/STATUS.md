@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 1 — Viento en consola** (pasos 1 a 5 de 6 hechos; paso 6 en curso: 6a, 6b y 6c hechos)
+**Fase actual: 1 — Viento en consola** (terminada el 2026-10-14: los 6 pasos hechos y el juez ejecutado)
 
 ## Qué funciona
 
@@ -8,9 +8,9 @@
   - `src/VientoHud.Core`: tipos `Coordinate`, `WindSample`, `WindForecast`, `LocationFix`; interfaces `IWindForecastProvider`
     e `ILocationProvider`; cliente `OpenMeteoWindForecastProvider`; `Compass` (grados a 16 rumbos); regla `StartDirection`;
     `IWindObservationSource` con cliente `IemWindObservationSource` (METAR); `IPastWindForecastSource` con cliente
-    `OpenMeteoPastWindForecastSource`; cálculo del error `WindVerification`.
-  - `src/VientoHud.Console` (ejecutable `vientohud`): comando `wind`.
-  - `tests/VientoHud.Core.Tests` (xUnit, 112 tests).
+    `OpenMeteoPastWindForecastSource`; cálculo del error `WindVerification` y orquestación `ForecastJudge`.
+  - `src/VientoHud.Console` (ejecutable `vientohud`): comandos `wind` y `verify`.
+  - `tests/VientoHud.Core.Tests` (xUnit, 117 tests).
 - `global.json` fija el SDK 10.0.x (en la máquina hay una preview de .NET 11 que, si no, se usaría por defecto).
 - `Directory.Build.props` con ajustes comunes: `net10.0`, nullable, implicit usings y warnings como errores.
 - Repositorio git inicializado con `.gitignore` estándar de .NET.
@@ -25,6 +25,9 @@
   (16 rumbos en español y grados) y modelo. Termina con la atribución de Open-Meteo.
   Al final, la recomendación de sentido de salida (ver `DECISIONS.md` 007).
   Códigos de salida: 0 bien, 1 error de previsión o ubicación, 2 argumentos incorrectos, 130 cancelado.
+- **Comando `verify`:** `vientohud verify [--lat --lon] [--days 30] [--until aaaa-mm-dd] [--stations 5] [--radius 100]
+  [--models a,b,c]`. Busca las estaciones METAR más cercanas, descarga observaciones y previsiones pasadas
+  (corto plazo y 24 h) y muestra el error por modelo, en total y con viento, y por estación. Unos segundos.
 
 ## Qué falta (fase 1)
 
@@ -33,21 +36,21 @@
 - [x] Interfaz del proveedor de previsión + implementación real + implementación falsa + fixtures grabados.
 - [x] Comando de consola `wind [--lat --lon] [--hours 6]` con tabla por horas (velocidad, rachas, dirección).
 - [x] Regla "empieza hacia X" (contra el viento medio de las próximas horas).
-- [ ] Juez: previsión vs observación, al menos 5 días. Tabla de error aquí. Dividido en:
+- [x] Juez: previsión vs observación, al menos 5 días. Tabla de error aquí. Dividido en:
   - [x] 6a. Observaciones: METAR de IEM, estaciones más cercanas a cualquier punto del mundo (`DECISIONS.md` 009).
   - [x] 6b. Previsiones pasadas de Open-Meteo: a 0-3 h (Historical Forecast API) y a 24 h (Previous Runs API),
     para AROME, `best_match` y ECMWF (`DECISIONS.md` 010).
   - [x] 6c. Cálculo del error en Core: emparejar previsión y observación por estación y hora; error medio de
     velocidad (absoluto y con signo), error angular de dirección, % de horas con la dirección dentro de ±45°. Por separado con viento
     observado flojo (< 12 km/h) y con viento (`DECISIONS.md` 011).
-  - [ ] 6d. Comando `verify`; ejecutarlo en Madrid y León (referencias, `DECISIONS.md` 008) sobre 7 días;
-    decidir si AROME sigue por delante de `best_match`.
+  - [x] 6d. Comando `verify`; ejecutado 90 días en 8 zonas y 365 días en Madrid y León. AROME sigue por delante
+    de `best_match` (`DECISIONS.md` 012).
   - [ ] Más adelante: AEMET como complemento para España cuando llegue la clave.
 
 ## Cómo se ha validado
 
 - `dotnet build`: 0 advertencias, 0 errores.
-- `dotnet test`: 112/112 superados.
+- `dotnet test`: 117/117 superados.
 - Paso 2: llamadas reales a Open-Meteo para Madrid (40.4168, -3.7038). AROME France, AROME France HD,
   ICON-EU, ECMWF IFS y `best_match` devuelven 48/48 horas con velocidad, dirección y rachas.
   ICON-D2 y HARMONIE (KNMI, DMI) responden "No data is available for this location".
@@ -84,6 +87,10 @@
   `ecmwf_ifs` a los dos plazos: errores de 2-4 km/h y 30-40°, peores a 24 h que a corto plazo. Solo 3 horas
   con viento ≥ 12 km/h en esos dos días: confirma que el juez necesita muchos más días. La prueba destapó que
   ECMWF IFS no archiva rachas a 24 h y esas horas se perdían; ahora la racha es opcional.
+- Paso 6d (2026-10-14): `ForecastJudge` probado con fuentes falsas (orden de veredictos, estaciones sin cobertura,
+  sin estaciones, periodo vacío). `verify` probado en vivo: errores de argumentos, 30 días en Madrid (5,7 s),
+  90 días en 8 zonas, 365 días en Madrid y León. Los resultados están en la sección "Juez del viento".
+  El formateo de `verify` no tiene tests automáticos (la consola no tiene proyecto de tests).
 
 ## Riesgos y pendientes detectados
 
@@ -91,5 +98,51 @@
   guardándola durante días. Útil sobre todo donde no hay aeródromos (montaña de León).
 - **Clave de AEMET:** pedida el 2026-10-14; el enlace de confirmación respondió 204 (éxito, sin contenido).
   Falta el correo con la clave. Solo hace falta para el complemento de AEMET.
+- **Elegir el modelo por zona:** el juez muestra que el mejor modelo cambia según la zona (León, Navarra y
+  A Coruña frente al centro y el este). La app podría ejecutar el juez en las estaciones cercanas al usuario
+  y elegir el modelo allí. No es de la fase 1; anotado como mejora posible.
 - **Pocas estaciones METAR fuera de las ciudades:** en León solo LELN en 100 km. El juez dirá qué modelo acierta
   más en zonas llanas y abiertas; en valles y montaña la comparación será menos representativa.
+
+## Juez del viento (fase 1)
+
+Ejecutado el 2026-10-14 con `verify`, 90 días (16 jul – 13 oct 2026), estaciones METAR más cercanas
+(salida completa en `docs/verificacion/`). Métricas definidas en `DECISIONS.md` 011.
+
+**Con viento observado ≥ 12 km/h, previsión a corto plazo.** Error medio de velocidad en km/h (sesgo entre
+paréntesis; negativo = el modelo se queda corto) y % de horas con la dirección dentro de ±45°:
+
+| Zona (estaciones) | Horas | AROME | best_match | ECMWF IFS |
+|---|---|---|---|---|
+| Madrid (LEVS, LEGT, LEMD, LETO, LECV) | 2.599 | **3,9** (−0,9) 95 % | 6,7 (−5,8) 95 % | 5,7 (−5,2) 94 % |
+| León (LELN) | 430 | 4,0 (−0,5) 89 % | **3,4** (−0,6) 93 % | 5,0 (−3,9) 86 % |
+| Navarra (LEPP, LESO, LELO) | 1.811 | 3,7 (−1,2) 94 % | **3,3** (−1,1) 98 % | 5,3 (−4,1) 88 % |
+| Zaragoza (LEZG, LEHC) | 1.894 | **3,6** (0,0) 96 % | 5,2 (−4,7) 96 % | 5,6 (−5,1) 93 % |
+| Burgos (LEBG) | 1.216 | **3,6** (−2,1) 97 % | 3,7 (−2,1) 95 % | 3,8 (−1,6) 96 % |
+| Sevilla (LEZL, LEMO, LEEC) | 1.537 | no cubre | **4,2** (−3,4) 96 % | 4,5 (−4,0) 95 % |
+| Valencia (LEVC, LEBT) | 1.234 | **3,3** (−2,0) 96 % | 4,8 (−4,1) 96 % | 5,3 (−4,8) 93 % |
+| A Coruña (LECO, LEST) | 1.108 | 4,2 (−3,4) 96 % | 3,6 (−2,8) 91 % | **3,0** (−1,5) 91 % |
+
+**Con viento, previsión del día anterior (24 h)**, error medio de velocidad: Madrid 4,5 / 6,6 / 5,8;
+León 5,4 / 5,3 / 5,4; Navarra 4,5 / 4,8 / 5,5; Zaragoza 4,7 / 5,5 / 5,8; Burgos 4,3 / 4,1 / 3,9;
+Sevilla — / 4,5 / 4,8; Valencia 3,8 / 4,9 / 5,5; A Coruña 4,2 / 3,7 / 3,2 (AROME / best_match / ECMWF).
+Dirección dentro de ±45°: 81-95 %.
+
+**Todas las horas** (la mayoría con viento flojo): error medio de velocidad 2,5-4,7 km/h y de dirección 22-43°
+según zona, modelo y plazo. Con viento flojo la dirección vale poco en cualquier modelo.
+
+**Un año** (14 oct 2025 – 13 oct 2026), con viento, corto plazo: Madrid AROME 4,3 km/h (−1,0) frente a
+`best_match` 7,7 (−7,3), 10.600 horas; León AROME 3,9 frente a `best_match` 3,1, 1.467 horas.
+Confirma que el resultado no es cosa del verano.
+
+**AROME HD** (1,5 km), 90 días, con viento, corto plazo: Madrid 3,8, León 4,3, Navarra 3,7, A Coruña 3,6 km/h;
+igual que AROME salvo en A Coruña.
+
+**Conclusiones** (`DECISIONS.md` 012):
+- Con viento de verdad, la dirección prevista es fiable (≈ 95 % dentro de ±45° a corto plazo): la regla
+  "empieza hacia X" se apoya en algo sólido cuando sopla.
+- Los modelos globales se quedan cortos de velocidad 4-7 km/h en el centro y el este. AROME casi no tiene sesgo.
+- Se mantiene AROME → `best_match`.
+
+**Cautelas:** son aeródromos (llano y despejado); el archivo de AROME a 24 h solo cubre ~90 días, por eso tiene
+menos horas a ese plazo; León tiene una sola estación.

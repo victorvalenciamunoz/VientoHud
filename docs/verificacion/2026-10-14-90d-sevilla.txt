@@ -1,0 +1,28 @@
+Juez del viento · 90 días: 16 jul 2026 – 13 oct 2026 (UTC)
+Cerca de 37.3891, -5.9845 (indicada con --lat/--lon)
+Estaciones (METAR): LEZL Sevilla (9 km) · LEMO Sevilla (42 km) · LEEC Sevilla (44 km)
+Observaciones: 9.765
+
+                      Todas las horas                       Con viento (observado ≥ 12 km/h)
+Plazo  Modelo         Horas  Sesgo  Vel.  Dir.  ±45°        Horas  Sesgo  Vel.  Dir.  ±45°
+-----  -----------  ------  -----  ----  ----  ----      ------  -----  ----  ----  ----
+corto  AROME             0      —     —     —     —           0      —     —     —     —
+corto  best_match    4.898   -1,4   3,1   29°   81%       1.537   -3,4   4,2   16°   96%
+corto  ECMWF IFS     4.898   -1,5   3,2   30°   80%       1.537   -4,0   4,5   17°   95%
+24 h   AROME             0      —     —     —     —           0      —     —     —     —
+24 h   best_match    4.898   -1,5   3,4   34°   77%       1.537   -3,8   4,5   18°   94%
+24 h   ECMWF IFS     4.898   -1,5   3,4   34°   76%       1.537   -4,2   4,8   19°   92%
+
+Con viento (≥ 12 km/h), por estación: error de velocidad (km/h) · dirección dentro de ±45°
+                   AROME corto        AROME 24 h  best_match corto   best_match 24 h   ECMWF IFS corto    ECMWF IFS 24 h
+LEZL             sin cobertura     sin cobertura         4,7 · 95%         5,1 · 94%         5,2 · 93%         5,4 · 91%
+LEMO             sin cobertura     sin cobertura         3,7 · 97%         4,0 · 95%         3,9 · 97%         4,2 · 93%
+LEEC             sin cobertura     sin cobertura         4,3 · 89%         4,1 · 87%         4,3 · 88%         4,4 · 87%
+
+Sesgo: previsto − observado (negativo = el modelo se queda corto). Vel.: error medio de velocidad.
+Dir.: error medio de dirección (sin calma ni viento variable). ±45°: horas con la dirección dentro de ±45°.
+Corto: previsión de pocas horas antes. 24 h: previsión del día anterior.
+AROME no cubre: LEZL, LEMO, LEEC.
+
+Weather data by Open-Meteo.com (CC BY 4.0)
+Observations: Iowa Environmental Mesonet, Iowa State University

@@ -152,3 +152,24 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: interpolar la observación a la hora en punto (descartado: el METAR en punto existe casi siempre);
   RMSE en lugar de error absoluto medio (penaliza mucho los fallos grandes aislados; se puede añadir si hace falta);
   separar por viento previsto (mide otra cosa: si fiarse de la previsión cuando dice que hará viento).
+
+## 012 — El juez confirma AROME primero y `best_match` después
+- Contexto: DECISIONS 005 eligió AROME por resolución, sin datos; DECISIONS 008 pedía mantenerlo solo si el juez
+  demostraba que acierta más. Juez ejecutado el 2026-10-14 (`verify`, 90 días en 8 zonas de España y 365 días en
+  Madrid y León; resultados en `docs/verificacion/` y tabla en `STATUS.md`).
+- Resultado, en horas con viento observado ≥ 12 km/h (las que importan en bici):
+  - La **dirección** la aciertan todos los modelos parecido: 89-98 % de horas dentro de ±45° a corto plazo.
+  - La **velocidad** es lo que los separa. Los modelos globales (`best_match` en el centro y el este, ECMWF)
+    se quedan cortos de forma sistemática, 4-7 km/h. AROME tiene sesgo pequeño (−2 a 0 km/h, salvo A Coruña −3,4).
+  - AROME gana con claridad en Madrid (3,9 frente a 6,7 km/h de error medio; en un año 4,3 frente a 7,7),
+    Zaragoza (3,6 frente a 5,2) y Valencia (3,3 frente a 4,8). Empata en Burgos. Pierde por poco en León (4,0
+    frente a 3,4; en un año 3,9 frente a 3,1) y Navarra (3,7 frente a 3,3), y en A Coruña gana ECMWF (3,0 frente a 4,2).
+  - AROME HD (1,5 km) no mejora a AROME de forma apreciable salvo en A Coruña.
+  - AROME no cubre Sevilla; ahí `best_match` (4,2 km/h) va bien.
+- Decisión: se mantiene el orden AROME → `best_match`. Donde AROME pierde, pierde por menos de 1 km/h;
+  donde gana, gana por 1,5-3,4 km/h, y fuera de su dominio `best_match` cubre el resto del mundo.
+- Alternativas: `best_match` solo (descartado: en Madrid falla casi el doble con viento); elegir el modelo por
+  zona con el propio juez (posible mejora futura: la app podría ejecutar el juez en las estaciones cercanas
+  al usuario y quedarse con el modelo que mejor acierta allí).
+- Limitaciones: estaciones en aeródromos; el archivo de AROME a 24 h solo cubre ~90 días; no se sabe qué modelo
+  usa `best_match` en cada zona (en el norte acierta más de lo que explicaría ECMWF y no es AROME HD).

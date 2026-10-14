@@ -1,0 +1,27 @@
+Juez del viento · 365 días: 14 oct 2025 – 13 oct 2026 (UTC)
+Cerca de 40.4168, -3.7038 (indicada con --lat/--lon)
+Estaciones (METAR): LEVS CUATRO VIENTOS (8 km) · LEGT Madrid (13 km) · LEMD Madrid (14 km) · LETO Madrid (23 km) · LECV MADRI-COLMENAR (32 km)
+Observaciones: 70.145
+
+                      Todas las horas                       Con viento (observado ≥ 12 km/h)
+Plazo  Modelo         Horas  Sesgo  Vel.  Dir.  ±45°        Horas  Sesgo  Vel.  Dir.  ±45°
+-----  -----------  ------  -----  ----  ----  ----      ------  -----  ----  ----  ----
+corto  AROME        34.925   +0,8   3,6   30°   81%      10.600   -1,0   4,3   17°   95%
+corto  best_match   34.925   -3,0   4,2   30°   81%      10.600   -7,3   7,7   17°   94%
+24 h   AROME         7.314   +1,3   3,9   39°   72%       1.651   -0,7   4,5   23°   88%
+24 h   best_match   34.925   -2,8   4,4   34°   77%      10.600   -7,2   7,7   21°   92%
+
+Con viento (≥ 12 km/h), por estación: error de velocidad (km/h) · dirección dentro de ±45°
+                   AROME corto        AROME 24 h  best_match corto   best_match 24 h
+LEVS                 4,0 · 95%         4,4 · 90%         7,5 · 96%         7,5 · 93%
+LEGT                 3,9 · 95%         4,3 · 88%         7,8 · 94%         7,6 · 91%
+LEMD                 4,8 · 95%         5,0 · 87%         7,7 · 94%         7,9 · 91%
+LETO                 4,4 · 94%         4,6 · 84%         8,7 · 94%         8,7 · 92%
+LECV                 4,4 · 94%         4,5 · 92%         4,7 · 95%         5,1 · 91%
+
+Sesgo: previsto − observado (negativo = el modelo se queda corto). Vel.: error medio de velocidad.
+Dir.: error medio de dirección (sin calma ni viento variable). ±45°: horas con la dirección dentro de ±45°.
+Corto: previsión de pocas horas antes. 24 h: previsión del día anterior.
+
+Weather data by Open-Meteo.com (CC BY 4.0)
+Observations: Iowa Environmental Mesonet, Iowa State University

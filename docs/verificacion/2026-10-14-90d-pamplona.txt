@@ -1,0 +1,27 @@
+Juez del viento · 90 días: 16 jul 2026 – 13 oct 2026 (UTC)
+Cerca de 42.8125, -1.6458 (indicada con --lat/--lon)
+Estaciones (METAR): LEPP Pamplona (4 km) · LESO San Sebastian (62 km) · LELO Logroño-Agoncillo (69 km)
+Observaciones: 13.060
+
+                      Todas las horas                       Con viento (observado ≥ 12 km/h)
+Plazo  Modelo         Horas  Sesgo  Vel.  Dir.  ±45°        Horas  Sesgo  Vel.  Dir.  ±45°
+-----  -----------  ------  -----  ----  ----  ----      ------  -----  ----  ----  ----
+corto  AROME         6.464   +0,9   3,3   28°   83%       1.811   -1,2   3,7   19°   94%
+corto  best_match    6.464   +0,6   2,8   22°   90%       1.811   -1,1   3,3   14°   98%
+corto  ECMWF IFS     6.464   -0,1   3,8   33°   78%       1.811   -4,1   5,3   24°   88%
+24 h   AROME         4.866   +1,2   3,9   35°   76%       1.288   -1,3   4,5   24°   90%
+24 h   best_match    6.464   +0,6   3,8   35°   77%       1.811   -2,4   4,8   25°   88%
+24 h   ECMWF IFS     6.464   -0,1   4,0   34°   76%       1.811   -4,2   5,5   26°   86%
+
+Con viento (≥ 12 km/h), por estación: error de velocidad (km/h) · dirección dentro de ±45°
+                   AROME corto        AROME 24 h  best_match corto   best_match 24 h   ECMWF IFS corto    ECMWF IFS 24 h
+LEPP                 3,7 · 96%         4,7 · 91%         3,0 · 98%         5,4 · 92%         6,5 · 96%         6,5 · 94%
+LESO                 3,6 · 91%         4,2 · 87%         3,0 · 98%         4,1 · 87%         3,9 · 87%         4,4 · 81%
+LELO                 3,7 · 93%         4,5 · 89%         3,8 · 97%         4,4 · 84%         4,2 · 79%         4,5 · 76%
+
+Sesgo: previsto − observado (negativo = el modelo se queda corto). Vel.: error medio de velocidad.
+Dir.: error medio de dirección (sin calma ni viento variable). ±45°: horas con la dirección dentro de ±45°.
+Corto: previsión de pocas horas antes. 24 h: previsión del día anterior.
+
+Weather data by Open-Meteo.com (CC BY 4.0)
+Observations: Iowa Environmental Mesonet, Iowa State University
