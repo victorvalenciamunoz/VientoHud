@@ -173,3 +173,63 @@ Formato: contexto → decisión → alternativas descartadas.
   al usuario y quedarse con el modelo que mejor acierta allí).
 - Limitaciones: estaciones en aeródromos; el archivo de AROME a 24 h solo cubre ~90 días; no se sabe qué modelo
   usa `best_match` en cada zona (en el norte acierta más de lo que explicaría ECMWF y no es AROME HD).
+
+## 013 — Motor de rutas: BRouter con perfil estricto y puntos de paso propios
+- Contexto: la fase 2 necesita rutas circulares de bici de carretera en cualquier sitio del mundo (DECISIONS 008):
+  solo asfalto, sin autovías (DECISIONS 003), sin backend propio (DECISIONS 001). Investigado el 2026-10-14 en las
+  fuentes oficiales y con llamadas reales: vueltas de ~60-100 km desde Madrid centro, Tres Cantos y León capital,
+  contando los km por tipo de vía (`highway`) y firme (`surface`) que devuelve el propio motor.
+- Comparación:
+
+  | | BRouter | openrouteservice | GraphHopper | Valhalla (FOSSGIS) | OSRM | Motor propio (Itinero) |
+  |---|---|---|---|---|---|---|
+  | Clave | No | Sí, gratis | Sí, gratis | No | No | — |
+  | Límites | Ninguno publicado (servidor de buena voluntad) | 2.000/día, 40/min | 500 créditos/día; vuelta circular = 2 | 1 petición/s; comercial solo si no es esencial; no fijar la URL en apps | 1 petición/s | — |
+  | Vuelta circular | Sí (`engineMode=4`, con rumbo) | Sí, máx. 100 km | No en el plan gratuito (exige modo flexible) | No | No (`trip` solo ordena puntos) | No |
+  | Bici de carretera | Perfiles de serie y **perfil propio subido al servidor** | `cycling-road`: permite `trunk`, no excluye la tierra; sin `custom_model` en la API pública | `racingbike` y `custom_model` solo de pago; gratuito no comercial | `bicycle_type=Road`, sin reglas a medida | Solo bici urbana | Por hacer |
+  | Tipo de vía y firme por tramo | Sí, etiquetas OSM (`WayTags`) | Sí (`extra_info`) | Sí (`details`) | Sí, con `trace_attributes` | No | — |
+  | Software | MIT, 1.7.10 (jul 2026) | GPL-3; resultados CC BY-SA | Apache-2.0 | MIT, 3.9.1 (oct 2026) | BSD | Itinero 2 en alfa, no publicado en NuGet |
+  | Android sin conexión | Sí: la app BRouter ofrece servicio a otras apps (AIDL) | No | No | No | No | Mucho trabajo |
+
+- Pruebas reales:
+  - BRouter con los perfiles de serie (`fastbike`, `fastbike-lowtraffic`, `fastbike-verylowtraffic`,
+    `racebike-verylowtraffic`): vueltas en 0,5-5 s, pero con 5-17 km de pistas de tierra y tramos cortos de `trunk`.
+    Sus perfiles solo penalizan lo no asfaltado; no lo prohíben.
+  - BRouter con un perfil estricto derivado de `fastbike` (prohíbe `trunk`, firmes declarados sin asfaltar y pistas,
+    caminos y sendas salvo que estén declarados asfaltados): **0 km dudosos** en todas las vueltas. Con destinos a los
+    que solo se llega por tierra no la pisa: se para en la carretera asfaltada más cercana (a 1,8-2,6 km del punto).
+    `fastbike` metía 2,9-4,5 km de pista para esos mismos destinos.
+  - El modo circular del servidor falla con perfiles propios (error interno "dummy.brf"), pero las rutas normales
+    funcionan; por eso los puntos de paso los calculamos nosotros.
+  - Valhalla `Road`: poca tierra (1-2 km) pero 8,5 km de `trunk` en León, sin forma de prohibirlo.
+  - openrouteservice y GraphHopper: 401 sin clave (no se pidió clave).
+  - Con cualquier motor, poner los puntos de paso en un círculo no basta: con el mismo radio salieron vueltas de
+    54 a 114 km, y en León hacia el este la ruta repetía la mitad del recorrido (puntos en mitad del campo).
+    A veces un punto cae junto a un trozo de vía aislado y el motor responde "target island detected".
+- Decisión: enfoque mixto.
+  - **Core genera los puntos de paso** (rumbo y radio según la distancia), ajusta la distancia con unas pocas
+    llamadas, mide la repetición y el desvío de cada punto, reintenta los "islotes" y descarta las candidatas con
+    tramos prohibidos. Así controlamos el rumbo de salida, que la fase 3 necesita para el viento.
+  - **BRouter une los puntos** con nuestro perfil estricto, guardado en el repositorio y subido al servidor
+    (`POST /brouter/profile`) en cada sesión, detrás de una interfaz en Core.
+  - Para la consola se usa el servidor público brouter.de con mesura: como mucho una petición por segundo y
+    User-Agent propio.
+  - El juez de la fase 2 comprueba las etiquetas OSM de cada tramo; el GPX lo escribimos nosotros, no el motor.
+- Alternativas:
+  - openrouteservice: la mejor opción con clave, pero vueltas de 100 km como máximo, no prohíbe `trunk` ni la tierra,
+    y sus resultados quedan bajo CC BY-SA.
+  - GraphHopper de pago: perfiles a medida y vuelta circular con rumbo; candidato si algún día se paga un servicio.
+  - Geoapify (revisado solo en documentación, por terceros): clave gratuita sin tarjeta, 3.000 créditos/día, uso
+    comercial; sus "evitar" son blandos, habría que validar y descartar después. Reserva si BRouter falla.
+  - Valhalla y OSRM de FOSSGIS: condiciones de uso poco aptas para una app y sin forma de prohibir `trunk`
+    (Valhalla) o sin perfil de carretera (OSRM).
+  - Motor propio (Itinero 2, Routino): mucho trabajo, alojarlo nosotros y sin ventaja sobre el perfil de BRouter.
+  - Descartados por documentación: Mapbox (`exclude=unpaved` solo para coche), HERE (bici en beta sobre la red
+    peatonal), TomTom (evitar blando), CycleStreets (centrado en Reino Unido, sin excluir tierra), RouteYou
+    (comercial, condiciones desconocidas), Mapsource (programa de escritorio de Garmin, sin API).
+- Riesgos:
+  - brouter.de no publica política de uso ni garantías. Si cae, la consola no puede generar rutas.
+    No se sabe cuánto conserva los perfiles subidos (por eso se suben en cada sesión).
+  - Ningún perfil detecta una pista que OpenStreetMap no tenga etiquetada como tal.
+- Para la fase 6 (se decidirá entonces): BRouter en el propio móvil (la app BRouter como servicio, sin conexión y
+  sin depender de un servidor ajeno) u OsmAnd, revisando su licencia (GPL).

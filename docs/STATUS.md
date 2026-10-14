@@ -1,9 +1,38 @@
 # Estado
 
-**Fase actual: 2 — Rutas circulares + GPX** (sin empezar)
+**Fase actual: 2 — Rutas circulares + GPX** (paso 1 de 7 hecho)
 
 Fase 1 — Viento en consola: terminada el 2026-10-14 (los 6 pasos hechos y el juez ejecutado).
-El resto de este documento describe lo hecho en la fase 1.
+Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
+
+## Fase 2
+
+### Qué falta (fase 2)
+
+- [x] 1. Elegir el motor de rutas: **BRouter** con perfil estricto propio y puntos de paso calculados en Core
+  (`DECISIONS.md` 013).
+- [ ] 2. Escritor de GPX 1.1 en Core (track con puntos), validado en los tests contra el esquema oficial.
+- [ ] 3. Cliente de BRouter detrás de una interfaz: perfil estricto en el repositorio (añadir que prohíba
+  `highway=construction`; decidir qué hacer con `trunk` fuera de España), subida del perfil, ruta entre puntos de paso,
+  lectura de las etiquetas de cada tramo, errores ("target island", 400, 500) y fixtures grabadas.
+- [ ] 4. Generador de vueltas: puntos de paso según rumbo y distancia, ajuste de la distancia (±10 %), medida de la
+  repetición y del desvío de cada punto, reintentos, descarte de candidatas con tramos prohibidos y varias candidatas.
+  Probado con un motor falso.
+- [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
+  `[--lat --lon] [--count 3]`: escribe los GPX y un resumen.
+- [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
+  y León con varias distancias; abrir en gpx.studio y cargar en el GPS de la bici.
+- [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
+  urbano (la salida de Madrid).
+
+### Cómo se ha validado (fase 2)
+
+- Paso 1 (2026-10-14): llamadas reales a BRouter (brouter.de), Valhalla y OSRM (FOSSGIS); openrouteservice y
+  GraphHopper responden 401 sin clave. Vueltas desde Madrid centro, Tres Cantos y León capital contando km por tipo
+  de vía y firme con las etiquetas que devuelve BRouter (y `trace_attributes` en Valhalla). Resultados en
+  `DECISIONS.md` 013. Los scripts de prueba no se han guardado en el repositorio: el cliente real llega en el paso 3.
+
+## Fase 1
 
 ## Qué funciona
 
