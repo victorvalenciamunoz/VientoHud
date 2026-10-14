@@ -121,3 +121,17 @@ Formato: contexto → decisión → alternativas descartadas.
     en Trinidad), lo que provoca descargas de más, sin afectar al resultado.
 - Alternativas: AEMET OpenData (se añadirá como complemento para España cuando llegue la clave, guardando
   observaciones con el tiempo); NOAA ISD (más pesado de descargar y procesar).
+
+## 010 — Previsiones pasadas para el juez: archivos de Open-Meteo, dos plazos
+- Contexto: para juzgar un modelo hay que saber qué previó para horas que ya pasaron, y a qué plazo.
+- Decisión: dos plazos, detrás de `IPastWindForecastSource`:
+  - **Corto plazo** (`ShortRange`), Historical Forecast API: las primeras horas de cada pasada del modelo cosidas.
+    Es la previsión a pocas horas vista (dentro del intervalo entre pasadas): el caso "salgo ahora".
+  - **Un día antes** (`DayAhead`), Previous Runs API con `_previous_day1`: lo que se previó 24 h antes.
+    El caso "mañana salgo".
+  Verificado el 2026-10-14: ambas aceptan AROME, `best_match`, `ecmwf_ifs` (9 km) y `ecmwf_ifs025`, con rachas,
+  archivo desde enero de 2024 (antes devuelven `null`), y varias ubicaciones en una sola llamada.
+  Si el modelo no cubre alguna de las ubicaciones, Open-Meteo rechaza la llamada entera; entonces se repite
+  ubicación por ubicación y las no cubiertas quedan marcadas (sin celda ni horas), sin error.
+- Alternativas: Single Runs API (cada pasada completa; más fiel a un plazo exacto, pero muchas más llamadas);
+  guardar nosotros las previsiones cada día (descartado: el archivo ya existe y llega a 2024).

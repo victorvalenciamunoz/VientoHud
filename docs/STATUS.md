@@ -1,15 +1,16 @@
 # Estado
 
-**Fase actual: 1 — Viento en consola** (pasos 1 a 5 de 6 hechos; paso 6 en curso: 6a hecho)
+**Fase actual: 1 — Viento en consola** (pasos 1 a 5 de 6 hechos; paso 6 en curso: 6a y 6b hechos)
 
 ## Qué funciona
 
 - Solución .NET 10 (`VientoHud.slnx`) con tres proyectos:
   - `src/VientoHud.Core`: tipos `Coordinate`, `WindSample`, `WindForecast`, `LocationFix`; interfaces `IWindForecastProvider`
     e `ILocationProvider`; cliente `OpenMeteoWindForecastProvider`; `Compass` (grados a 16 rumbos); regla `StartDirection`;
-    `IWindObservationSource` con cliente `IemWindObservationSource` (METAR).
+    `IWindObservationSource` con cliente `IemWindObservationSource` (METAR); `IPastWindForecastSource` con cliente
+    `OpenMeteoPastWindForecastSource`.
   - `src/VientoHud.Console` (ejecutable `vientohud`): comando `wind`.
-  - `tests/VientoHud.Core.Tests` (xUnit, 76 tests).
+  - `tests/VientoHud.Core.Tests` (xUnit, 86 tests).
 - `global.json` fija el SDK 10.0.x (en la máquina hay una preview de .NET 11 que, si no, se usaría por defecto).
 - `Directory.Build.props` con ajustes comunes: `net10.0`, nullable, implicit usings y warnings como errores.
 - Repositorio git inicializado con `.gitignore` estándar de .NET.
@@ -34,8 +35,8 @@
 - [x] Regla "empieza hacia X" (contra el viento medio de las próximas horas).
 - [ ] Juez: previsión vs observación, al menos 5 días. Tabla de error aquí. Dividido en:
   - [x] 6a. Observaciones: METAR de IEM, estaciones más cercanas a cualquier punto del mundo (`DECISIONS.md` 009).
-  - [ ] 6b. Previsiones pasadas de Open-Meteo: a 0-3 h (Historical Forecast API) y a 24 h (Previous Runs API),
-    para AROME, `best_match` y ECMWF.
+  - [x] 6b. Previsiones pasadas de Open-Meteo: a 0-3 h (Historical Forecast API) y a 24 h (Previous Runs API),
+    para AROME, `best_match` y ECMWF (`DECISIONS.md` 010).
   - [ ] 6c. Cálculo del error en Core: emparejar previsión y observación por estación y hora; error medio de
     velocidad (absoluto y con signo), error angular de dirección, % de horas con la dirección dentro de ±45°.
   - [ ] 6d. Comando `verify`; ejecutarlo en Madrid y León (referencias, `DECISIONS.md` 008) sobre 7 días;
@@ -45,7 +46,7 @@
 ## Cómo se ha validado
 
 - `dotnet build`: 0 advertencias, 0 errores.
-- `dotnet test`: 76/76 superados.
+- `dotnet test`: 86/86 superados.
 - Paso 2: llamadas reales a Open-Meteo para Madrid (40.4168, -3.7038). AROME France, AROME France HD,
   ICON-EU, ECMWF IFS y `best_match` devuelven 48/48 horas con velocidad, dirección y rachas.
   ICON-D2 y HARMONIE (KNMI, DMI) responden "No data is available for this location".
@@ -70,6 +71,12 @@
   LEMD 14 km, LETO 23 km, LECV 32 km; León → solo LELN 7 km; Tarifa → Algeciras, Gibraltar, Ceuta, Tánger,
   Tetuán; Nebraska → 5 aeródromos; mitad del Atlántico → ninguna. Observaciones de LEMD y LELN del 1 al 3 de octubre:
   196 registros, con VRB, calma y rachas bien interpretados. Fixtures reales en `Fixtures/Iem/`.
+- Paso 6b (2026-10-14): prueba en vivo de los dos archivos de Open-Meteo con AROME en Barajas y León, 1-2 de octubre:
+  48 horas por estación y plazo. Tarifa sale "sin cobertura" tras repetir la petición por estación.
+  Primer vistazo a ojo (1 oct 00:00 UTC): Barajas observado 340° 7 km/h, AROME corto plazo 310° 11 km/h,
+  un día antes 324° 6 km/h; León observado 350° 7 km/h, corto plazo 340° 8 km/h, un día antes 296° 17 km/h.
+  Sin vueltas de 180° ni desfases evidentes. Se sacó a `OpenMeteoApi` lo común con el cliente de previsión;
+  `wind` sigue funcionando en vivo (León y Tarifa).
 
 ## Riesgos y pendientes detectados
 
