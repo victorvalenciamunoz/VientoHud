@@ -1,14 +1,15 @@
 # Estado
 
-**Fase actual: 1 — Viento en consola** (pasos 1 a 5 de 6 hechos)
+**Fase actual: 1 — Viento en consola** (pasos 1 a 5 de 6 hechos; paso 6 en curso: 6a hecho)
 
 ## Qué funciona
 
 - Solución .NET 10 (`VientoHud.slnx`) con tres proyectos:
   - `src/VientoHud.Core`: tipos `Coordinate`, `WindSample`, `WindForecast`, `LocationFix`; interfaces `IWindForecastProvider`
-    e `ILocationProvider`; cliente `OpenMeteoWindForecastProvider`; `Compass` (grados a 16 rumbos); regla `StartDirection`.
+    e `ILocationProvider`; cliente `OpenMeteoWindForecastProvider`; `Compass` (grados a 16 rumbos); regla `StartDirection`;
+    `IWindObservationSource` con cliente `IemWindObservationSource` (METAR).
   - `src/VientoHud.Console` (ejecutable `vientohud`): comando `wind`.
-  - `tests/VientoHud.Core.Tests` (xUnit, 60 tests).
+  - `tests/VientoHud.Core.Tests` (xUnit, 76 tests).
 - `global.json` fija el SDK 10.0.x (en la máquina hay una preview de .NET 11 que, si no, se usaría por defecto).
 - `Directory.Build.props` con ajustes comunes: `net10.0`, nullable, implicit usings y warnings como errores.
 - Repositorio git inicializado con `.gitignore` estándar de .NET.
@@ -31,12 +32,20 @@
 - [x] Interfaz del proveedor de previsión + implementación real + implementación falsa + fixtures grabados.
 - [x] Comando de consola `wind [--lat --lon] [--hours 6]` con tabla por horas (velocidad, rachas, dirección).
 - [x] Regla "empieza hacia X" (contra el viento medio de las próximas horas).
-- [ ] Juez: previsión vs observación de estaciones AEMET cercanas, al menos 5 días. Tabla de error aquí.
+- [ ] Juez: previsión vs observación, al menos 5 días. Tabla de error aquí. Dividido en:
+  - [x] 6a. Observaciones: METAR de IEM, estaciones más cercanas a cualquier punto del mundo (`DECISIONS.md` 009).
+  - [ ] 6b. Previsiones pasadas de Open-Meteo: a 0-3 h (Historical Forecast API) y a 24 h (Previous Runs API),
+    para AROME, `best_match` y ECMWF.
+  - [ ] 6c. Cálculo del error en Core: emparejar previsión y observación por estación y hora; error medio de
+    velocidad (absoluto y con signo), error angular de dirección, % de horas con la dirección dentro de ±45°.
+  - [ ] 6d. Comando `verify`; ejecutarlo en Madrid y León (referencias, `DECISIONS.md` 008) sobre 7 días;
+    decidir si AROME sigue por delante de `best_match`.
+  - [ ] Más adelante: AEMET como complemento para España cuando llegue la clave.
 
 ## Cómo se ha validado
 
 - `dotnet build`: 0 advertencias, 0 errores.
-- `dotnet test`: 60/60 superados.
+- `dotnet test`: 76/76 superados.
 - Paso 2: llamadas reales a Open-Meteo para Madrid (40.4168, -3.7038). AROME France, AROME France HD,
   ICON-EU, ECMWF IFS y `best_match` devuelven 48/48 horas con velocidad, dirección y rachas.
   ICON-D2 y HARMONIE (KNMI, DMI) responden "No data is available for this location".
@@ -57,17 +66,16 @@
   Madrid 72 h: viento variable. Al probar Tarifa salió que pedir varios modelos en una llamada era ambiguo:
   se cambió el cliente a un modelo por llamada y se grabaron fixtures nuevas por modelo.
   Un test destapó que con vientos opuestos el redondeo dejaba una dirección inventada; corregido con tolerancia.
+- Paso 6a (2026-10-14): prueba en vivo contra IEM. Estaciones a menos de 100 km: Madrid → LEVS 8 km, LEGT 13 km,
+  LEMD 14 km, LETO 23 km, LECV 32 km; León → solo LELN 7 km; Tarifa → Algeciras, Gibraltar, Ceuta, Tánger,
+  Tetuán; Nebraska → 5 aeródromos; mitad del Atlántico → ninguna. Observaciones de LEMD y LELN del 1 al 3 de octubre:
+  196 registros, con VRB, calma y rachas bien interpretados. Fixtures reales en `Fixtures/Iem/`.
 
 ## Riesgos y pendientes detectados
 
-- **Juez (paso 6):** la observación horaria de AEMET (`/api/observacion/convencional/...`) solo cubre
-  las últimas 12 horas. Los climatológicos diarios dan valores del día (viento medio, racha máxima),
-  no horarios. Para tener 5 días de observaciones horarias hay que guardar la observación cada pocas horas
-  durante varios días o buscar otra fuente de datos históricos horarios. Decidirlo en el paso 6,
-  pero conviene empezar a guardar observaciones pronto.
-- **Clave de AEMET:** pedida el 2026-10-14, pendiente de llegar. Solo hace falta para el paso 6.
-- **Posible fuente alternativa para el juez (sin clave):** el archivo METAR de Iowa Environmental Mesonet
-  devuelve observaciones horarias pasadas de Barajas (LEMD), Cuatro Vientos (LEVS), Getafe (LEGT)
-  y Torrejón (LETO): dirección en grados, velocidad en nudos y rachas cuando se reportan.
-  Probado el 2026-10-14 con 7 y 8 de octubre: 24 registros por estación y día. Falta verificar licencia y límites
-  y decidir en el paso 6 (son aeródromos, no carreteras).
+- **Juez con AEMET (complemento):** su observación horaria solo cubre las últimas 12 horas; habrá que ir
+  guardándola durante días. Útil sobre todo donde no hay aeródromos (montaña de León).
+- **Clave de AEMET:** pedida el 2026-10-14; el enlace de confirmación respondió 204 (éxito, sin contenido).
+  Falta el correo con la clave. Solo hace falta para el complemento de AEMET.
+- **Pocas estaciones METAR fuera de las ciudades:** en León solo LELN en 100 km. El juez dirá qué modelo acierta
+  más en zonas llanas y abiertas; en valles y montaña la comparación será menos representativa.

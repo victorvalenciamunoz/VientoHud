@@ -100,3 +100,24 @@ Formato: contexto → decisión → alternativas descartadas.
     más; si no, `best_match` (que ya elige el mejor modelo disponible en cada sitio) es la opción más sencilla
     para una app global.
 - Alternativas: centrarse en España con AEMET como fuente principal (descartada: limita la app sin necesidad).
+
+## 009 — Observaciones para el juez: METAR del archivo de IEM
+- Contexto: el juez necesita viento observado por horas en días pasados, en cualquier parte del mundo (DECISIONS 008).
+  AEMET solo da las últimas 12 horas, solo en España y con clave (pedida, aún sin llegar).
+- Decisión: archivo METAR de Iowa Environmental Mesonet (Iowa State University), detrás de `IWindObservationSource`.
+  Verificado el 2026-10-14:
+  - Licencia: dominio público ("may be used freely by anyone for any lawful purpose"); agradecen la atribución.
+  - Sin clave. Límite: una petición por segundo y por IP (429 si se supera); 422 si se piden más de
+    1.000 estaciones-año de golpe.
+  - Cobertura mundial de aeródromos, con historia de décadas. METAR cada 30-60 min, viento medio de 10 min
+    a 10 m, dirección respecto al norte geográfico redondeada a 10°, velocidad en nudos.
+  - Búsqueda de estaciones cercanas: IEM no la tiene; se descarga la lista de redes (una por país o estado de EE. UU.),
+    se eligen las que tienen el rectángulo cerca del punto y se calcula la distancia a cada estación.
+- Limitaciones asumidas:
+  - Son aeródromos: zonas llanas y despejadas, no valles ni puertos. En León solo hay una estación en 100 km (LELN).
+  - Rachas solo cuando son significativas; el modelo da la racha máxima de la hora. No son comparables directamente.
+  - Calma y viento variable (VRB) no tienen dirección.
+  - Algunas redes tienen el rectángulo inflado por estaciones mal asignadas (Austria incluye Puerto España,
+    en Trinidad), lo que provoca descargas de más, sin afectar al resultado.
+- Alternativas: AEMET OpenData (se añadirá como complemento para España cuando llegue la clave, guardando
+  observaciones con el tiempo); NOAA ISD (más pesado de descargar y procesar).
