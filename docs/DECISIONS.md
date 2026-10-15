@@ -463,3 +463,22 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: pesos para cara/favor/lado/rachas (no hay forma de fijarlos con criterio); penalizar el viento por
   posición con pesos lineales a lo largo de la ruta (con viento constante también da lo mismo en los dos sentidos y
   añade un peso más); que las rachas resten puntos en vez de ordenar primero (mezcla seguridad y comodidad).
+
+## 023 — Rumbos según el viento y explicación por tramos
+- Contexto: la fase 3 (paso 3d) tiene que buscar las vueltas donde el viento las favorece (no cada 120°) y explicar
+  cada una en pocas líneas. Con DECISIONS 022 se vio que lo que decide es qué vuelta (que su mitad quede contra el
+  viento), no el sentido.
+- Decisión (del autor, 2026-10-15; `RideBearings`): con viento claro (regla "empieza hacia X" de la fase 1,
+  DECISIONS 007, sobre las horas de la salida), **una vuelta justo contra el viento y las demás a ±45°**, luego ±90°…
+  Con calma o viento variable, repartidas cada 360°/n desde el norte, como en la fase 2. En el ejemplo de La Bañeza
+  (viento del 194°) ganó la de 240°, a 46°: hace falta margen a los lados porque justo contra el viento puede no haber
+  vuelta válida (hacia el sur no la hubo).
+- Decisión (del autor): **un GPX por vuelta, en su mejor sentido**, numerados por puesto (el otro sentido apenas cambia
+  la puntuación).
+- Explicación (técnica; `WindStretches`): cada tramo de 1 km se clasifica por cómo se nota el viento (de cara, a
+  favor, de lado por la derecha o por la izquierda, según la componente mayor; flojo si ninguna llega a 5 km/h); los
+  tramos seguidos iguales se unen y los de menos de 5 km se pegan a su vecino más largo, hasta que todos llegan a 5 km.
+  Cada tramo da la media de lo que se nota y la racha de lado más fuerte. Una vuelta de 60 km queda en unas 4 líneas.
+- Alternativas: ±30° (las tres pueden salir parecidas o fallar donde hay pocas carreteras) o ±60° (las de los lados ya
+  llevan mucho viento de lado); escribir los dos sentidos (6 ficheros) o solo la ganadora; tramos fijos de 10 km en la
+  explicación (cortan por la mitad los cambios de viento).

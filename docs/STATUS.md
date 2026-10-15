@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a a 3c-2 hechos)
+**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a a 3d-1 hechos)
 
 ## Fase 3
 
@@ -21,6 +21,10 @@
   medio en la primera mitad − en la segunda; tramos con racha de lado > 40 km/h (límite del autor). Ordena primero
   por km con racha peligrosa y después por ventaja. `RankAsync` puntúa varias vueltas en los dos sentidos
   (`Route.Reversed`) con una sola llamada de previsión.
+- **Rumbos según el viento** (`RideBearings`; `DECISIONS.md` 023): con viento claro, una vuelta justo contra él y las
+  demás a ±45°, ±90°…; con calma o viento variable, repartidas como en la fase 2.
+- **Explicación por tramos** (`WindStretches`): agrupa los tramos de 1 km en tramos de al menos 5 km según cómo se nota
+  el viento (de cara, a favor, de lado por la derecha o la izquierda, flojo), con su media y la racha de lado máxima.
 
 ### Qué falta (fase 3)
 
@@ -35,8 +39,10 @@ División aceptada por el autor el 2026-10-15:
 - [x] 3c-2. Puntuación: viento de cara en la primera mitad, a favor en la segunda, penalizar rachas fuertes de lado;
   cada vuelta en los dos sentidos. Sin pesos: ventaja de viento por mitades y límite de racha de lado de 40 km/h
   (**decisión del autor**). Ejemplos revisados por el autor (abajo).
-- [ ] 3d. Consola: `route` elige los rumbos alrededor del viento (no cada 120°) y el sentido, ordena por puntuación con
-  explicación por tramos ("km 0-18: de cara 12 km/h…") y admite la hora de salida (por defecto, ahora).
+- [x] 3d-1. Core: rumbos contra el viento ±45° (**decisión del autor**) y explicación por tramos.
+- [ ] 3d-2. Consola: `route` usa los rumbos según el viento, ordena por puntuación con la explicación por tramos
+  ("km 0-18: de cara 12 km/h…"), admite la hora de salida (`--at`, por defecto ahora) y escribe un GPX por vuelta en su
+  mejor sentido (**decisión del autor**).
 - [ ] 3e. Juez: días pasados, recalcular la puntuación con el viento observado (METAR, fase 1) y ver si la ruta
   elegida con la previsión seguía siendo buena.
 
@@ -81,6 +87,13 @@ Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018):
   luego 120° (+4,2), 300° (+0,9) y últimas 0° y 60° (−13 a −16). Rachas de lado de 31-38 km/h: ninguna sobre 40.
   **El autor miró los GPX** (2026-10-15) y el orden le parece correcto: "al ser circulares siempre hay tramo que da
   mal el aire", pero la elegida pone la mayor parte del viento de cara al principio.
+- Paso 3d-1 (2026-10-15): 12 tests nuevos (352 en total): rumbos 194°, 239°, 149° con viento del 194°; 6 rumbos
+  abriéndose a ±45°, ±90° y 135°; uno solo, contra el viento; con calma o viento variable, 0°, 120°, 240°; abertura
+  configurable. Tramos: de cara, de lado por la derecha, a favor, flojo y de lado por la izquierda en su sitio y con
+  su media; un tramo corto se pega al vecino más largo y dos iguales se unen al quitar el que los separaba; una salida
+  más corta que el mínimo es un solo tramo; la racha de lado máxima. Con el ejemplo de La Bañeza (`rank.cs`), la
+  ganadora queda en 4 tramos: km 0-15 de cara 11 km/h, 15-30 de lado por la izquierda 10, 30-42 a favor 11 y 42-60 de
+  lado por la derecha 15.
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 

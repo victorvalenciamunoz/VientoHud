@@ -45,6 +45,13 @@ for (var i = 0; i < options.Count; i++)
     var file = Path.Combine(outDir, $"{i + 1:00}-rumbo-{bearing:000}-{turn}.gpx");
     using var f = File.Create(file);
     GpxWriter.Write(GpxTrack.FromRoute(o.Route, $"#{i + 1} rumbo {bearing:0}° {turn} (ventaja {o.Score.WindAdvantageKmh:+0;-0} km/h)", departure), f);
+    if (i < 2)
+    {
+        foreach (var s in WindStretches.Describe(o.Winds))
+        {
+            Console.WriteLine($"      km {s.StartKm:0}-{s.EndKm:0}: {s.Feel} {s.MeanKmh:0} km/h, racha de lado hasta {s.MaxCrossGustKmh:0}");
+        }
+    }
 }
 
 static string Describe(LocalWind w) => $"{w.SpeedKmh:0} km/h desde {w.DirectionFromDegrees:0}° ({Compass.ToCompassPoint(w.DirectionFromDegrees)}), racha {w.GustKmh:0}";
