@@ -1,0 +1,56 @@
+# vientohud route, 2026-10-15, tras recordar la longitud de las carreteras entre rumbos y girar ±10°
+
+Vueltas de 60 km desde 42.3000, -5.8980 (indicada con --lat/--lon)
+Rumbos: hacia el N (0°), hacia el ESE (120°), hacia el OSO (240°). Puede tardar un minuto.
+
+  hacia el N (0°): vuelta de 62,7 km (5 peticiones)
+  hacia el ESE (120°): vuelta de 54,3 km (4 peticiones)
+  hacia el OSO (240°): vuelta de 60,4 km (3 peticiones)
+
+1. hacia el OSO (240°): 60,4 km (+1 %), desnivel 338 m, nacionales (trunk) 0 km, repite 0 %
+   GPX: C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-banezaB\vuelta-60km-OSO-20261015-1411.gpx
+2. hacia el N (0°): 62,7 km (+4 %), desnivel 108 m, nacionales (trunk) 0,1 km, repite 0 %
+   GPX: C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-banezaB\vuelta-60km-N-20261015-1411.gpx
+3. hacia el ESE (120°): 54,3 km (-10 %), desnivel 92 m, nacionales (trunk) 0,1 km, repite 0 %
+   GPX: C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-banezaB\vuelta-60km-ESE-20261015-1411.gpx
+
+12 peticiones al motor de rutas.
+Routing: BRouter (brouter.de) · Map data © OpenStreetMap contributors (ODbL)
+código 0
+
+Vueltas de 60 km desde 40.2842, -3.7942 (indicada con --lat/--lon)
+Rumbos: hacia el N (0°), hacia el ESE (120°), hacia el OSO (240°). Puede tardar un minuto.
+
+  hacia el N (0°): vuelta de 58,6 km (2 peticiones)
+  hacia el ESE (120°): vuelta de 54,4 km (11 peticiones)
+  hacia el OSO (240°): sin vuelta válida (12 peticiones; la más cercana falla por distancia)
+
+1. hacia el N (0°): 58,6 km (-2 %), desnivel 334 m, nacionales (trunk) 1,3 km, repite 0 %
+   GPX: C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-fuenlaB\vuelta-60km-N-20261015-1416.gpx
+2. hacia el ESE (120°): 54,4 km (-9 %), desnivel 196 m, nacionales (trunk) 11,6 km, repite 50 %
+   GPX: C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-fuenlaB\vuelta-60km-ESE-20261015-1416.gpx
+3. hacia el OSO (240°): sin vuelta válida. La más cercana: 53,5 km (-11 %), desnivel 287 m, nacionales (trunk) 0 km, repite 18 %. Falla: distancia.
+   GPX (descartada): C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-fuenlaB\vuelta-60km-OSO-20261015-1416-descartada.gpx
+
+25 peticiones al motor de rutas.
+Routing: BRouter (brouter.de) · Map data © OpenStreetMap contributors (ODbL)
+código 0
+
+Vueltas de 60 km desde 40.6006, -3.7083 (indicada con --lat/--lon)
+Rumbos: hacia el N (0°), hacia el ESE (120°), hacia el OSO (240°). Puede tardar un minuto.
+
+  hacia el N (0°): sin vuelta válida (12 peticiones; la más cercana falla por distancia, se aleja del rumbo)
+  hacia el ESE (120°): vuelta de 61,7 km (1 peticiones)
+  hacia el OSO (240°): sin vuelta válida (12 peticiones; la más cercana falla por distancia, medias vueltas)
+
+1. hacia el ESE (120°): 61,7 km (+3 %), desnivel 399 m, nacionales (trunk) 0,2 km, repite 21 %
+   GPX: C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-tresB\vuelta-60km-ESE-20261015-1422.gpx
+2. hacia el OSO (240°): sin vuelta válida. La más cercana: 99,1 km (+65 %), desnivel 906 m, nacionales (trunk) 0 km, repite 0 %. Falla: distancia, medias vueltas.
+   GPX (descartada): C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-tresB\vuelta-60km-OSO-20261015-1422-descartada.gpx
+3. hacia el N (0°): sin vuelta válida. La más cercana: 51 km (-15 %), desnivel 333 m, nacionales (trunk) 0,2 km, repite 64 %. Falla: distancia, se aleja del rumbo.
+   GPX (descartada): C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-tresB\vuelta-60km-N-20261015-1422-descartada.gpx
+
+25 peticiones al motor de rutas.
+Routing: BRouter (brouter.de) · Map data © OpenStreetMap contributors (ODbL)
+código 0
+

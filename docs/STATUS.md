@@ -130,6 +130,18 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
     - Resumen con las reglas actuales: **4 de 9 válidas**, todas limpias (medias vueltas restantes de 40-80 m). Las 5
       que fallan, fallan por distancia; dos de ellas tienen buena forma pero se pasan (+20 %, +35 %). **Siguiente
       mejora: el control de la distancia.**
+    - [x] Control de la distancia mejorado (2026-10-15): al girar de rumbo, el radio inicial sale de la mediana de km de
+      ruta por km de radio medida hasta entonces; giros ±10°, ±20°, ±40°; hasta 4 radios por rumbo. Repetido en vivo
+      con La Bañeza en lugar de León capital (a petición del autor, conoce mejor sus carreteras), registro en
+      `docs/verificacion/fase2-route-vivo-2-2026-10-15.txt`, 62 peticiones sin bloqueos:
+      - La Bañeza: **3 de 3** en 12 peticiones (N 62,7 km, ESE 54,3 km, OSO 60,4 km), las tres sin repetir nada, sin
+        medias vueltas y con 0-0,1 km por `trunk`.
+      - Fuenlabrada: 2 de 3 (antes 1): N 58,6 km; ESE 54,4 km (globo, 50 % repetido sin ramales, 11,6 km por `trunk`);
+        OSO se queda en −11 %.
+      - Tres Cantos: 1 de 3, como antes (ESE 61,7 km); N (−15 %, se aleja del rumbo) y OSO (+65 %) sin vuelta: la
+        geografía (El Pardo, autovías).
+      - Total **6 de 9** (antes 4 de 9, con León capital en lugar de La Bañeza). **Pendiente:** que el autor revise
+        las tres de La Bañeza en gpx.studio.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
   y León con varias distancias; abrir en gpx.studio y cargar en el GPS de la bici.
 - [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
