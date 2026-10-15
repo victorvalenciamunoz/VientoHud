@@ -375,3 +375,20 @@ Formato: contexto → decisión → alternativas descartadas.
   - Comprobado: la misma vuelta da exactamente las mismas rutas que brouter.de, en 9 s en lugar de ~1 min.
 - Alternativas: seguir con brouter.de espaciando las pruebas (lento y con riesgo de bloqueo); BRouter en Docker (más
   piezas sin ventaja en Windows); motor propio (descartado en DECISIONS 013).
+
+## 019 — Tramos de la ruta: iguales, de ~1 km, con el rumbo de la línea recta
+- Contexto: la fase 3 (paso 3a) necesita saber hacia dónde va la ruta y a qué hora pasa por cada sitio para cruzarlo
+  con el viento.
+- Decisión (técnica, 2026-10-15; `RouteLegs`):
+  - La ruta se parte en **N tramos iguales**, con N = longitud / 1 km redondeada (al menos uno): no queda un tramo
+    suelto al final. La longitud se mide a lo largo del track (puede diferir un poco de la que da BRouter).
+  - **Rumbo del tramo:** el de la línea recta de su principio a su final (grados HACIA). Para el viento de cara o a
+    favor es exacto: el efecto de un viento constante a lo largo de las curvas del tramo suma lo mismo que sobre esa
+    línea recta. Para el viento de lado no lo es (en un zigzag se queda corto).
+  - **Rectitud:** línea recta / longitud del tramo (1 = recto; cerca de 0 = vuelve sobre sí mismo, como un giro de
+    180°, y su rumbo no significa nada). Multiplicando la componente de cara por la rectitud sale la media exacta.
+  - **Hora de paso:** salida + km / velocidad media (25 km/h por defecto, la misma que `--hours`). El ajuste por el
+    viento queda para el paso 3c.
+- Alternativas: tramos de 1 km exacto con uno más corto al final (un tramo de 100 m pesaría como uno entero si se
+  promedia por tramos); un tramo por cada segmento del track (cientos de tramos de pocos metros, con rumbos ruidosos);
+  rumbo medio de los segmentos (no tiene la propiedad de la suma exacta).

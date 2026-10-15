@@ -1,14 +1,21 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (sin empezar)
+**Fase actual: 3 — Viento en la ruta** (en curso: paso 3a hecho)
 
 ## Fase 3
+
+### Qué funciona (fase 3)
+
+- **Tramos de la ruta** (`RouteLegs.Split`, `RouteLeg`; `DECISIONS.md` 019): parte una ruta en tramos iguales de ~1 km
+  (N = longitud redondeada) con su principio y final, rumbo de la línea recta (grados HACIA), rectitud (1 = recto,
+  ~0 = vuelve sobre sí mismo) y hora de paso al principio, a la mitad y al final (UTC), desde la hora de salida a una
+  velocidad media fija (25 km/h por defecto). Sin red.
 
 ### Qué falta (fase 3)
 
 División aceptada por el autor el 2026-10-15:
 
-- [ ] 3a. Tramos y horas de paso: cortar la ruta en tramos de ~1 km con su rumbo (grados HACIA) y la hora a la que se
+- [x] 3a. Tramos y horas de paso: cortar la ruta en tramos de ~1 km con su rumbo (grados HACIA) y la hora a la que se
   pasa por cada uno (hora de salida + velocidad media). En Core, sin red, probado con rutas grabadas.
 - [ ] 3b. Viento en cada tramo: previsión de Open-Meteo (AROME → `best_match`, como en la fase 1) en pocos puntos de la
   ruta y en una sola llamada, a la hora de paso; componente de cara/a favor y de lado (viento DESDE frente a rumbo HACIA).
@@ -22,6 +29,17 @@ División aceptada por el autor el 2026-10-15:
   elegida con la previsión seguía siendo buena.
 
 Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018): no cargar brouter.de.
+
+### Cómo se ha validado (fase 3)
+
+- Paso 3a (2026-10-15): 21 tests nuevos (292 en total). Rutas inventadas: una recta de 10 km da 10 tramos con su rumbo
+  y una hora cada 2,4 min a 25 km/h (3 min a 20 km/h); 10,4 km dan 10 tramos de 1,04 km y 10,6 km dan 11; un cuadrado
+  recorrido en sentido horario da los rumbos 90°, 180°, 270° y 0°; ir y volver 500 m da un tramo con rectitud ~0;
+  cruza bien el meridiano 180°. Salidas grabadas: en la de Boadilla los tramos van seguidos, empiezan sobre el track
+  y suman su longitud; en la de La Bañeza (ida y vuelta) la ida y la vuelta apuntan en sentidos opuestos (más de 170°).
+  Rechaza salida que no esté en UTC, velocidades fuera de 5-60 km/h, tramos fuera de 0,1-10 km y rutas sin longitud.
+  A mano con `tools/investigacion/legs.cs` sobre La Bañeza: 96 tramos, ida al suroeste (210-275°), vuelta al noreste,
+  y la zona del giro (km 46-51) con tramos poco rectos (0,6-0,7) y rumbos variados, como corresponde.
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 

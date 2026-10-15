@@ -24,3 +24,4 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `stubs.cs` | Medias vueltas cortas de un GPX (entrar y salir por el mismo sitio): dónde y cuánto entra. Lo usé para medir las de las vueltas de León antes de llevarlo a `RouteAnalyzer`. |
 | `judge.cs` | Juez de la fase 2: genera vueltas en varias salidas y distancias contra un BRouter (pensado para el local) y saca una tabla con validez, error de distancia, km por tipo de vía y sin dato de firme, repetición, medias vueltas y validez del GPX contra el esquema. |
 | `togpx.cs` | Convierte una respuesta grabada de BRouter en GPX para mirarla en gpx.studio. |
+| `legs.cs` | Fase 3: tramos de ~1 km de un GPX (`RouteLegs`) con su rumbo, rectitud y hora de paso. |
