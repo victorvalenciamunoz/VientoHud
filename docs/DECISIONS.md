@@ -269,3 +269,22 @@ Formato: contexto → decisión → alternativas descartadas.
   cuentan como repetidas. El tiempo crece con el cuadrado de la longitud (~0,1 s para 80 km en Debug).
 - Alternativas: muestras contra muestras (lo usado en el paso 1; subestima); comparar tramos por identificador de vía
   OSM (BRouter no lo devuelve); Overpass para las etiquetas (saturado y una dependencia más).
+
+## 015 — Forma válida de una ruta: se puede repetir la cuerda, no hacer estrellas
+- Contexto: las vueltas en abanico salían como estrellas (entrar y salir de cada punto de paso por el mismo ramal), con
+  un 48-84 % del recorrido repetido. Pero repetir no siempre está mal: una salida real del autor (Humanes, 73 km) es un
+  globo, sale y vuelve por los mismos ~19 km y da una vuelta al final, y repite el 50 %. También valen las idas y vueltas
+  puras cuando no hay vuelta posible (un valle que acaba en un puerto). Un límite al % repetido rechazaría rutas buenas.
+- Decisión (aceptada por el autor, 2026-10-15): lo que se mide es **dónde** se repite.
+  - **Cuerda:** salir y volver a casa por la misma carretera. Se busca desde cada extremo del track: los puntos repetidos
+    cuya otra pasada está en la otra mitad del recorrido (huecos de menos de 1 km permitidos, como los 500 m junto a
+    casa, que nunca cuentan como repetidos). Puede ser tan larga como haga falta.
+  - **Repetición fuera de la cuerda:** lo repetido en cualquier otro sitio, los ramales de ida y vuelta en mitad de la
+    ruta. Una vuelta, un globo y una ida y vuelta pura dan casi 0; una estrella da mucho.
+  - Con datos: globo del autor 0 % fuera de la cuerda (cuerda de 38,9 km contando ida y vuelta); vuelta del autor por
+    Soto de la Vega 0 %; vuelta generada por León oeste 2 %; vuelta corta por León capital 6 % (rodeos de ciudad);
+    estrellas generadas 35-84 %.
+  - Criterio para el generador (4c), **umbral provisional**: como mucho un 10 % fuera de la cuerda, para tolerar rodeos
+    de ciudad. Se revisará con los datos de la prueba en vivo.
+- Alternativas: límite al % repetido total (rechaza globos e idas y vueltas); contar puntos de giro (no distingue un
+  ramal corto de una media vuelta en una rotonda; la separación de 1 km ya ignora esos giros cortos).

@@ -1,0 +1,6 @@
+Salidas reales en bici del autor, grabadas con Garmin y exportadas desde Garmin Connect. Solo se guardan las posiciones
+(7 decimales) y la altitud; se han quitado horas, pulso, temperatura y datos del dispositivo. Usadas con su permiso como
+ejemplos de rutas buenas.
+
+- `humanes-balloon-2026-09-13.gpx`: Humanes de Madrid, 13 sept. 2026, 73,3 km. Forma de globo: sale y vuelve por los
+  mismos ~19 km de carretera (la cuerda) y da una vuelta al final. Repite el 50 %, todo en la cuerda: es una ruta válida.

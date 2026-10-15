@@ -8,17 +8,23 @@ internal readonly record struct PlanePoint(double X, double Y)
     public static PlanePoint Lerp(PlanePoint a, PlanePoint b, double t) => new(a.X + (b.X - a.X) * t, a.Y + (b.Y - a.Y) * t);
 
     /// <summary>Distance to the straight segment from <paramref name="a"/> to <paramref name="b"/>.</summary>
-    public double DistanceToSegment(PlanePoint a, PlanePoint b)
+    public double DistanceToSegment(PlanePoint a, PlanePoint b) => ClosestOnSegment(a, b).DistanceKm;
+
+    /// <summary>
+    /// Distance to the straight segment from <paramref name="a"/> to <paramref name="b"/>, and where its closest point
+    /// is, as a fraction of the way from a (0) to b (1).
+    /// </summary>
+    public (double DistanceKm, double Fraction) ClosestOnSegment(PlanePoint a, PlanePoint b)
     {
         var dx = b.X - a.X;
         var dy = b.Y - a.Y;
         var lengthSquared = dx * dx + dy * dy;
         if (lengthSquared == 0)
         {
-            return DistanceTo(a);
+            return (DistanceTo(a), 0);
         }
         var t = Math.Clamp(((X - a.X) * dx + (Y - a.Y) * dy) / lengthSquared, 0, 1);
-        return DistanceTo(new PlanePoint(a.X + t * dx, a.Y + t * dy));
+        return (DistanceTo(Lerp(a, b, t)), t);
     }
 }
 
@@ -95,37 +101,44 @@ internal sealed class ProjectedTrack
     }
 
     /// <summary>
-    /// Shortest distance from <paramref name="p"/> to the parts of the track more than <paramref name="gapKm"/> away
-    /// from <paramref name="alongKm"/> when measured along the track. On a <paramref name="closed"/> track (a loop that
-    /// ends where it starts) that distance is measured around the loop, so the end and the start are next to each other.
-    /// Stops early once a distance below <paramref name="stopBelowKm"/> is found.
+    /// The closest point to <paramref name="p"/> among the parts of the track more than <paramref name="gapKm"/> away
+    /// from <paramref name="alongKm"/> when measured along the track: how far it is and where it is along the track.
+    /// On a <paramref name="closed"/> track (a loop that ends where it starts) the separation is measured around the
+    /// loop, so the end and the start are next to each other. Infinite distance if there are no such parts.
     /// </summary>
-    public double DistanceAwayFrom(PlanePoint p, double alongKm, double gapKm, bool closed, double stopBelowKm)
+    public (double DistanceKm, double AlongKm) ClosestAwayFrom(PlanePoint p, double alongKm, double gapKm, bool closed)
     {
-        var wrap = closed ? LengthKm : 0;
-        var before = DistanceWithin(p, Math.Max(0, alongKm + gapKm - wrap), alongKm - gapKm, stopBelowKm);
-        return before < stopBelowKm
-            ? before
-            : Math.Min(before, DistanceWithin(p, alongKm + gapKm, Math.Min(LengthKm, alongKm - gapKm + wrap), stopBelowKm));
+        // On a closed track, the parts just before the end are close to a point just after the start, and vice versa.
+        var before = ClosestWithin(p, closed ? Math.Max(0, alongKm + gapKm - LengthKm) : 0, alongKm - gapKm);
+        var after = ClosestWithin(p, alongKm + gapKm, closed ? Math.Min(LengthKm, alongKm - gapKm + LengthKm) : LengthKm);
+        return before.DistanceKm <= after.DistanceKm ? before : after;
     }
 
-    /// <summary>Shortest distance from <paramref name="p"/> to the track between two distances along it.</summary>
-    private double DistanceWithin(PlanePoint p, double fromKm, double toKm, double stopBelowKm)
+    /// <summary>The closest point to <paramref name="p"/> on the track between two distances along it.</summary>
+    private (double DistanceKm, double AlongKm) ClosestWithin(PlanePoint p, double fromKm, double toKm)
     {
-        var best = double.PositiveInfinity;
-        for (var i = 1; i < Points.Count && best >= stopBelowKm; i++)
+        var best = (DistanceKm: double.PositiveInfinity, AlongKm: double.NaN);
+        for (var i = 1; i < Points.Count; i++)
         {
             double start = AlongKm[i - 1], end = AlongKm[i];
             if (end <= fromKm || start >= toKm)
             {
                 continue;
             }
-            var a = start >= fromKm ? Points[i - 1] : Lerp(i - 1, fromKm);
-            var b = end <= toKm ? Points[i] : Lerp(i - 1, toKm);
-            best = Math.Min(best, p.DistanceToSegment(a, b));
+            var a = start >= fromKm ? start : fromKm;
+            var b = end <= toKm ? end : toKm;
+            var (distance, t) = p.ClosestOnSegment(At(a, i - 1), At(b, i - 1));
+            if (distance < best.DistanceKm)
+            {
+                best = (distance, a + t * (b - a));
+            }
         }
         return best;
     }
+
+    // Point at alongKm, known to be on the segment that starts at point i.
+    private PlanePoint At(double alongKm, int i) =>
+        alongKm == AlongKm[i] ? Points[i] : alongKm == AlongKm[i + 1] ? Points[i + 1] : Lerp(i, alongKm);
 
     // Point at alongKm on the segment that starts at point i.
     private PlanePoint Lerp(int i, double alongKm)

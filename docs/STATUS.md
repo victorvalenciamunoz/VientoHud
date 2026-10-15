@@ -24,7 +24,9 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   perfil del servidor (`ServerProfile`, p. ej. `fastbike`) sin subir nada.
 - **Análisis de una ruta, sin red** (`RouteAnalyzer`, `RoadRules`; `DECISIONS.md` 014): km por tipo de vía y firme con
   su categoría (carretera, camino asfaltado, prohibido, desconocido), distancia de cada punto de paso pedido a la línea
-  del track y fracción del recorrido repetido (ida y vuelta por la misma carretera).
+  del track y fracción del recorrido repetido (ida y vuelta por la misma carretera). Separa la repetición en **cuerda**
+  (salir y volver a casa por la misma carretera, válida) y **fuera de la cuerda** (ramales en mitad de la ruta, las
+  estrellas; `DECISIONS.md` 015).
 
 ### Qué falta (fase 2)
 
@@ -36,15 +38,22 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   lectura de las etiquetas de cada tramo, errores ("target island", 400, 500) y fixtures grabadas.
 - [ ] 4. Generador de vueltas. Dividido en:
   - [x] 4a. Análisis de una ruta, sin red: desvío de cada punto pedido, % repetido y km por tramos prohibidos
-    (`DECISIONS.md` 014). Probado con rutas reales grabadas.
+    (`DECISIONS.md` 014). Probado con rutas reales grabadas. Ampliado con la cuerda y la repetición fuera de ella
+    (`DECISIONS.md` 015).
+  - [ ] Prueba en vivo antes de 4b (cuando brouter.de lo permita, pocas peticiones y espaciadas): unas 8 vueltas en
+    Madrid y León, 40-100 km, rumbos variados, moviendo los puntos de ramal, ajustando R y girando el rumbo si no hay
+    vuelta; perfil estricto frente a `trunk` permitido. Éxito: en al menos 6 de 8, ruta con ≤ 10 % repetido fuera de
+    la cuerda, ±10 % de la distancia, 0 km prohibidos y a menos de 45° del rumbo pedido. Con los datos, el autor
+    decide lo del `trunk`.
   - [ ] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
     objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3.
   - [ ] 4c. Generador: ajuste de R hasta ±10 % del objetivo con pocas llamadas, reintentos ante "target island", girar
     el rumbo ±15-30° si repite mucho, descarte de candidatas malas y varias candidatas con rumbos distintos. El rumbo es
     un parámetro (la fase 3 lo elegirá según el viento). Probado con un motor falso y luego en vivo en Madrid y León.
-    **Decisiones del autor pendientes:** % de repetición máximo, desvío máximo de un punto, llamadas o segundos de
-    espera aceptables y número de candidatas.
+    Criterio de forma: ≤ 10 % repetido fuera de la cuerda (provisional, `DECISIONS.md` 015).
+    **Decisiones del autor pendientes:** desvío máximo de un punto, llamadas o segundos de espera aceptables y número
+    de candidatas.
 - [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
   `[--lat --lon] [--count 3]`: escribe los GPX y un resumen.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
@@ -87,6 +96,13 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   Las rutas del perfil estricto dan 0 km prohibidos también con la lista ampliada de firmes. La repetición cambia menos
   de 1 punto al revisar cada 50 m o al recorrer la ruta al revés. Los GPX de León este y Tres Cantos se escribieron en
   el scratchpad para mirarlos en gpx.studio (pendiente de que el autor los vea).
+- Ampliación del 4a, cuerda (2026-10-15): 4 tests nuevos y otros ampliados (197 en total). Casos a mano: ida y vuelta
+  (todo cuerda), piruleta (1 km de cuerda + vuelta), vuelta cuadrada (nada), cuadrado con un ramal de 2 km en una
+  esquina (todo fuera de la cuerda), track que no acaba donde empieza. Con datos reales: el globo del autor
+  (`Fixtures/Rides/`, solo posiciones y altitud) repite el 50 %, con 38,9 km de cuerda y 0 % fuera de ella; las
+  estrellas grabadas de León este y Tres Cantos, más del 70 % fuera de la cuerda. **Fallo corregido:** en un track
+  abierto (que no acaba justo en la salida, como una salida grabada) la repetición daba siempre 0. No afectaba a las
+  cifras anteriores, porque las rutas de BRouter acaban exactamente en la salida.
 
 ### Riesgos y pendientes (fase 2)
 
