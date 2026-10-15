@@ -150,6 +150,15 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   - [x] Cargar en el GPS de la bici (2026-10-15): se ve bien; todas sus carreteras son de las que el autor usa en bici.
     El autor cargó en su Hammerhead Karoo la vuelta de La Bañeza hacia el OSO (60,4 km) generada
     por `vientohud route`.
+  - [x] Pasada del juez (2026-10-15, `tools/investigacion/judge.cs` contra BRouter local; tabla completa en
+    `docs/verificacion/fase2-juez-2026-10-15.md`; dos pasadas, tabla idéntica): 5 salidas × 40, 60 y 100 km × 3 rumbos.
+    **33 de 45 válidas** (La Bañeza 8/9, León capital 9/9, Madrid centro 6/9, Fuenlabrada 6/9, Tres Cantos 4/9), en
+    291 peticiones. En las válidas (2.274 km): **0 km prohibidos o desconocidos**, 74 km por `trunk` (3 %), 0,9 km de
+    caminos asfaltados; todos los GPX válidos contra el esquema GPX 1.1. De los 12 fallos, 11 son por distancia (y
+    alguno además por rumbo o media vuelta), casi todos en Tres Cantos y en Madrid y Fuenlabrada a 40 y 100 km.
+    - Sin dato de firme en OpenStreetMap: 591 km (26 %); las reglas los dan por asfaltados. 291 km son carreteras
+      (`tertiary` o más), 151 calles y 44 carriles bici; **105 km (4,6 %) son `unclassified` o `service`**, donde
+      la duda es mayor. Riesgo residual: el ojo del autor en gpx.studio (y en la bici) es la comprobación final.
 - [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
   urbano (la salida de Madrid).
   - Observado por el autor en la vuelta de La Bañeza hacia el OSO (2026-10-15): **callejeo por los pueblos**, la ruta

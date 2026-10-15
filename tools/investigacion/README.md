@@ -22,4 +22,5 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `matchrides.cs` | Empareja salidas grabadas (GPX) con BRouter, con un punto de paso por km y `trunk` permitido, y cuenta los km por tipo de vía; dice dónde están los tramos `trunk`. |
 | `generate.cs` | Pasada en vivo del generador de Core (`LoopGenerator`) con el cliente real de BRouter: un rumbo por caso, o `*` para tres candidatas cada 120°. Escribe el GPX de la mejor de cada rumbo. |
 | `stubs.cs` | Medias vueltas cortas de un GPX (entrar y salir por el mismo sitio): dónde y cuánto entra. Lo usé para medir las de las vueltas de León antes de llevarlo a `RouteAnalyzer`. |
+| `judge.cs` | Juez de la fase 2: genera vueltas en varias salidas y distancias contra un BRouter (pensado para el local) y saca una tabla con validez, error de distancia, km por tipo de vía y sin dato de firme, repetición, medias vueltas y validez del GPX contra el esquema. |
 | `togpx.cs` | Convierte una respuesta grabada de BRouter en GPX para mirarla en gpx.studio. |
