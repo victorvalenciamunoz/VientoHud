@@ -144,10 +144,16 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
         las tres de La Bañeza en gpx.studio.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
   y León con varias distancias; abrir en gpx.studio y cargar en el GPS de la bici.
-  - [x] Cargar en el GPS de la bici (2026-10-15): el autor cargó en su Hammerhead Karoo la vuelta de La Bañeza hacia el OSO (60,4 km) generada
+  - [x] Cargar en el GPS de la bici (2026-10-15): se ve bien; todas sus carreteras son de las que el autor usa en bici.
+    El autor cargó en su Hammerhead Karoo la vuelta de La Bañeza hacia el OSO (60,4 km) generada
     por `vientohud route`.
 - [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
   urbano (la salida de Madrid).
+  - Observado por el autor en la vuelta de La Bañeza hacia el OSO (2026-10-15): **callejeo por los pueblos**, la ruta
+    deja la carretera principal, cruza unas calles y vuelve a ella (Posadilla de la Vega; un pueblo junto a la CL-621).
+    Unos cientos de metros; no es para descartar la ruta. Causas posibles: un punto de paso que cae dentro del pueblo
+    (entra por una calle y sale por otra, así que ni BRouter ni el detector de medias vueltas lo ven) o el recargo por
+    tráfico del perfil (`consider_traffic` 0,3) que abarata una calle frente a la carretera.
 
 ### Cómo se ha validado (fase 2)
 
