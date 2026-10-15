@@ -22,12 +22,15 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   una vez y pide rutas en GeoJSON con el id que devuelve el servidor. Si el servidor responde 500 sin texto (perfil
   perdido) lo sube de nuevo y repite una vez. Como mucho una petición por segundo (configurable). También admite un
   perfil del servidor (`ServerProfile`, p. ej. `fastbike`) sin subir nada. El perfil permite `trunk` con coste 3 (solo
-  cuando el rodeo por otras carreteras es largo; `DECISIONS.md` 016) y prohíbe autovías, tierra y obras.
+  cuando el rodeo por otras carreteras es largo; `DECISIONS.md` 016) y prohíbe autovías, tierra y obras. Tiene activado
+  `correctMisplacedViaPoints` sin tope: BRouter recorta la ida y vuelta a un punto de paso intermedio (sin probar en
+  vivo todavía).
 - **Análisis de una ruta, sin red** (`RouteAnalyzer`, `RoadRules`; `DECISIONS.md` 014): km por tipo de vía y firme con
   su categoría (carretera, camino asfaltado, `trunk`, prohibido, desconocido), distancia de cada punto de paso pedido a la línea
   del track y fracción del recorrido repetido. Devuelve cada tramo repetido (dónde está y dónde su otra pasada) y si es
   un **ramal**: entrar y salir por la misma carretera sin salida en mitad de la ruta, lo que hace una estrella. Las
   cuerdas de un globo, los cuellos de un lazo y las idas y vueltas desde casa no son ramales (`DECISIONS.md` 015).
+  También las **medias vueltas** de más de 200 m (entrar y salir por el mismo sitio, aunque sea corto) y si son el destino.
 - **Puntos de paso de una vuelta** (`LoopWaypoints`): abanico desde la salida (la salida, n − 1 puntos a R km
   repartidos en 180° alrededor del rumbo, y la salida otra vez; n = 5 por defecto), con sentido horario en el mapa;
   radio inicial = objetivo / (polígono recto 3,85 R × factor de carretera 1,5) ≈ objetivo / 5,8. `Coordinate` sabe
@@ -93,6 +96,11 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
         sin vuelta (12 peticiones). Faltan Tres Cantos E, Madrid SO, Fuenlabrada S y las tres candidatas cada 120° en
         León, Fuenlabrada y Tres Cantos (`tools/investigacion/generate.cs`, registro en
         `docs/verificacion/fase2-generador-core-vivo-2026-10-15.txt`).
+      - [x] Medias vueltas (2026-10-15): el autor vio en gpx.studio que las vueltas de León "válidas" entraban y salían
+        de ramales cortos (Ferral del Bernesga 610 m; en León N tres, una de 2,4 km por la N-630). Corregido en el
+        análisis (medias vueltas de más de 200 m, `DECISIONS.md` 015), en el generador (problema `TurnBacks` y mover el
+        punto de paso al inicio del ramal) y en el perfil (`correctMisplacedViaPoints`). Esas vueltas de León ya no
+        valdrían: la pasada en vivo pendiente dirá cuántas salen limpias.
 - [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
   `[--lat --lon] [--count 3]`: escribe los GPX y un resumen.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
@@ -173,6 +181,13 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   → sin resultado tras 5 peticiones (0°, 20°, 340°, 40°, 320°); tope de peticiones; errores del servicio se propagan.
   Con datos reales: si el motor devuelve la estrella grabada de León este, los puntos de sus ramales se mueven a
   puntos de esa ruta más cerca de la salida. Aún no probado en vivo (4c2).
+- Medias vueltas (2026-10-15): 6 tests nuevos y uno ampliado (259 en total). Casos a mano: ramal de 600 m en un lado
+  de un cuadrado (se detecta a ~600 m; la repetición casi no lo ve), uno de 150 m (se ignora), ida y vuelta (su media
+  vuelta es el destino). Salidas del autor: solo medias vueltas de destino (La Bañeza 16,9 km, Boadilla 690 m en su
+  punto más lejano), ninguna en el globo. Generador: punto de paso 500 m dentro de una carretera sin salida → se mueve
+  a la entrada y la vuelta sale válida. Sobre las vueltas generadas en vivo (`tools/investigacion/stubs.cs` y Core
+  dan lo mismo): León N 3 (610 m, 2,4 km, 340 m), León E 1 (510 m), León O 1 (610 m), León S 0. El perfil lleva las
+  dos líneas de `correctMisplacedViaPoints` (test).
 
 ### Riesgos y pendientes (fase 2)
 

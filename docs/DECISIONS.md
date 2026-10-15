@@ -304,8 +304,18 @@ Formato: contexto → decisión → alternativas descartadas.
     (sin contar el brazo que lleva al punto más lejano).
   - Criterio para el generador (4c), **umbral provisional**: como mucho un 10 % de la ruta en ramales. Se revisará con
     los datos de la prueba en vivo.
+  - **Medias vueltas cortas** (añadido el 2026-10-15, umbral del autor): la medida de repetición ignora lo repetido a
+    menos de 1 km por el recorrido, así que no ve los ramales cortos. Las vueltas generadas en León tenían de 1 a 3 por
+    ruta, de 110 m a 2,4 km de entrada y salida (Ferral del Bernesga 610 m, N-630 2,4 km): un punto de paso en mitad de
+    una carretera, al que BRouter va y vuelve. El análisis busca cada sitio donde el track da la vuelta sobre sí mismo
+    (los puntos 30 m antes y después a menos de 15 m) y mide cuánto entra. **Una media vuelta de más de 200 m que no
+    sea el destino invalida una ruta generada**; por debajo son glorietas, cambios de sentido o ruido del GPS (40-80 m
+    en las salidas del autor). Además, el perfil activa `correctMisplacedViaPoints` de BRouter sin tope de longitud:
+    BRouter recorta él mismo la ida y vuelta a un punto de paso intermedio (comprobado en su código fuente; revisa como
+    mucho 500 nodos).
 - Limitaciones: un tramo repetido tres veces se empareja solo con la pasada más cercana; los umbrales (5 km, 15 %, 3 km)
-  salen de pocas rutas reales, todas de Madrid y León.
+  salen de pocas rutas reales, todas de Madrid y León. Una media vuelta que termina con una vuelta pequeña (una glorieta
+  al final del ramal) no se detecta como media vuelta.
 - Alternativas: límite al % repetido total (rechaza globos e idas y vueltas); repetición permitida solo junto a casa
   (rechaza lazos; fue la primera versión de este mismo día); contar puntos de giro (no distingue un ramal corto de una
   media vuelta en una rotonda).

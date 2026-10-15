@@ -21,4 +21,5 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `livetest.cs` | Prueba en vivo del paso 4: vueltas con hasta 12 peticiones (abanico, mover puntos de ramal, ajustar R, girar el rumbo). Guarda cada respuesta en caché y se para ante un 403. Argumento `strict` o `trunk`. |
 | `matchrides.cs` | Empareja salidas grabadas (GPX) con BRouter, con un punto de paso por km y `trunk` permitido, y cuenta los km por tipo de vía; dice dónde están los tramos `trunk`. |
 | `generate.cs` | Pasada en vivo del generador de Core (`LoopGenerator`) con el cliente real de BRouter: un rumbo por caso, o `*` para tres candidatas cada 120°. Escribe el GPX de la mejor de cada rumbo. |
+| `stubs.cs` | Medias vueltas cortas de un GPX (entrar y salir por el mismo sitio): dónde y cuánto entra. Lo usé para medir las de las vueltas de León antes de llevarlo a `RouteAnalyzer`. |
 | `togpx.cs` | Convierte una respuesta grabada de BRouter en GPX para mirarla en gpx.studio. |

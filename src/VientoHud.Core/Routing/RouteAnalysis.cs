@@ -36,7 +36,20 @@ public sealed record RouteAnalysisOptions
     /// </summary>
     public double HomeStretchKm { get; init; } = 3;
 
+    /// <summary>
+    /// Turn-backs (the track goes in and comes out the same way) at least this deep are reported. Shorter ones are
+    /// roundabouts, U-turns or GPS noise; longer ones are dead ends a waypoint led into (DECISIONS 015).
+    /// </summary>
+    public double MinTurnBackKm { get; init; } = 0.2;
 }
+
+/// <summary>A place where the route turns back on itself: it goes in some way and comes out the same way.</summary>
+/// <param name="AtKm">Where it turns, along the route.</param>
+/// <param name="DepthKm">How far it runs in before turning (each way).</param>
+/// <param name="IsDestination">
+/// True when it turns at the point of the route farthest from home: the ride's destination, not a detour.
+/// </param>
+public sealed record TurnBack(double AtKm, double DepthKm, bool IsDestination);
 
 /// <summary>
 /// A stretch of the route that runs where another part of it also runs. Each such stretch appears twice, once per pass.
@@ -66,13 +79,18 @@ public sealed record RepeatedStretch(double StartKm, double EndKm, double OtherP
 /// Loops, balloons, lassos and out-and-back rides are near 0; stars are not (DECISIONS 015).
 /// </param>
 /// <param name="Repeats">The repeated stretches, in riding order.</param>
+/// <param name="TurnBacks">
+/// Turn-backs at least <see cref="RouteAnalysisOptions.MinTurnBackKm"/> deep, in riding order. The repetition measure
+/// ignores those shorter than <see cref="RouteAnalysisOptions.MinRepeatSeparationKm"/>; these do not.
+/// </param>
 public sealed record RouteAnalysis(
     double DistanceKm,
     IReadOnlyList<RoadUsage> Roads,
     IReadOnlyList<double> WaypointOffsetsKm,
     double RepeatedFraction,
     double SpurFraction,
-    IReadOnlyList<RepeatedStretch> Repeats)
+    IReadOnlyList<RepeatedStretch> Repeats,
+    IReadOnlyList<TurnBack> TurnBacks)
 {
     public double ForbiddenKm => KmOf(RoadCategory.Forbidden);
 
@@ -104,20 +122,59 @@ public static class RouteAnalyzer
         ArgumentNullException.ThrowIfNull(waypoints);
         options ??= new RouteAnalysisOptions();
         if (options.SampleSpacingKm <= 0 || options.RepeatToleranceKm <= 0 || options.MinRepeatSeparationKm <= 0
-            || options.MinLoopKm < 0 || options.MinLoopFraction < 0 || options.HomeStretchKm < 0)
+            || options.MinLoopKm < 0 || options.MinLoopFraction < 0 || options.HomeStretchKm < 0
+            || options.MinTurnBackKm < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options), "Repetition settings must be positive.");
         }
 
         var track = new ProjectedTrack(route.Points.Select(p => p.Position).ToList());
-        var (repeated, spur, repeats) = Repetition(track, options);
+        var farthestAlongKm = FarthestFromHomeAlongKm(track, options.SampleSpacingKm);
+        var (repeated, spur, repeats) = Repetition(track, options, farthestAlongKm);
         return new RouteAnalysis(
             route.DistanceKm,
             Roads(route.Segments),
             waypoints.Select(w => track.DistanceTo(track.Projection.Project(w))).ToList(),
             repeated,
             spur,
-            repeats);
+            repeats,
+            TurnBacks(track, options, farthestAlongKm));
+    }
+
+    /// <summary>Where along the track is the point farthest from home (its first point) in a straight line.</summary>
+    private static double FarthestFromHomeAlongKm(ProjectedTrack track, double spacingKm)
+    {
+        var count = (int)Math.Floor(track.LengthKm / spacingKm + 1e-9) + 1;
+        return spacingKm * Enumerable.Range(0, count).MaxBy(i => track.At(i * spacingKm).DistanceTo(new PlanePoint(0, 0)));
+    }
+
+    /// <summary>
+    /// Finds where the track turns back on itself: every 10 m, whether the points 30 m before and after are together
+    /// (within 15 m). The depth is how far back and forth they stay together (within the repeat tolerance).
+    /// </summary>
+    private static List<TurnBack> TurnBacks(ProjectedTrack track, RouteAnalysisOptions options, double farthestAlongKm)
+    {
+        const double Step = 0.01, Arm = 0.03, Together = 0.015;
+        var turnBacks = new List<TurnBack>();
+        for (var at = Arm; at <= track.LengthKm - Arm; at += Step)
+        {
+            if (track.At(at - Arm).DistanceTo(track.At(at + Arm)) > Together)
+            {
+                continue;
+            }
+            var depth = Arm;
+            while (at - depth - Step >= 0 && at + depth + Step <= track.LengthKm
+                   && track.At(at - depth - Step).DistanceTo(track.At(at + depth + Step)) < options.RepeatToleranceKm)
+            {
+                depth += Step;
+            }
+            if (depth >= options.MinTurnBackKm)
+            {
+                turnBacks.Add(new TurnBack(at, depth, Math.Abs(farthestAlongKm - at) <= depth));
+            }
+            at += depth; // Past the way out, so the same turn is not found again.
+        }
+        return turnBacks;
     }
 
     private static List<RoadUsage> Roads(IReadOnlyList<RouteSegment> segments) =>
@@ -146,7 +203,7 @@ public static class RouteAnalyzer
     /// passing as a loop.
     /// </remarks>
     private static (double Repeated, double Spur, List<RepeatedStretch> Repeats) Repetition(
-        ProjectedTrack track, RouteAnalysisOptions options)
+        ProjectedTrack track, RouteAnalysisOptions options, double farthestAlongKm)
     {
         var closed = track.Points[0].DistanceTo(track.Points[^1]) < options.RepeatToleranceKm;
         // The margin keeps a length that is a whole number of spacings (22 / 0.1 = 219.999…) from losing its last point.
@@ -174,10 +231,6 @@ public static class RouteAnalyzer
             return to > from ? (onceBefore[to] - onceBefore[from]) * options.SampleSpacingKm : 0;
         }
         var minLoopKm = Math.Max(options.MinLoopKm, options.MinLoopFraction * track.LengthKm);
-
-        // The checked point farthest from home (the first point, the projection's origin) in a straight line.
-        var farthestAlongKm = options.SampleSpacingKm * Enumerable.Range(0, count)
-            .MaxBy(i => track.At(i * options.SampleSpacingKm).DistanceTo(new PlanePoint(0, 0)));
 
         var repeats = new List<RepeatedStretch>();
         var repeated = 0;

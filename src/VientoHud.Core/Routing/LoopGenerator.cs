@@ -17,6 +17,12 @@ public enum LoopProblems
 
     /// <summary>The route lies too far from the requested bearing.</summary>
     Bearing = 8,
+
+    /// <summary>
+    /// The route goes into a dead end and comes out the same way (at least <see cref="RouteAnalysisOptions.MinTurnBackKm"/>
+    /// deep) other than at its destination: usually the way to a waypoint in the middle of a road.
+    /// </summary>
+    TurnBacks = 16,
 }
 
 /// <summary>Settings for <see cref="LoopGenerator"/>.</summary>
@@ -78,6 +84,7 @@ public sealed record LoopCandidate(
         (Problems.HasFlag(LoopProblems.Spurs) ? 10 + Analysis.SpurFraction : 0)
         + (Problems.HasFlag(LoopProblems.Forbidden) ? 10 : 0)
         + (Problems.HasFlag(LoopProblems.Bearing) ? 5 : 0)
+        + (Problems.HasFlag(LoopProblems.TurnBacks) ? 3 : 0)
         + Math.Abs(DistanceError)
         + Analysis.TrunkKm / 1000;
 }
@@ -153,8 +160,8 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
                 }
 
                 var reached = candidate.Route.DistanceKm;
-                if (candidate.Problems.HasFlag(LoopProblems.Spurs)
-                    && MoveOffSpurs(candidate) is { } moved
+                if ((candidate.Problems & (LoopProblems.Spurs | LoopProblems.TurnBacks)) != 0
+                    && MoveOffDeadEnds(candidate) is { } moved
                     && requests < _options.MaxRequests)
                 {
                     requests++;
@@ -257,30 +264,41 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
         {
             problems |= LoopProblems.Bearing;
         }
+        if (analysis.TurnBacks.Any(t => !t.IsDestination))
+        {
+            problems |= LoopProblems.TurnBacks;
+        }
         return new LoopCandidate(route, waypoints, analysis, fanBearing, deviation, distanceError, problems);
     }
 
     /// <summary>
-    /// Waypoints with each one that causes a spur moved to where the spur leaves the route; null if no waypoint is
-    /// inside a spur. A waypoint causes a spur when its closest point on the route is in it.
+    /// Waypoints with each one that leads into a dead end (a spur or a turn-back) moved to where the dead end leaves the
+    /// route; null if no waypoint does. A waypoint leads into one when its closest point on the route is in it.
     /// </summary>
-    private static IReadOnlyList<Coordinate>? MoveOffSpurs(LoopCandidate candidate)
+    private static IReadOnlyList<Coordinate>? MoveOffDeadEnds(LoopCandidate candidate)
     {
         var points = candidate.Route.Points;
         var track = new ProjectedTrack(points.Select(p => p.Position).ToList());
+        var analysis = candidate.Analysis;
+        // From where each dead end leaves the route to where it rejoins it. A spur appears once per pass: its first pass
+        // runs from where it leaves to the end of the other pass.
+        var deadEnds = analysis.Repeats
+            .Where(r => r.IsSpur && r.StartKm < r.OtherPassStartKm)
+            .Select(r => (FromKm: r.StartKm, ToKm: r.OtherPassEndKm))
+            .Concat(analysis.TurnBacks.Where(t => !t.IsDestination).Select(t => (FromKm: t.AtKm - t.DepthKm, ToKm: t.AtKm + t.DepthKm)))
+            .ToList();
+
         var waypoints = candidate.Waypoints.ToList();
         var moved = false;
-        // Each spur appears once per pass; the first pass runs from where the spur leaves the route to its end.
-        foreach (var spur in candidate.Analysis.Repeats.Where(r => r.IsSpur && r.StartKm < r.OtherPassStartKm))
+        for (var i = 1; i < waypoints.Count - 1; i++)
         {
-            for (var i = 1; i < waypoints.Count - 1; i++)
+            var along = track.Closest(track.Projection.Project(candidate.Waypoints[i])).AlongKm;
+            var containing = deadEnds.Where(d => along >= d.FromKm && along <= d.ToKm).ToList();
+            if (containing.Count > 0)
             {
-                var along = track.Closest(track.Projection.Project(candidate.Waypoints[i])).AlongKm;
-                if (along >= spur.StartKm && along <= spur.OtherPassEndKm)
-                {
-                    waypoints[i] = points[track.NearestPointIndex(spur.StartKm)].Position;
-                    moved = true;
-                }
+                // The outermost one, if they overlap (a long spur is also a turn-back).
+                waypoints[i] = points[track.NearestPointIndex(containing.Min(d => d.FromKm))].Position;
+                moved = true;
             }
         }
         return moved ? waypoints : null;

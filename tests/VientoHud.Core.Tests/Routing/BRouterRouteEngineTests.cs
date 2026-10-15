@@ -263,6 +263,9 @@ public class BRouterRouteEngineTests
         Assert.Contains("switch or highway=trunk highway=trunk_link          3\n", profile.ReplaceLineEndings("\n"));
         Assert.Contains("switch or highway=motorway highway=motorway_link    switch allow_motorways 1.5 10000", profile);
         Assert.Contains("assign allow_motorways       = false", profile);
+        // BRouter cuts out going in and out of a dead end to reach a via point, whatever its length.
+        Assert.Contains("assign correctMisplacedViaPoints = true ", profile);
+        Assert.Contains("assign correctMisplacedViaPointsDistance = 0 ", profile);
         Assert.Contains("switch or highway=proposed or highway=abandoned highway=construction 10000", profile);
         Assert.Contains("switch    explicitlyunpaved                         10000", profile);
         Assert.Contains("   switch ispaved 2.0 10000", profile);

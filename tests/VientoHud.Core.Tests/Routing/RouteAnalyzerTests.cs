@@ -180,6 +180,64 @@ public class RouteAnalyzerTests
     }
 
     [Fact]
+    public void Finds_a_short_dead_end_that_the_repetition_measure_ignores()
+    {
+        // A 20 km square with a 600 m dead end halfway down its third side, ridden in and out.
+        var route = Track(21.2, (0, 0), (0, 5), (5, 5), (5, 2.5), (5.6, 2.5), (5, 2.5), (5, 0), (0, 0));
+
+        var analysis = RouteAnalyzer.Analyze(route, []);
+
+        // Barely any repetition or spur (only its base, where in and out are over 1 km apart along the route), far
+        // below the 10 % limit, but a turn-back at km 13.1 about 600 m deep.
+        Assert.True(analysis.RepeatedFraction < 0.03, $"{analysis.RepeatedFraction:P1}");
+        Assert.True(analysis.SpurFraction < 0.03, $"{analysis.SpurFraction:P1}");
+        var turnBack = Assert.Single(analysis.TurnBacks);
+        Assert.Equal(13.1, turnBack.AtKm, precision: 2);
+        Assert.InRange(turnBack.DepthKm, 0.58, 0.63);
+        Assert.False(turnBack.IsDestination);
+    }
+
+    [Fact]
+    public void Ignores_turn_backs_shorter_than_200_m()
+    {
+        // As above with a 150 m dead end: a U-turn, a roundabout or GPS noise.
+        var route = Track(20.3, (0, 0), (0, 5), (5, 5), (5, 2.5), (5.15, 2.5), (5, 2.5), (5, 0), (0, 0));
+
+        Assert.Empty(RouteAnalyzer.Analyze(route, []).TurnBacks);
+    }
+
+    [Fact]
+    public void The_turn_of_an_out_and_back_ride_is_its_destination()
+    {
+        var route = Track(10, (0, 0), (0, 5), (0, 0));
+
+        var turnBack = Assert.Single(RouteAnalyzer.Analyze(route, []).TurnBacks);
+
+        Assert.Equal(5, turnBack.AtKm, precision: 2);
+        Assert.InRange(turnBack.DepthKm, 4.9, 5);
+        Assert.True(turnBack.IsDestination);
+    }
+
+    [Fact]
+    public void Rejects_a_negative_turn_back_depth() =>
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RouteAnalyzer.Analyze(Track(1, (0, 0), (0, 1)), [], new RouteAnalysisOptions { MinTurnBackKm = -0.1 }));
+
+    [Fact]
+    public void Real_rides_turn_back_only_at_their_destination()
+    {
+        var outAndBack = RouteAnalyzer.Analyze(RecordedRides.LaBanezaOutAndBack(), []);
+        var lasso = RouteAnalyzer.Analyze(RecordedRides.BoadillaLasso(), []);
+        var balloon = RouteAnalyzer.Analyze(RecordedRides.HumanesBalloon(), []);
+
+        // La Bañeza: turns 16.9 km out. Boadilla: a 690 m dead end at its farthest point.
+        Assert.InRange(Assert.Single(outAndBack.TurnBacks, t => t.IsDestination).DepthKm, 16, 17.5);
+        Assert.InRange(Assert.Single(lasso.TurnBacks, t => t.IsDestination).DepthKm, 0.6, 0.8);
+        Assert.All(outAndBack.TurnBacks.Concat(lasso.TurnBacks), t => Assert.True(t.IsDestination));
+        Assert.Empty(balloon.TurnBacks);
+    }
+
+    [Fact]
     public void A_spur_right_after_the_string_from_home_is_still_a_spur()
     {
         // 5 km out of home, a 3 km dead end ridden in and out, a 20 km loop, and the same 5 km home. The string and the

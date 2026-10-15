@@ -9,6 +9,8 @@
 #    and service roads; bridleways; roads under construction; steps; ferries; tracks, paths and footways unless
 #    their surface is explicitly paved (unknown surface counts as unpaved there).
 #  - consider_traffic raised from 0.1 to 0.3 to prefer quieter roads.
+#  - correctMisplacedViaPoints on, with no length limit: when the route reaches a via point and leaves it the way it
+#    came, BRouter cuts that back-and-forth out (dead ends to waypoints, see docs/STATUS.md).
 #
 #
 # A fastbike could be a racing bike or a speed pedelec.
@@ -68,8 +70,8 @@ assign turnInstructionRoundabouts   = true  # %turnInstructionRoundabouts% | Set
 assign considerTurnRestrictions     = true  # %considerTurnRestrictions% | Set to true to take turn restrictions into account | boolean
 
 # with engine defaults, long parts of routing to via points may be removed
-assign correctMisplacedViaPoints = false # %correctMisplacedViaPoints% | Set to true to remove detours due to via points (going back and forth on the same route) | boolean
-assign correctMisplacedViaPointsDistance = 400 # %correctMisplacedViaPointsDistance% | Only remove detours shorter than this (one-way) distance (in m) (engine defaults to 0 which removes detours whatever their length) | number
+assign correctMisplacedViaPoints = true # %correctMisplacedViaPoints% | Set to true to remove detours due to via points (going back and forth on the same route) | boolean
+assign correctMisplacedViaPointsDistance = 0 # %correctMisplacedViaPointsDistance% | Only remove detours shorter than this (one-way) distance (in m) (engine defaults to 0 which removes detours whatever their length) | number
 
 assign processUnusedTags            = false # %processUnusedTags% | Set to true to output unused tags in data tab | boolean
 

@@ -88,6 +88,31 @@ public class LoopGeneratorTests
     }
 
     [Fact]
+    public async Task Moves_a_waypoint_in_the_middle_of_a_dead_end_road_to_where_the_road_leaves_the_route()
+    {
+        // The third waypoint lies 500 m into a dead-end road: the route goes in to it and comes back out. Shorter than
+        // the 1 km the repetition measure needs, but a turn-back.
+        Coordinate? roadStart = null;
+        var engine = new FakeRouteEngine(w =>
+        {
+            var radius = Radius(w);
+            if (w[0].DistanceKmTo(w[2]) < 0.97 * radius)
+            {
+                return Exact(w);
+            }
+            roadStart = w[0].Destination(w[0].BearingTo(w[2]), radius - 0.5);
+            return Exact([w[0], w[1], roadStart.Value, w[2], roadStart.Value, w[3], w[4], w[5]]);
+        });
+
+        var result = await new LoopGenerator(engine).GenerateAsync(Leon, 90, 60);
+
+        Assert.Equal(LoopProblems.TurnBacks, result.Attempts[0].Problems);
+        Assert.Equal(2, result.Requests);
+        Assert.True(engine.Requests[1][2].DistanceKmTo(roadStart!.Value) < 0.001, $"moved to {engine.Requests[1][2]}");
+        Assert.True(result.Best!.IsValid, result.Best.Problems.ToString());
+    }
+
+    [Fact]
     public async Task Moves_the_waypoints_of_a_real_star_onto_the_route_where_their_spurs_leave_it()
     {
         // The recorded star from León towards the east (radius 6 km) answers the first request, whatever it is.
