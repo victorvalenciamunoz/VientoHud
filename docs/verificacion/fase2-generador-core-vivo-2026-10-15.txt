@@ -1,0 +1,27 @@
+== leon-N 60 km towards 0°: 4 requests
+   fan   0°  74,2 km (+24%) spurs 8 % repeated 22 % trunk 13,9 km forbidden 0,0 km off bearing  13° Distance
+   fan   0°  54,1 km (-10%) spurs 14 % repeated 38 % trunk 4,8 km forbidden 0,0 km off bearing   2° Spurs
+   fan   0°  45,2 km (-25%) spurs 0 % repeated 28 % trunk 2,1 km forbidden 0,0 km off bearing   3° Distance
+   fan   0°  57,9 km ( -3%) spurs 8 % repeated 8 % trunk 12,4 km forbidden 0,0 km off bearing   3° VALID
+== leon-E 60 km towards 90°: 3 requests
+   fan  90°  51,6 km (-14%) spurs 2 % repeated 2 % trunk 8,2 km forbidden 0,0 km off bearing   5° Distance
+   fan  90°  69,1 km (+15%) spurs 14 % repeated 14 % trunk 7,9 km forbidden 0,0 km off bearing   4° Spurs, Distance
+   fan  90°  58,2 km ( -3%) spurs 0 % repeated 0 % trunk 0,8 km forbidden 0,0 km off bearing  19° VALID
+== leon-S 80 km towards 180°: 2 requests
+   fan 180°  84,8 km ( +6%) spurs 12 % repeated 12 % trunk 5,0 km forbidden 0,0 km off bearing  15° Spurs
+   fan 180°  73,1 km ( -9%) spurs 0 % repeated 0 % trunk 5,0 km forbidden 0,0 km off bearing  23° VALID
+== leon-W 40 km towards 270°: 1 requests
+   fan 270°  40,5 km ( +1%) spurs 0 % repeated 0 % trunk 0,0 km forbidden 0,0 km off bearing   7° VALID
+== tres-N 60 km towards 0°: 12 requests
+   fan  20° 101,1 km (+69%) spurs 42 % repeated 74 % trunk 0,2 km forbidden 0,0 km off bearing  49° Spurs, Distance, Bearing
+   fan  20°  76,2 km (+27%) spurs 24 % repeated 66 % trunk 0,2 km forbidden 0,0 km off bearing 103° Spurs, Distance, Bearing
+   fan  20° 100,7 km (+68%) spurs 46 % repeated 79 % trunk 0,2 km forbidden 0,0 km off bearing  66° Spurs, Distance, Bearing
+   fan  20°  71,1 km (+18%) spurs 27 % repeated 73 % trunk 0,2 km forbidden 0,0 km off bearing 115° Spurs, Distance, Bearing
+   fan  20° 135,7 km (+126%) spurs 59 % repeated 83 % trunk 0,2 km forbidden 0,0 km off bearing  40° Spurs, Distance
+   fan  20°  88,2 km (+47%) spurs 40 % repeated 77 % trunk 0,2 km forbidden 0,0 km off bearing  82° Spurs, Distance, Bearing
+   fan 340°  68,1 km (+14%) spurs 32 % repeated 78 % trunk 0,0 km forbidden 0,0 km off bearing  30° Spurs, Distance
+   fan 340°  45,3 km (-24%) spurs 0 % repeated 69 % trunk 0,0 km forbidden 0,0 km off bearing  46° Distance, Bearing
+   fan 340° 115,9 km (+93%) spurs 26 % repeated 43 % trunk 0,0 km forbidden 0,0 km off bearing  14° Spurs, Distance
+   fan 340°  83,9 km (+40%) spurs 0 % repeated 24 % trunk 0,0 km forbidden 0,0 km off bearing   1° Distance
+   fan 340°  78,9 km (+31%) spurs 33 % repeated 78 % trunk 0,7 km forbidden 0,0 km off bearing  28° Spurs, Distance
+Unhandled exception. VientoHud.Core.Routing.RouteException: BRouter returned HTTP 403: Please, retry later!

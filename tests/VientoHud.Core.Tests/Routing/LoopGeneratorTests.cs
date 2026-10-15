@@ -165,6 +165,62 @@ public class LoopGeneratorTests
     }
 
     [Theory]
+    [InlineData(3, 0, new double[] { 0, 120, 240 })]
+    [InlineData(3, 300, new double[] { 300, 60, 180 })]
+    [InlineData(4, -45, new double[] { 315, 45, 135, 225 })]
+    [InlineData(1, 90, new double[] { 90 })]
+    public void Spreads_bearings_evenly_around_the_compass(int count, double first, double[] expected) =>
+        Assert.Equal(expected, LoopGenerator.SpreadBearings(count, first).Select(b => Math.Round(b, 9)));
+
+    [Fact]
+    public void Rejects_bad_bearing_counts()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => LoopGenerator.SpreadBearings(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => LoopGenerator.SpreadBearings(37));
+    }
+
+    [Fact]
+    public async Task Ranks_several_bearings_valid_first_and_closest_to_the_target_first()
+    {
+        // North: no loop in any direction near it. South-east: 5 % long. South-west: exact.
+        var engine = new FakeRouteEngine(w =>
+        {
+            var fan = FakeRouteEngine.FanBearing(w);
+            if (Compass.AngleBetween(fan, 0) < 45)
+            {
+                throw new RouteException(RouteFailure.Unreachable, "target island");
+            }
+            return FakeRouteEngine.Straight(w, roadFactor: Compass.AngleBetween(fan, 120) < 1 ? 1.5 * 1.05 : 1.5);
+        });
+
+        var results = await new LoopGenerator(engine).GenerateManyAsync(Leon, LoopGenerator.SpreadBearings(3), 60);
+
+        Assert.Equal([240.0, 120, 0], results.Select(r => r.BearingDegrees));
+        Assert.True(results[0].Found);
+        Assert.Equal(0, results[0].Best!.DistanceError, precision: 3);
+        Assert.True(results[1].Found);
+        Assert.Equal(0.05, results[1].Best!.DistanceError, precision: 3);
+        // Towards the north there is no loop, not even turning ±40°.
+        Assert.False(results[2].Found);
+        Assert.Null(results[2].Best);
+        Assert.Equal(5, results[2].Requests);
+    }
+
+    [Fact]
+    public async Task Among_valid_loops_prefers_fewer_trunk_km()
+    {
+        // Both loops exact; the one towards 120° runs all on a trunk road.
+        var engine = new FakeRouteEngine(w => FakeRouteEngine.Straight(
+            w, highway: Compass.AngleBetween(FakeRouteEngine.FanBearing(w), 120) < 1 ? "trunk" : "tertiary"));
+
+        var results = await new LoopGenerator(engine).GenerateManyAsync(Leon, [120, 240], 60);
+
+        Assert.Equal([240.0, 120], results.Select(r => r.BearingDegrees));
+        Assert.All(results, r => Assert.True(r.Found));
+        Assert.Equal(60, results[1].Best!.Analysis.TrunkKm, precision: 3);
+    }
+
+    [Theory]
     [InlineData(0, 0)]
     [InlineData(-10, 0)]
     [InlineData(60, double.NaN)]

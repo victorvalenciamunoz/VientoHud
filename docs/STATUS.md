@@ -85,6 +85,14 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
       motor falso.
     - [ ] 4c2. Varias candidatas (rumbos separados), orden de preferencia (válidas, distancia más cercana, menos
       `trunk`) y el caso "hacia allí no hay vuelta". Pasada en vivo en Madrid y León con el cliente real.
+      - [x] Código y tests: `LoopGenerator.GenerateManyAsync` (una vuelta por rumbo, ordenadas) y
+        `LoopGenerator.SpreadBearings` (3 rumbos cada 120° por defecto, decidido por el autor; se puede fijar el primero).
+        Cada resultado dice si encontró vuelta (`Found`).
+      - [ ] Pasada en vivo: **a medias** por un bloqueo de brouter.de (ver riesgos). Hechos 5 de los 8 casos de la
+        prueba anterior: León N, E, S y O válidos (en 4, 3, 2 y 1 peticiones; igual o menos que el script), Tres Cantos N
+        sin vuelta (12 peticiones). Faltan Tres Cantos E, Madrid SO, Fuenlabrada S y las tres candidatas cada 120° en
+        León, Fuenlabrada y Tres Cantos (`tools/investigacion/generate.cs`, registro en
+        `docs/verificacion/fase2-generador-core-vivo-2026-10-15.txt`).
 - [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
   `[--lat --lon] [--count 3]`: escribe los GPX y un resumen.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
@@ -176,7 +184,12 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   inválidas. El cliente valida los puntos antes de llamar y lo trata como perfil perdido (vuelve a subirlo una vez).
 - **brouter.de sin política de uso publicada** (`DECISIONS.md` 013): si cae, no hay rutas. **Limita sin avisar:**
   el 2026-10-15, tras unas 75 peticiones en unos 10 minutos (a una por segundo, varias con URL largas), respondió
-  HTTP 403 "Please, retry later!". El generador tiene que ir justo de peticiones.
+  HTTP 403 "Please, retry later!". El generador tiene que ir justo de peticiones. **Segundo bloqueo** el mismo día, tras
+  unas 330 peticiones en total y solo ~23 de la última tanda (una cada 2 s): parece un cupo acumulado por IP (por hora o
+  por día), no un límite de velocidad. Una generación normal (3 candidatas, como mucho 36 peticiones) no debería
+  tocarlo, pero las pruebas intensivas sí. Refuerza la idea de la fase 6 de usar BRouter en el móvil (`DECISIONS.md`
+  013). Un fallo del servicio a mitad de `GenerateManyAsync` hace perder las candidatas ya halladas: valorar en el
+  paso 5 devolverlas igualmente.
 - **Las vueltas en abanico salen como estrellas, no como anillos** (investigación del 2026-10-15, scripts en
   `tools/investigacion/`): con puntos geométricos, BRouter entra y sale de cada punto por el mismo ramal. Con R = 6-8 km:
   León oeste 2 % repetido (bien), León norte 48 %, León este 84 %, Tres Cantos este 77 %, Tres Cantos suroeste 74 %;

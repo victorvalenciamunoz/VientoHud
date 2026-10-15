@@ -69,13 +69,29 @@ public sealed record LoopCandidate(
     LoopProblems Problems)
 {
     public bool IsValid => Problems == LoopProblems.None;
+
+    /// <summary>
+    /// For ranking, lower is better: valid loops first (spurs, forbidden roads and a wrong bearing weigh most), then the
+    /// one closest to the target distance, then the one with fewest trunk km (DECISIONS 016).
+    /// </summary>
+    public double Badness =>
+        (Problems.HasFlag(LoopProblems.Spurs) ? 10 + Analysis.SpurFraction : 0)
+        + (Problems.HasFlag(LoopProblems.Forbidden) ? 10 : 0)
+        + (Problems.HasFlag(LoopProblems.Bearing) ? 5 : 0)
+        + Math.Abs(DistanceError)
+        + Analysis.TrunkKm / 1000;
 }
 
 /// <summary>The outcome of generating one loop.</summary>
+/// <param name="BearingDegrees">The bearing asked for (degrees TOWARDS).</param>
 /// <param name="Best">The valid loop found, or else the least bad one; null if the engine never found a route.</param>
 /// <param name="Requests">Requests made to the route engine.</param>
 /// <param name="Attempts">Every loop routed, in order.</param>
-public sealed record LoopResult(LoopCandidate? Best, int Requests, IReadOnlyList<LoopCandidate> Attempts);
+public sealed record LoopResult(double BearingDegrees, LoopCandidate? Best, int Requests, IReadOnlyList<LoopCandidate> Attempts)
+{
+    /// <summary>False when there is no acceptable loop towards that bearing (not even turning it ±40°).</summary>
+    public bool Found => Best?.IsValid == true;
+}
 
 /// <summary>
 /// Generates a road-bike loop from a start, towards a bearing, of about a target distance (phase 2, step 4c; DECISIONS
@@ -173,7 +189,44 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
             }
         }
 
-        LoopResult Result() => new(attempts.MinBy(Badness), requests, attempts);
+        LoopResult Result() => new(Normalize(bearingDegrees), attempts.MinBy(c => c.Badness), requests, attempts);
+    }
+
+    /// <summary>
+    /// One loop towards each of <paramref name="bearingsDegrees"/>, one after another (the engine takes one request at a
+    /// time), ranked: those with a valid loop first, best first; then the bearings without one.
+    /// </summary>
+    /// <exception cref="RouteException">The engine failed for a reason other than unreachable waypoints.</exception>
+    public async Task<IReadOnlyList<LoopResult>> GenerateManyAsync(
+        Coordinate start, IReadOnlyList<double> bearingsDegrees, double targetKm, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(bearingsDegrees);
+        var results = new List<LoopResult>();
+        foreach (var bearing in bearingsDegrees)
+        {
+            results.Add(await GenerateAsync(start, bearing, targetKm, cancellationToken));
+        }
+        return results
+            .OrderBy(r => r.Found ? 0 : 1)
+            .ThenBy(r => r.Best?.Badness ?? double.MaxValue)
+            .ToList();
+    }
+
+    /// <summary>
+    /// <paramref name="count"/> bearings evenly spread around the compass from <paramref name="firstDegrees"/>: three
+    /// from 0° are 0°, 120° and 240°. Used while there is no wind to choose from (phase 2).
+    /// </summary>
+    public static IReadOnlyList<double> SpreadBearings(int count, double firstDegrees = 0)
+    {
+        if (count is < 1 or > 36)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), count, "Between 1 and 36 bearings.");
+        }
+        if (!double.IsFinite(firstDegrees))
+        {
+            throw new ArgumentOutOfRangeException(nameof(firstDegrees), firstDegrees, "Bearing must be finite.");
+        }
+        return Enumerable.Range(0, count).Select(i => Normalize(firstDegrees + 360.0 * i / count)).ToList();
     }
 
     private LoopCandidate Judge(
@@ -256,14 +309,6 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
         }
         return history.Any(h => Math.Abs(h.RadiusKm - radius) < 0.02 * radius) ? null : radius;
     }
-
-    /// <summary>Lower is better: valid first, then closest to the target distance, then fewest trunk km.</summary>
-    private double Badness(LoopCandidate c) =>
-        (c.Problems.HasFlag(LoopProblems.Spurs) ? 10 + c.Analysis.SpurFraction : 0)
-        + (c.Problems.HasFlag(LoopProblems.Forbidden) ? 10 : 0)
-        + (c.Problems.HasFlag(LoopProblems.Bearing) ? 5 : 0)
-        + Math.Abs(c.DistanceError)
-        + c.Analysis.TrunkKm / 1000;
 
     private static double Normalize(double degrees) => (degrees % 360 + 360) % 360;
 }
