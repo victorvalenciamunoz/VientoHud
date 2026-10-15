@@ -56,6 +56,11 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
       emparejar ("target island" en un punto).
     - Decisión del autor: `trunk` permitido con penalización fuerte (`DECISIONS.md` 016). **Falta** elegir el coste con
       una prueba en vivo con costes 2, 3 y 5.
+    - Prueba con costes 2, 3 y 5 (2026-10-15, registros `fase2-prueba-vivo-trunk{2,3,5}-*.txt`; script corregido para no
+      repetir peticiones): **6 de 8** válidas con los tres. Km por `trunk` sumados en las seis válidas: 24,1 (coste 2),
+      13,9 (coste 3) y 18,2 (coste 5); 2-4 "target island" por tanda; 45-49 peticiones por tanda, sin bloqueos. Entre 3 y
+      5 la diferencia es ruido: depende de qué puntos de paso acaba usando el generador (León E: 0,8 km con coste 3 y
+      6,3 km con coste 5, con rutas distintas). Tres Cantos N y E fallan siempre por distancia (geografía).
   - [ ] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
     objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3.

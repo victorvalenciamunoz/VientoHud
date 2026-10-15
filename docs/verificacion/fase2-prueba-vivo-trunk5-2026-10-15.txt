@@ -1,0 +1,62 @@
+== leon-N: 60 km towards 0°
+   call 1: 0° R 10,3 →  87,7 km (+46%) spurs 44 % repeated 55 % forbidden 0,0 km trunk 7,0 km off bearing  10° spurs, distance
+   call 2: 0° R 10,3 →  46,6 km (-22%) spurs 0 % repeated 22 % forbidden 0,0 km trunk 0,1 km off bearing  43° distance
+   call 3: 0° R 13,3 → 103,4 km (+72%) spurs 48 % repeated 51 % forbidden 0,0 km trunk 17,9 km off bearing   1° spurs, distance
+   call 4: 0° R 13,3 →  51,6 km (-14%) spurs 0 % repeated 8 % forbidden 0,0 km trunk 0,4 km off bearing  10° distance
+   call 5: 0° R 15,5 → 115,8 km (+93%) spurs 49 % repeated 67 % forbidden 0,0 km trunk 11,8 km off bearing   4° spurs, distance
+   call 6: 0° R 15,5 →  56,8 km ( -5%) spurs 0 % repeated 38 % forbidden 0,0 km trunk 0,4 km off bearing  11° VALID
+== leon-E: 60 km towards 90°
+   call 1: 90° R 10,3 →  59,8 km (-+0%) spurs 3 % repeated 3 % forbidden 0,0 km trunk 6,3 km off bearing  10° VALID
+== leon-S: 80 km towards 180°
+   call 1: 180° R 13,8 →  84,8 km ( +6%) spurs 12 % repeated 12 % forbidden 0,0 km trunk 5,0 km off bearing  15° spurs
+   call 2: 180° R 13,8 →  73,1 km ( -9%) spurs 0 % repeated 0 % forbidden 0,0 km trunk 5,0 km off bearing  23° VALID
+== leon-W: 40 km towards 270°
+   call 1: 270° R 6,9 →  40,5 km ( +1%) spurs 0 % repeated 0 % forbidden 0,0 km trunk 0,0 km off bearing   8° VALID
+== tres-N: 60 km towards 0°
+   call 1: target island at 0° R 10,3
+   call 2: 20° R 10,3 → 101,1 km (+69%) spurs 42 % repeated 73 % forbidden 0,0 km trunk 0,1 km off bearing  50° spurs, distance, bearing
+   call 3: 20° R 10,3 →  76,5 km (+27%) spurs 24 % repeated 66 % forbidden 0,0 km trunk 0,1 km off bearing 103° spurs, distance, bearing
+   call 4: 20° R 10,3 →  51,4 km (-14%) spurs 0 % repeated 63 % forbidden 0,0 km trunk 0,1 km off bearing 126° distance, bearing
+   call 5: 20° R 12,1 → 109,0 km (+82%) spurs 43 % repeated 76 % forbidden 0,0 km trunk 0,1 km off bearing  44° spurs, distance
+   call 6: 20° R 12,1 →  79,8 km (+33%) spurs 24 % repeated 70 % forbidden 0,0 km trunk 0,1 km off bearing 100° spurs, distance, bearing
+   call 7: 20° R 12,1 →  72,1 km (+20%) spurs 26 % repeated 78 % forbidden 0,0 km trunk 0,1 km off bearing 116° spurs, distance, bearing
+   call 8: 20° R 12,1 →  52,4 km (-13%) spurs 0 % repeated 70 % forbidden 0,0 km trunk 0,1 km off bearing 126° distance, bearing
+   call 9: 20° R 13,8 → 127,3 km (+112%) spurs 16 % repeated 17 % forbidden 0,0 km trunk 3,6 km off bearing  34° spurs, distance
+   call 10: 20° R 13,8 → 105,0 km (+75%) spurs 0 % repeated 2 % forbidden 0,0 km trunk 3,6 km off bearing  35° distance
+   call 11: -20° R 10,3 →  68,1 km (+14%) spurs 32 % repeated 78 % forbidden 0,0 km trunk 0,0 km off bearing  30° spurs, distance
+   call 12: -20° R 10,3 →  45,3 km (-24%) spurs 0 % repeated 69 % forbidden 0,0 km trunk 0,0 km off bearing  46° distance, bearing
+== tres-E: 80 km towards 90°
+   call 1: 90° R 13,8 → 132,1 km (+65%) spurs 43 % repeated 54 % forbidden 0,0 km trunk 1,5 km off bearing   7° spurs, distance
+   call 2: 90° R 13,8 →  72,9 km ( -9%) spurs 0 % repeated 20 % forbidden 0,0 km trunk 1,5 km off bearing  46° bearing
+   call 3: 90° R 15,1 → 109,8 km (+37%) spurs 0 % repeated 2 % forbidden 0,0 km trunk 1,7 km off bearing  10° distance
+   call 4: 90° R 11,0 → 109,0 km (+36%) spurs 40 % repeated 64 % forbidden 0,0 km trunk 1,3 km off bearing   4° spurs, distance
+   call 5: 90° R 11,0 →  62,5 km (-22%) spurs 3 % repeated 45 % forbidden 0,0 km trunk 1,3 km off bearing  36° distance
+   call 6: 110° R 13,8 →  91,3 km (+14%) spurs 23 % repeated 39 % forbidden 0,0 km trunk 3,6 km off bearing  42° spurs, distance
+   call 7: 110° R 13,8 →  64,8 km (-19%) spurs 7 % repeated 22 % forbidden 0,0 km trunk 0,4 km off bearing  54° distance, bearing
+   call 8: 110° R 17,0 → 103,2 km (+29%) spurs 31 % repeated 40 % forbidden 0,0 km trunk 1,6 km off bearing  37° spurs, distance
+   call 9: 110° R 17,0 →  68,4 km (-14%) spurs 0 % repeated 14 % forbidden 0,0 km trunk 1,3 km off bearing  58° distance, bearing
+   call 10: 110° R 19,9 → 113,5 km (+42%) spurs 13 % repeated 21 % forbidden 0,0 km trunk 1,4 km off bearing  36° spurs, distance
+   call 11: 110° R 19,9 →  96,0 km (+20%) spurs 0 % repeated 10 % forbidden 0,0 km trunk 1,4 km off bearing  43° distance
+   call 12: target island at 70° R 13,8
+== madrid-SW: 70 km towards 225°
+   call 1: 225° R 12,1 →  81,5 km (+16%) spurs 7 % repeated 7 % forbidden 0,0 km trunk 6,2 km off bearing   7° distance
+   call 2: target island at 225° R 10,4
+   call 3: 245° R 10,4 →  77,7 km (+11%) spurs 6 % repeated 6 % forbidden 0,0 km trunk 0,9 km off bearing  27° distance
+   call 4: target island at 245° R 9,3
+   call 5: 205° R 9,3 →  60,1 km (-14%) spurs 19 % repeated 19 % forbidden 0,0 km trunk 3,2 km off bearing  20° spurs, distance
+   call 6: 205° R 9,3 →  44,9 km (-36%) spurs 0 % repeated 0 % forbidden 0,0 km trunk 1,4 km off bearing  21° distance
+   call 7: 205° R 14,6 →  99,7 km (+42%) spurs 28 % repeated 28 % forbidden 0,0 km trunk 1,0 km off bearing   9° spurs, distance
+   call 8: 205° R 14,6 →  69,4 km ( -1%) spurs 0 % repeated 0 % forbidden 0,0 km trunk 0,9 km off bearing   5° VALID
+== fuenla-S: 80 km towards 180°
+   call 1: 180° R 13,8 → 110,7 km (+38%) spurs 25 % repeated 36 % forbidden 0,0 km trunk 5,6 km off bearing  12° spurs, distance
+   call 2: 180° R 13,8 →  77,6 km ( -3%) spurs 0 % repeated 15 % forbidden 0,0 km trunk 5,6 km off bearing  27° VALID
+
+profile strict + trunk allowed at cost 5, network calls 45
+leon-N           60 km   0°: VALID    56,8 km ( -5%) spurs 0 % repeated 38 % forbidden 0,0 km trunk 0,4 km off bearing  11° (6 calls)
+leon-E           60 km  90°: VALID    59,8 km (-+0%) spurs 3 % repeated 3 % forbidden 0,0 km trunk 6,3 km off bearing  10° (1 calls)
+leon-S           80 km 180°: VALID    73,1 km ( -9%) spurs 0 % repeated 0 % forbidden 0,0 km trunk 5,0 km off bearing  23° (2 calls)
+leon-W           40 km 270°: VALID    40,5 km ( +1%) spurs 0 % repeated 0 % forbidden 0,0 km trunk 0,0 km off bearing   8° (1 calls)
+tres-N           60 km   0°: invalid 105,0 km (+75%) spurs 0 % repeated 2 % forbidden 0,0 km trunk 3,6 km off bearing  35° (12 calls) — distance
+tres-E           80 km  90°: invalid  96,0 km (+20%) spurs 0 % repeated 10 % forbidden 0,0 km trunk 1,4 km off bearing  43° (12 calls) — distance
+madrid-SW        70 km 225°: VALID    69,4 km ( -1%) spurs 0 % repeated 0 % forbidden 0,0 km trunk 0,9 km off bearing   5° (8 calls)
+fuenla-S         80 km 180°: VALID    77,6 km ( -3%) spurs 0 % repeated 15 % forbidden 0,0 km trunk 5,6 km off bearing  27° (2 calls)
