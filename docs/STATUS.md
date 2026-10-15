@@ -96,7 +96,21 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   devuelve los pedidos, no los corregidos, y con JSON mal formado.
 - **HTTP 500 sin texto es ambiguo:** BRouter lo devuelve por perfil inexistente, por un solo punto y por coordenadas
   inválidas. El cliente valida los puntos antes de llamar y lo trata como perfil perdido (vuelve a subirlo una vez).
-- **brouter.de sin política de uso publicada** (`DECISIONS.md` 013): si cae, no hay rutas.
+- **brouter.de sin política de uso publicada** (`DECISIONS.md` 013): si cae, no hay rutas. **Limita sin avisar:**
+  el 2026-10-15, tras unas 75 peticiones en unos 10 minutos (a una por segundo, varias con URL largas), respondió
+  HTTP 403 "Please, retry later!". El generador tiene que ir justo de peticiones.
+- **Las vueltas en abanico salen como estrellas, no como anillos** (investigación del 2026-10-15, scripts en
+  `tools/investigacion/`): con puntos geométricos, BRouter entra y sale de cada punto por el mismo ramal. Con R = 6-8 km:
+  León oeste 2 % repetido (bien), León norte 48 %, León este 84 %, Tres Cantos este 77 %, Tres Cantos suroeste 74 %;
+  León este y sur con R = 8 y Tres Cantos norte, "target island". Dos salidas reales del autor (Garmin) repiten 0 %.
+  - Penalizar lo ya recorrido (zonas `nogos` con peso de BRouter, tramo a tramo): ayuda poco (84 → 60 %, 77 → 61 %)
+    y cuesta 5 peticiones por vuelta. Descartado.
+  - Mover el punto que provoca un ramal al cruce donde empieza: León norte pasa de 48 % a 0 %, pero la vuelta encoge
+    (58 → 27 km). No sirve donde toda la red es un árbol.
+  - La prohibición de `trunk` pesa: en España muchas nacionales de un carril por sentido están etiquetadas `trunk`.
+    León este (R = 6) con `trunk` permitido: 33 km, 35 % repetido, 3,6 km por `trunk` (frente a 80 km y 84 %).
+    Un solo caso antes del bloqueo de brouter.de.
+  - Algunos rumbos no tienen vuelta posible (Tres Cantos hacia El Pardo): hay que poder girar el rumbo.
 
 ## Fase 1
 
