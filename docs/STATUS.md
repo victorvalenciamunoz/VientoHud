@@ -1,6 +1,8 @@
 # Estado
 
-**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 a 3 hechos; del 4, el 4a, 4b y 4c1, y el 4c2 salvo la pasada en vivo; el 5 con el código hecho)
+**Fase actual: 3 — Viento en la ruta** (sin empezar; división de pasos pendiente de confirmar)
+
+Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 
 Fase 1 — Viento en consola: terminada el 2026-10-14 (los 6 pasos hechos y el juez ejecutado).
 Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
@@ -55,7 +57,7 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   obras; `trunk` prohibido en todo el mundo, `DECISIONS.md` 013, luego permitido con coste 3, `DECISIONS.md` 016),
   subida del perfil, ruta entre puntos de paso,
   lectura de las etiquetas de cada tramo, errores ("target island", 400, 500) y fixtures grabadas.
-- [ ] 4. Generador de vueltas. Dividido en:
+- [x] 4. Generador de vueltas. Dividido en:
   - [x] 4a. Análisis de una ruta, sin red: desvío de cada punto pedido, % repetido y km por tramos prohibidos
     (`DECISIONS.md` 014). Probado con rutas reales grabadas. Ampliado con los tramos repetidos y los ramales
     (`DECISIONS.md` 015), calibrado con seis salidas reales del autor.
@@ -86,19 +88,19 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   - [x] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
     objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3. (`LoopWaypoints`)
-  - [ ] 4c. Generador. Límites decididos por el autor (`DECISIONS.md` 017): como mucho 12 peticiones por candidata,
+  - [x] 4c. Generador. Límites decididos por el autor (`DECISIONS.md` 017): como mucho 12 peticiones por candidata,
     3 candidatas por defecto, sin límite aparte para el desvío de un punto. Dividido en:
     - [x] 4c1. Una vuelta hacia un rumbo (`LoopGenerator`): abanico, mover los puntos de ramal, corregir R (entre un
       radio corto y uno largo cuando se conocen los dos) y girar el rumbo ±20°, ±40° ante "target island" o sin vuelta
       válida. Válida: ≤ 10 % en ramales, ±10 % de distancia, 0 km prohibidos o desconocidos, centro de la ruta a menos
       de 45° del rumbo. Devuelve la válida o la menos mala, las peticiones hechas y todos los intentos. Probado con un
       motor falso.
-    - [ ] 4c2. Varias candidatas (rumbos separados), orden de preferencia (válidas, distancia más cercana, menos
+    - [x] 4c2. Varias candidatas (rumbos separados), orden de preferencia (válidas, distancia más cercana, menos
       `trunk`) y el caso "hacia allí no hay vuelta". Pasada en vivo en Madrid y León con el cliente real.
       - [x] Código y tests: `LoopGenerator.GenerateManyAsync` (una vuelta por rumbo, ordenadas) y
         `LoopGenerator.SpreadBearings` (3 rumbos cada 120° por defecto, decidido por el autor; se puede fijar el primero).
         Cada resultado dice si encontró vuelta (`Found`).
-      - [ ] Pasada en vivo: **a medias** por un bloqueo de brouter.de (ver riesgos). Hechos 5 de los 8 casos de la
+      - [x] Pasada en vivo: a medias por un bloqueo de brouter.de (ver riesgos), completada después con el comando `route` y con el juez (paso 6). Hechos 5 de los 8 casos de la
         prueba anterior: León N, E, S y O válidos (en 4, 3, 2 y 1 peticiones; igual o menos que el script), Tres Cantos N
         sin vuelta (12 peticiones). Faltan Tres Cantos E, Madrid SO, Fuenlabrada S y las tres candidatas cada 120° en
         León, Fuenlabrada y Tres Cantos (`tools/investigacion/generate.cs`, registro en
@@ -108,7 +110,7 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
         análisis (medias vueltas de más de 200 m, `DECISIONS.md` 015), en el generador (problema `TurnBacks` y mover el
         punto de paso al inicio del ramal) y en el perfil (`correctMisplacedViaPoints`). Esas vueltas de León ya no
         valdrían: la pasada en vivo pendiente dirá cuántas salen limpias.
-- [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
+- [x] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
   `[--lat --lon] [--count 3]`: escribe los GPX y un resumen.
   - [x] Código (2026-10-15): `vientohud route (--km <10-300> | --hours <0,5-12> [--speed <10-45>]) [--lat --lon]
     [--count <1-6>] [--bearing <0-360>] [--out <carpeta>]`. Sin `--lat/--lon`, la ubicación de Windows. Velocidad
@@ -117,7 +119,7 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
     `-descartada` si no es válida) con un resumen en la descripción (km, desnivel, km por `trunk`, caminos asfaltados,
     % repetido). Si BRouter deja de responder, enseña y guarda lo que ya tenía y no prueba más rumbos. Código de salida
     0 con al menos una vuelta válida, 1 si ninguna o error, 2 argumentos incorrectos, 130 cancelado.
-  - [ ] Prueba en vivo con brouter.de (junto con la pasada pendiente del 4c2). El bloqueo se levantó el mismo día
+  - [x] Prueba en vivo con brouter.de (junto con la pasada pendiente del 4c2). El bloqueo se levantó el mismo día
     (una petición de prueba respondió 200).
     - [x] León capital, 60 km, 3 rumbos (`vientohud route --km 60 --lat 42.5987 --lon -5.5671`). Primera ejecución:
       3 válidas en 9 peticiones; las medias vueltas en seco bajan a 50-180 m (BRouter las recorta), pero la del norte
@@ -145,7 +147,7 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
         geografía (El Pardo, autovías).
       - Total **6 de 9** (antes 4 de 9, con León capital en lugar de La Bañeza). **Pendiente:** que el autor revise
         las tres de La Bañeza en gpx.studio.
-- [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
+- [x] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
   y León con varias distancias; abrir en gpx.studio y cargar en el GPS de la bici.
   - [x] Cargar en el GPS de la bici (2026-10-15): se ve bien; todas sus carreteras son de las que el autor usa en bici.
     El autor cargó en su Hammerhead Karoo la vuelta de La Bañeza hacia el OSO (60,4 km) generada
@@ -159,7 +161,7 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
     - Sin dato de firme en OpenStreetMap: 591 km (26 %); las reglas los dan por asfaltados. 291 km son carreteras
       (`tertiary` o más), 151 calles y 44 carriles bici; **105 km (4,6 %) son `unclassified` o `service`**, donde
       la duda es mayor. Riesgo residual: el ojo del autor en gpx.studio (y en la bici) es la comprobación final.
-- [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
+- [ ] 7. (Pendiente como mejora, no bloquea la fase: el juez muestra poca repetición y un 7 % de calles.) Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
   urbano (la salida de Madrid).
   - Observado por el autor en la vuelta de La Bañeza hacia el OSO (2026-10-15): **callejeo por los pueblos**, la ruta
     deja la carretera principal, cruza unas calles y vuelve a ella (Posadilla de la Vega; un pueblo junto a la CL-621).
