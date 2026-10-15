@@ -278,6 +278,8 @@ Formato: contexto → decisión → alternativas descartadas.
   - Lazo (Boadilla del Monte, 84 km): una vuelta cerca de casa unida por un cuello de 4,6 km, ida y vuelta, a una vuelta
     de 50 km; repite el 11 %, en mitad de la ruta.
   - Vueltas (Soto de la Vega, 73 y 84 km): repiten 0-4 %.
+  - Globo en el centro (Humanes, 21,6 km): cuerda desde casa, una vuelta pequeña y, desde ella, ida y vuelta de 3 km
+    hasta el punto más lejano; repite el 64 %.
   Un límite al % repetido, o exigir que lo repetido esté junto a casa, rechaza rutas buenas (se probó y falló con la ida
   y vuelta y con el lazo).
 - Decisión (criterio del autor: "lo que no debemos hacer es crear estrellas"; afinado con sus rutas el 2026-10-15): lo
@@ -290,10 +292,14 @@ Formato: contexto → decisión → alternativas descartadas.
   - **Salvo que salga de casa:** si el tramo empieza a menos de 3 km de los dos extremos de la ruta, es la ida y vuelta
     misma, no un desvío. Los 3 km dan margen para salir y entrar del pueblo por calles distintas o para una grabación
     que acaba antes de llegar.
+  - **Salvo que lleve al destino:** si da la media vuelta en el punto de la ruta más lejano de casa (en línea recta), es
+    el destino de la salida (ida y vuelta con un globo en medio), no un desvío. Solo un ramal puede dar la vuelta ahí:
+    se probó con un margen del 90 % de la distancia máxima y dejaba pasar estrellas enteras, porque en un abanico todos
+    los puntos de paso están a la misma distancia de casa.
   - Un tramo repetido se parte donde su otra pasada salta de sitio: así una cuerda seguida justo de un ramal no se mezcla
     con él (otra estrella de Tres Cantos).
-  - Con datos: rutas del autor 0-0,6 % en ramales (el 0,6 % es un giro corto en el lazo); vueltas generadas buenas
-    0-1,6 %; estrellas generadas 35-84 %.
+  - Con datos: las seis rutas del autor 0 % en ramales; vueltas generadas buenas 0-1,6 %; estrellas generadas 24-60 %
+    (sin contar el brazo que lleva al punto más lejano).
   - Criterio para el generador (4c), **umbral provisional**: como mucho un 10 % de la ruta en ramales. Se revisará con
     los datos de la prueba en vivo.
 - Limitaciones: un tramo repetido tres veces se empareja solo con la pasada más cercana; los umbrales (5 km, 15 %, 3 km)

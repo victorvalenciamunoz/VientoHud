@@ -151,6 +151,35 @@ public class RouteAnalyzerTests
     }
 
     [Fact]
+    public void A_dead_end_to_the_farthest_point_is_the_destination_not_a_spur()
+    {
+        // The balloon in the middle: 4 km out of home, one side of a 14 km loop, 4 km to a dead end (the farthest point
+        // of the ride) and back, the other side of the loop and the same 4 km home.
+        var route = Track(30, (0, 0), (0, 4), (3, 4), (3, 8), (3, 12), (3, 8), (0, 8), (0, 4), (0, 0));
+
+        var analysis = RouteAnalyzer.Analyze(route, []);
+
+        Assert.Contains(analysis.Repeats, r => r.StartKm is >= 11 and <= 11.2);
+        Assert.All(analysis.Repeats, r => Assert.False(r.IsSpur));
+        Assert.Equal(0, analysis.SpurFraction);
+    }
+
+    [Fact]
+    public void Only_the_dead_end_to_the_farthest_point_is_the_destination()
+    {
+        // A star with two arms on a 40 km square: a 3 km dead end at the second corner and another at the far corner.
+        var route = Track(
+            52, (0, 0), (0, 10), (-3, 10), (0, 10), (10, 10), (10, 13), (10, 10), (10, 0), (0, 0));
+
+        var analysis = RouteAnalyzer.Analyze(route, []);
+
+        // The first arm, km 10-12.5 in and km 13.5-16 out, is a spur: about 26 + 26 checked points of 521.
+        Assert.Contains(analysis.Repeats, r => r.IsSpur && r.StartKm is >= 10 and <= 10.2);
+        Assert.Contains(analysis.Repeats, r => !r.IsSpur && r.StartKm is >= 26 and <= 26.2);
+        Assert.InRange(analysis.SpurFraction, 50 / 521.0, 53 / 521.0);
+    }
+
+    [Fact]
     public void A_spur_right_after_the_string_from_home_is_still_a_spur()
     {
         // 5 km out of home, a 3 km dead end ridden in and out, a 20 km loop, and the same 5 km home. The string and the
@@ -168,8 +197,10 @@ public class RouteAnalyzerTests
     [Fact]
     public void A_short_loop_at_the_end_of_a_dead_end_is_still_a_spur()
     {
-        // As above, but the dead end ends in a 2 km block around a village instead of turning back.
-        var route = Track(26, (0, 0), (0, 5), (0, 7), (0.5, 7), (0.5, 7.5), (0, 7.5), (0, 7), (0, 5), (5, 5), (5, 0), (0, 0));
+        // A 26 km loop with a 2 km dead end that ends in a 2 km block around a village instead of turning back. The far
+        // corner of the loop, not the village, is the farthest point from home.
+        var route = Track(
+            32, (0, 0), (0, 5), (0, 7), (0.5, 7), (0.5, 7.5), (0, 7.5), (0, 7), (0, 5), (8, 5), (8, 0), (0, 0));
 
         var analysis = RouteAnalyzer.Analyze(route, []);
 
@@ -325,7 +356,8 @@ public class RouteAnalyzerTests
         {
             var analysis = RouteAnalyzer.Analyze(await recorded.LoadAsync(), recorded.Waypoints);
 
-            Assert.True(analysis.SpurFraction > 0.5, $"{recorded.File}: spurs {analysis.SpurFraction:P0}");
+            // The arm that reaches farthest counts as the destination; the others are spurs.
+            Assert.True(analysis.SpurFraction > 0.3, $"{recorded.File}: spurs {analysis.SpurFraction:P0}");
         }
     }
 
@@ -347,6 +379,18 @@ public class RouteAnalyzerTests
         Assert.InRange(analysis.DistanceKm, 95, 97);
         Assert.True(analysis.RepeatedFraction > 0.9, $"{analysis.RepeatedFraction:P1}");
         Assert.True(analysis.SpurFraction < 0.01, $"{analysis.SpurFraction:P1}");
+    }
+
+    [Fact]
+    public void A_real_ride_with_the_balloon_in_the_middle_repeats_two_thirds_but_on_no_spur()
+    {
+        var analysis = RouteAnalyzer.Analyze(RecordedRides.HumanesBalloonInTheMiddle(), []);
+
+        Assert.InRange(analysis.DistanceKm, 21, 22);
+        Assert.InRange(analysis.RepeatedFraction, 0.6, 0.7);
+        // The dead end to the farthest point, km 6-9.5 in and km 10.5-13.5 out, is the destination.
+        Assert.Contains(analysis.Repeats, r => r.StartKm is > 6 and < 7 && !r.IsSpur);
+        Assert.Equal(0, analysis.SpurFraction);
     }
 
     [Fact]

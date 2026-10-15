@@ -35,6 +35,7 @@ public sealed record RouteAnalysisOptions
     /// detour. Leaving and entering a town by different streets, or a recording that stops short of home, fit in it.
     /// </summary>
     public double HomeStretchKm { get; init; } = 3;
+
 }
 
 /// <summary>
@@ -137,8 +138,10 @@ public static class RouteAnalyzer
     /// So a stretch is a spur when, at its innermost point, the km ridden only once between the passes are fewer than
     /// <see cref="RouteAnalysisOptions.MinLoopKm"/> (or <see cref="RouteAnalysisOptions.MinLoopFraction"/> of the
     /// route), unless the stretch starts within <see cref="RouteAnalysisOptions.HomeStretchKm"/> of both ends of the
-    /// track (an out-and-back ride from home). Counting only km ridden once keeps a spur at the end of a longer spur
-    /// from passing as a loop.
+    /// track (an out-and-back ride from home), or it turns at the point of the route farthest from home: that spur is
+    /// the ride's destination (out and back, maybe with a loop on the way), not a detour. Only one spur can turn there,
+    /// so a star keeps the rest of its arms. Counting only km ridden once keeps a spur at the end of a longer spur from
+    /// passing as a loop.
     /// </remarks>
     private static (double Repeated, double Spur, List<RepeatedStretch> Repeats) Repetition(
         ProjectedTrack track, RouteAnalysisOptions options)
@@ -169,6 +172,10 @@ public static class RouteAnalyzer
             return to > from ? (onceBefore[to] - onceBefore[from]) * options.SampleSpacingKm : 0;
         }
         var minLoopKm = Math.Max(options.MinLoopKm, options.MinLoopFraction * track.LengthKm);
+
+        // The checked point farthest from home (the first point, the projection's origin) in a straight line.
+        var farthestAlongKm = options.SampleSpacingKm * Enumerable.Range(0, count)
+            .MaxBy(i => track.At(i * options.SampleSpacingKm).DistanceTo(new PlanePoint(0, 0)));
 
         var repeats = new List<RepeatedStretch>();
         var repeated = 0;
@@ -204,10 +211,13 @@ public static class RouteAnalyzer
                 .Select(i => (Here: i * options.SampleSpacingKm, Other: otherPass[i]!.Value))
                 .Select(p => (Low: Math.Min(p.Here, p.Other), High: Math.Max(p.Here, p.Other)))
                 .ToList();
-            var loopKm = pairs.Min(p => OnceKmBetween(p.Low, p.High));
+            var innermost = pairs.MinBy(p => OnceKmBetween(p.Low, p.High));
+            var loopKm = OnceKmBetween(innermost.Low, innermost.High);
             var fromHome = pairs.Min(p => p.Low) <= options.HomeStretchKm
                 && track.LengthKm - pairs.Max(p => p.High) <= options.HomeStretchKm;
-            var isSpur = loopKm < minLoopKm && !fromHome;
+            // The turn is between the innermost pair of passes.
+            var toDestination = farthestAlongKm >= innermost.Low && farthestAlongKm <= innermost.High;
+            var isSpur = loopKm < minLoopKm && !fromHome && !toDestination;
 
             var others = points.Select(i => otherPass[i]!.Value).ToList();
             repeats.Add(new RepeatedStretch(

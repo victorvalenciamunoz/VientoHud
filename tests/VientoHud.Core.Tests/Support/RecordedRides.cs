@@ -26,6 +26,12 @@ internal static class RecordedRides
     /// </summary>
     public static Route BoadillaLasso() => Load("boadilla-lasso-2025-05-25.gpx");
 
+    /// <summary>
+    /// A balloon in the middle, 21.6 km from Humanes de Madrid: a 4 km string, a small loop, and from it a 3 km dead end
+    /// to the farthest point of the ride, ridden there and back.
+    /// </summary>
+    public static Route HumanesBalloonInTheMiddle() => Load("humanes-balloon-in-the-middle-2025-04-13.gpx");
+
     private static Route Load(string file)
     {
         XNamespace gpx = "http://www.topografix.com/GPX/1/1";

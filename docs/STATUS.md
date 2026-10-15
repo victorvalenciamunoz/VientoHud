@@ -39,7 +39,7 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
 - [ ] 4. Generador de vueltas. Dividido en:
   - [x] 4a. Análisis de una ruta, sin red: desvío de cada punto pedido, % repetido y km por tramos prohibidos
     (`DECISIONS.md` 014). Probado con rutas reales grabadas. Ampliado con los tramos repetidos y los ramales
-    (`DECISIONS.md` 015), calibrado con cinco salidas reales del autor.
+    (`DECISIONS.md` 015), calibrado con seis salidas reales del autor.
   - [ ] Prueba en vivo antes de 4b (cuando brouter.de lo permita, pocas peticiones y espaciadas): unas 8 vueltas en
     Madrid y León, 40-100 km, rumbos variados, moviendo los puntos de ramal, ajustando R y girando el rumbo si no hay
     vuelta; perfil estricto frente a `trunk` permitido. Éxito: en al menos 6 de 8, ruta con ≤ 10 % en ramales,
@@ -116,6 +116,12 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   donde salta su otra pasada). Resultado: salidas del autor (globo, ida y vuelta, lazo, dos vueltas) 0-0,6 % en
   ramales; vueltas generadas buenas 0-1,6 %; estrellas generadas 35-84 %. Casos a mano nuevos: lazo, ramal con una
   vuelta de 2 km al final, cuerda seguida de ramal. 205 tests en total.
+- Globo en el centro (2026-10-15): otra salida del autor (Humanes, 21,6 km) con una ida y vuelta al punto más lejano
+  colgando de una vuelta pequeña salía con 28 % en ramales. Ahora el ramal que da la vuelta en el punto más lejano de
+  casa es el destino. Con un margen del 90 % dejaba pasar estrellas (León este con `trunk`: 35 % → 0 %), así que solo
+  vale el punto más lejano exacto. Resultado: seis salidas del autor 0 % en ramales; estrellas generadas 24-60 %.
+  Casos a mano nuevos: globo en el centro y estrella de dos brazos (solo se perdona el que llega más lejos).
+  208 tests en total.
 
 ### Riesgos y pendientes (fase 2)
 

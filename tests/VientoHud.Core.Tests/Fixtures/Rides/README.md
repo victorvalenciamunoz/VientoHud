@@ -10,3 +10,6 @@ ejemplos de rutas buenas.
 - `boadilla-lasso-2025-05-25.gpx`: Boadilla del Monte, 25 may. 2025, 84,2 km. Lazo: una vuelta cerca de casa (km 0-8
   y 67-84) unida por un cuello de 4,6 km, ida y vuelta (km 8-13 y 62-67), a una vuelta de 50 km. Repite el 11 %, todo
   en el cuello salvo un giro corto: es una ruta válida.
+- `humanes-balloon-in-the-middle-2025-04-13.gpx`: Humanes de Madrid, 13 abr. 2025, 21,6 km. Globo en el centro: cuerda
+  de 4 km desde casa, un lado de una vuelta pequeña, ida y vuelta de 3 km hasta el punto más lejano, el otro lado de la
+  vuelta y la cuerda a casa. Repite el 64 %; el tramo hasta el punto más lejano es el destino, no un ramal: es válida.
