@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a y 3b hechos)
+**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a, 3b y 3c-1 hechos)
 
 ## Fase 3
 
@@ -8,8 +8,10 @@
 
 - **Tramos de la ruta** (`RouteLegs.Split`, `RouteLeg`; `DECISIONS.md` 019): parte una ruta en tramos iguales de ~1 km
   (N = longitud redondeada) con su principio y final, rumbo de la línea recta (grados HACIA), rectitud (1 = recto,
-  ~0 = vuelve sobre sí mismo) y hora de paso al principio, a la mitad y al final (UTC), desde la hora de salida a una
-  velocidad media fija (25 km/h por defecto). Sin red.
+  ~0 = vuelve sobre sí mismo), lo que sube o baja y hora de paso al principio, a la mitad y al final (UTC), desde la
+  hora de salida. La ruta entera dura longitud / velocidad media (25 km/h por defecto) y ese tiempo se reparte por la
+  pendiente: un 13 % más lento por cada 1 % de subida y más rápido en bajada, hasta ±4 % (`DECISIONS.md` 021). Sin
+  altitudes, velocidad fija. Sin red.
 - **Viento en cada tramo** (`RouteWind`, `LegWind`, `WindField`; `DECISIONS.md` 020): pide la previsión en un punto
   cada 5 km de la ruta, en una sola llamada (AROME → `best_match`; si AROME no cubre algún punto, todos pasan a
   `best_match`), y da a cada tramo el viento de su punto medio a la hora de paso, mezclando los dos puntos más cercanos
@@ -24,10 +26,10 @@ División aceptada por el autor el 2026-10-15:
   pasa por cada uno (hora de salida + velocidad media). En Core, sin red, probado con rutas grabadas.
 - [x] 3b. Viento en cada tramo: previsión de Open-Meteo (AROME → `best_match`, como en la fase 1) en pocos puntos de la
   ruta y en una sola llamada, a la hora de paso; componente de cara/a favor y de lado (viento DESDE frente a rumbo HACIA).
-- [ ] 3c. Ajuste de velocidad por el viento (sencillo al principio; idea: calibrarlo con las salidas reales del autor,
-  cuyos GPX originales llevan la hora de cada punto, y el viento de esos días) y puntuación: viento de cara en la
-  primera mitad, a favor en la segunda, penalizar rachas fuertes de lado; cada vuelta en los dos sentidos. **Decisión
-  del autor:** los pesos de la puntuación (se le plantearán con ejemplos).
+- [x] 3c-1. Hora de paso: calibrada con 8 salidas reales del autor. **Decisión del autor:** el viento no ajusta la
+  velocidad (efecto pequeño e incierto); la pendiente sí reparte el tiempo (`DECISIONS.md` 021).
+- [ ] 3c-2. Puntuación: viento de cara en la primera mitad, a favor en la segunda, penalizar rachas fuertes de lado;
+  cada vuelta en los dos sentidos. **Decisión del autor:** los pesos de la puntuación (se le plantearán con ejemplos).
 - [ ] 3d. Consola: `route` elige los rumbos alrededor del viento (no cada 120°) y el sentido, ordena por puntuación con
   explicación por tramos ("km 0-18: de cara 12 km/h…") y admite la hora de salida (por defecto, ahora).
 - [ ] 3e. Juez: días pasados, recalcular la puntuación con el viento observado (METAR, fase 1) y ver si la ruta
@@ -57,6 +59,12 @@ Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018):
   A mano con `tools/investigacion/routewind.cs` (previsión real para el 16 oct. a las 8:00 UTC): 96 tramos, 19 puntos,
   una llamada; viento flojo (2-9 km/h) que rola al sur y sube; en la vuelta (rumbo noreste) entra por la derecha
   (5-8 km/h). **Medida previa** (la que llevó a elegir 5 km): ver `DECISIONS.md` 020.
+- Paso 3c-1 (2026-10-15): 5 tests nuevos (328 en total): 10 km llanos y 10 km al 4 % a 25 km/h siguen durando 48 min,
+  con la subida al 48 % de la velocidad en llano; bajada al 2 %, un 26 % más rápida; el 8 % cuenta como el 4 %; si
+  falta alguna altitud, velocidad fija; la salida de Boadilla con sus altitudes mantiene la media y varía la velocidad.
+  Las salidas grabadas de los tests leen ahora su altitud. **Calibración** con 8 salidas del autor (Garmin, con hora y
+  altitud, 575 tramos; los ficheros no entran en el repositorio) y **comprobación** de la hora de paso: error medio
+  2,9 → 1,6 min y máximo 13,4 → 4,8 min al repartir por pendiente (`DECISIONS.md` 021, `calibrate.cs`, `timing.cs`).
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 

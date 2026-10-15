@@ -155,6 +155,79 @@ public class RouteLegsTests
         Assert.True(AngleBetween(outward, back) > 170, $"Out {outward:0}°, back {back:0}°");
     }
 
+    // A road north from León, a point every 100 m: first flatKm on the flat, then climbKm at gradePercent.
+    private static Route Hill(double flatKm, double climbKm, double gradePercent)
+    {
+        var points = Enumerable.Range(0, (int)Math.Round((flatKm + climbKm) * 10) + 1)
+            .Select(i => i / 10.0)
+            .Select(km => new RoutePoint(Leon.Destination(0, km), 800 + Math.Max(0, km - flatKm) * gradePercent * 10))
+            .ToList();
+        return new Route(points, [], flatKm + climbKm, null, "Test");
+    }
+
+    private static double SpeedKmh(RouteLeg leg) => leg.LengthKm / (leg.EndTime - leg.StartTime).TotalHours;
+
+    [Fact]
+    public void Shares_the_time_out_by_slope_and_keeps_the_average_speed()
+    {
+        // 10 km flat and 10 km at 4 %: uphill 52 % slower than on the flat. 20 km at 25 km/h is still 48 minutes.
+        var legs = RouteLegs.Split(Hill(10, 10, 4), Departure);
+
+        Assert.Equal(48, (legs[^1].EndTime - Departure).TotalMinutes, precision: 3);
+        Assert.Equal(0.48, SpeedKmh(legs[15]) / SpeedKmh(legs[5]), precision: 3);
+        Assert.Equal(38.5, SpeedKmh(legs[5]), precision: 1);
+        Assert.Equal(4, legs[15].GradePercent, precision: 6);
+        Assert.Equal(40, legs[15].ClimbMeters!.Value, precision: 6);
+        Assert.Equal(0, legs[5].ClimbMeters!.Value, precision: 6);
+    }
+
+    [Fact]
+    public void Goes_faster_downhill()
+    {
+        var legs = RouteLegs.Split(Hill(10, 10, -2), Departure);
+
+        Assert.Equal(1.26, SpeedKmh(legs[15]) / SpeedKmh(legs[5]), precision: 3);
+        Assert.Equal(48, (legs[^1].EndTime - Departure).TotalMinutes, precision: 3);
+    }
+
+    [Fact]
+    public void Counts_slopes_steeper_than_4_percent_as_4_percent()
+    {
+        var steep = RouteLegs.Split(Hill(10, 10, 8), Departure);
+
+        Assert.Equal(0.48, SpeedKmh(steep[15]) / SpeedKmh(steep[5]), precision: 3);
+        Assert.Equal(8, steep[15].GradePercent, precision: 6);
+    }
+
+    [Fact]
+    public void Keeps_a_steady_speed_when_some_elevation_is_missing()
+    {
+        var hill = Hill(10, 10, 4);
+        var points = hill.Points.Select((p, i) => i == 50 ? p with { ElevationMeters = null } : p).ToList();
+
+        var legs = RouteLegs.Split(new Route(points, [], hill.DistanceKm, null, "Test"), Departure);
+
+        Assert.All(legs, leg =>
+        {
+            Assert.Null(leg.ClimbMeters);
+            Assert.Equal(0, leg.GradePercent);
+            Assert.Equal(25, SpeedKmh(leg), precision: 6);
+        });
+    }
+
+    [Fact]
+    public void Times_a_recorded_ride_with_its_elevations()
+    {
+        // The Boadilla lasso climbs and drops: legs differ in speed, but the whole ride keeps the average.
+        var ride = RecordedRides.BoadillaLasso();
+
+        var legs = RouteLegs.Split(ride, Departure, averageSpeedKmh: 30);
+
+        Assert.Equal(Departure.AddHours(legs[^1].EndKm / 30), legs[^1].EndTime);
+        Assert.All(legs, leg => Assert.InRange(SpeedKmh(leg), 0.48 * 25, 1.52 * 40));
+        Assert.True(legs.Max(SpeedKmh) - legs.Min(SpeedKmh) > 10);
+    }
+
     [Theory]
     [InlineData(4)]
     [InlineData(61)]

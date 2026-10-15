@@ -21,7 +21,7 @@ public class RouteWindTests
 
     // A 1 km leg ridden towards bearing, with that straightness.
     private static RouteLeg Leg(double bearing, double straightness = 1) =>
-        new(0, 0, 1, Leon, Leon.Destination(bearing, straightness), Leon, bearing, straightness, Eight, Eight.AddMinutes(2.4));
+        new(0, 0, 1, Leon, Leon.Destination(bearing, straightness), Leon, bearing, straightness, null, Eight, Eight.AddMinutes(2.4));
 
     private static LegWind Meet(double bearing, double speed, double from, double? gust = null, double straightness = 1) =>
         new(Leg(bearing, straightness), new LocalWind(speed, gust, from, "model"));

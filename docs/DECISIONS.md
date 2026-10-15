@@ -421,3 +421,25 @@ Formato: contexto → decisión → alternativas descartadas.
   por tramo de 1 km (5 veces más gasto y la rejilla de AROME es de 2,5 km: datos repetidos); un solo punto (pierde lo
   que cambia el viento a lo largo de la ruta); mezclar todos los puntos y no solo los dos más cercanos (los lejanos
   diluyen el viento local).
+
+## 021 — Hora de paso: la pendiente reparte el tiempo; el viento no ajusta la velocidad
+- Contexto: la fase 3 (paso 3c) preveía ajustar la velocidad de cada tramo por el viento para estimar mejor la hora
+  de paso. Medido el 2026-10-15 con 8 salidas reales del autor (Garmin, con hora y altitud; 2023-2026, Madrid y León;
+  575 tramos de 1 km) y la previsión archivada de AROME en cada tramo (`tools/investigacion/calibrate.cs`):
+  - **Viento:** en llano, unos 0,3 km/h de velocidad por cada km/h de viento de cara o a favor, casi simétrico
+    (−2,4 km/h con más de 8 km/h de cara, +2,5 km/h con más de 8 a favor). Menos de lo que daría la física a
+    potencia constante (~0,45-0,5). Todas las salidas fueron con viento flojo o moderado.
+  - **Pendiente:** −3,9 km/h por cada 1 % (entre −4 % y 4 %), a unos 30 km/h: un 13 % de la velocidad en llano.
+- Decisión (del autor, 2026-10-15):
+  - **El viento no ajusta la velocidad**, solo cuenta en la puntuación. Con vientos así mueve la hora de paso unos
+    minutos en una salida de horas, cuando la previsión va por horas; y pesan otros factores (ir solo o en grupo, el
+    terreno, lo que se apriete). Cambia el plan de la fase 3 ("con un ajuste simple por viento").
+  - **La pendiente sí** (`RouteLegs.Split`): la ruta entera dura su longitud / la velocidad media elegida (como hasta
+    ahora: `--hours` sigue significando lo mismo), y ese tiempo se reparte por tramos con la velocidad en llano por
+    (1 − 0,13 × pendiente en %), con la pendiente limitada a ±4 % (lo medido). Sin altitudes, velocidad fija.
+- Comprobación (`tools/investigacion/timing.cs`, mismas 8 salidas, a la velocidad media real de cada una): error en
+  el tiempo transcurrido al final de cada tramo, medio | máximo: **velocidad fija 2,9 | 13,4 min; con pendiente
+  1,6 | 4,8 min**. Con altitudes del GPS (barométricas); las de BRouter salen de un modelo del terreno.
+- Alternativas: ajuste por viento medido (0,3 km/h por km/h) o físico (potencia constante): descartados por el autor;
+  pendiente sin mantener la media (la velocidad elegida sería la de llano: una ruta con puertos duraría más que lo
+  pedido con `--hours`).

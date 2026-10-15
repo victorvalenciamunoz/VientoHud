@@ -6,7 +6,7 @@ namespace VientoHud.Core.Tests.Support;
 
 /// <summary>
 /// Real rides from Fixtures/Rides (see its README): GPS tracks of good routes, as examples of what the generator
-/// should produce. Read as routes without road tags.
+/// should produce. Read as routes without road tags, with the recorded elevations.
 /// </summary>
 internal static class RecordedRides
 {
@@ -37,9 +37,11 @@ internal static class RecordedRides
         XNamespace gpx = "http://www.topografix.com/GPX/1/1";
         var points = XDocument.Parse(Fixture.Read("Rides/" + file))
             .Descendants(gpx + "trkpt")
-            .Select(p => new RoutePoint(new Coordinate(
-                double.Parse(p.Attribute("lat")!.Value, CultureInfo.InvariantCulture),
-                double.Parse(p.Attribute("lon")!.Value, CultureInfo.InvariantCulture))))
+            .Select(p => new RoutePoint(
+                new Coordinate(
+                    double.Parse(p.Attribute("lat")!.Value, CultureInfo.InvariantCulture),
+                    double.Parse(p.Attribute("lon")!.Value, CultureInfo.InvariantCulture)),
+                p.Element(gpx + "ele") is { } ele ? double.Parse(ele.Value, CultureInfo.InvariantCulture) : null))
             .ToList();
         var km = points.Zip(points.Skip(1), (a, b) => a.Position.DistanceKmTo(b.Position)).Sum();
         return new Route(points, [], km, null, "Recorded ride");

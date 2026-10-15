@@ -43,7 +43,8 @@ y exportarlas a GPX.
 
 Objetivo: elegir la mejor ruta y el sentido de recorrido según el viento.
 
-- Estimar a qué hora pasarás por cada tramo (velocidad media configurable, con un ajuste simple por viento).
+- Estimar a qué hora pasarás por cada tramo (velocidad media configurable, repartida según la pendiente; el viento
+  no ajusta la velocidad, solo puntúa: DECISIONS 021).
 - Para cada tramo: componente de viento de cara o a favor según rumbo y hora.
 - Puntuación: preferir viento de cara en la primera mitad y a favor en la segunda; penalizar rachas fuertes de lado.
 - Consola: ranking de rutas candidatas con su puntuación y explicación ("km 0-18: cara 12 km/h…").

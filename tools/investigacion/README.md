@@ -26,3 +26,5 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `togpx.cs` | Convierte una respuesta grabada de BRouter en GPX para mirarla en gpx.studio. |
 | `legs.cs` | Fase 3: tramos de ~1 km de un GPX (`RouteLegs`) con su rumbo, rectitud y hora de paso. |
 | `routewind.cs` | Fase 3: viento previsto (Open-Meteo, un punto cada 5 km, una llamada) en cada tramo de un GPX: de cara y de lado. Puede guardar la respuesta (fixtures). |
+| `calibrate.cs` | Fase 3: cuánto frenan al autor el viento y la pendiente, con sus salidas de Garmin (hora y altitud) y la previsión archivada de AROME en cada tramo. Llevó a DECISIONS 021. |
+| `timing.cs` | Fase 3: compara la hora de paso prevista por `RouteLegs` (fija y por pendiente) con la real de salidas de Garmin. |
