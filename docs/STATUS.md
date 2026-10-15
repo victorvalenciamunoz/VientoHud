@@ -40,11 +40,19 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   - [x] 4a. Análisis de una ruta, sin red: desvío de cada punto pedido, % repetido y km por tramos prohibidos
     (`DECISIONS.md` 014). Probado con rutas reales grabadas. Ampliado con los tramos repetidos y los ramales
     (`DECISIONS.md` 015), calibrado con seis salidas reales del autor.
-  - [ ] Prueba en vivo antes de 4b (cuando brouter.de lo permita, pocas peticiones y espaciadas): unas 8 vueltas en
-    Madrid y León, 40-100 km, rumbos variados, moviendo los puntos de ramal, ajustando R y girando el rumbo si no hay
-    vuelta; perfil estricto frente a `trunk` permitido. Éxito: en al menos 6 de 8, ruta con ≤ 10 % en ramales,
-    ±10 % de la distancia, 0 km prohibidos y a menos de 45° del rumbo pedido. Con los datos, el autor decide lo del
-    `trunk`.
+  - [x] Prueba en vivo antes de 4b (2026-10-15, `tools/investigacion/livetest.cs`, registros en
+    `docs/verificacion/fase2-prueba-vivo-*.txt`): 8 vueltas de 40-80 km (León capital N, E, S, O; Tres Cantos N, E;
+    Madrid centro SO; Fuenlabrada S), hasta 12 peticiones cada una: abanico, mover los puntos de ramal, ajustar R y
+    girar el rumbo ±20-40°. Éxito: ≤ 10 % en ramales, ±10 % de la distancia, 0 km prohibidos, centro de la ruta a
+    menos de 45° del rumbo; meta 6 de 8.
+    - Perfil estricto: **3 de 8** (León O, León S, Fuenlabrada S). 18 "target island" en 92 peticiones; la distancia
+      salta mucho con R (quitar un ramal: 75 → 39 km); los ramales vuelven al rehacer el abanico.
+    - `trunk` permitido (coste 1,5, como una carretera normal), contado como válido: **6 de 8**, con 0-17,5 km por
+      `trunk` en las válidas (León S 14-17,5 km). 6 "target island" en 96 peticiones. Tres Cantos N y E fallan igual.
+    - Sin bloqueos de brouter.de: peticiones cada 3 s, 67 + 92 con 8 minutos entre tandas.
+    - Fallo del script: en León E (estricto) repitió las mismas peticiones en bucle (salían de la caché, sin red).
+    - **Pendiente del autor:** qué hacer con `trunk` (prohibido, permitido con penalización fuerte o solo los de un
+      carril por sentido).
   - [ ] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
     objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3.

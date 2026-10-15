@@ -18,4 +18,5 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `stem.cs` | Primera versión del criterio de forma (cuerda junto a casa frente a lo repetido fuera de ella), con una tira de texto a lo largo de la ruta. Sustituido por los ramales de `RouteAnalyzer` (`DECISIONS.md` 015). |
 | `shape.cs` | Forma de un track (GPX o GeoJSON de BRouter): km, % repetido, punto más lejano, superficie encerrada. |
 | `loops.cs` | Fase 2: compara formas de evitar la repetición (abanico actual, penalizar lo recorrido, mover puntos de ramales). Con `ALLOW_TRUNK=1`, el perfil estricto con `trunk` permitido. Escribe un GPX por resultado. |
+| `livetest.cs` | Prueba en vivo del paso 4: vueltas con hasta 12 peticiones (abanico, mover puntos de ramal, ajustar R, girar el rumbo). Guarda cada respuesta en caché y se para ante un 403. Argumento `strict` o `trunk`. |
 | `togpx.cs` | Convierte una respuesta grabada de BRouter en GPX para mirarla en gpx.studio. |

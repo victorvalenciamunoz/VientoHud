@@ -1,0 +1,84 @@
+== leon-N: 60 km towards 0°
+   call 1: target island at 0° R 10,3
+   call 2: 20° R 10,3 →  75,7 km (+26%) spurs 50 % repeated 65 % forbidden 0,0 km (trunk 0,0) off bearing   9° spurs, distance
+   call 3: 20° R 10,3 →  39,1 km (-35%) spurs 19 % repeated 38 % forbidden 0,0 km (trunk 0,0) off bearing   7° spurs, distance
+   call 4: target island at 20° R 15,9
+   call 5: target island at -20° R 15,9
+   call 6: 40° R 15,9 → 143,3 km (+139%) spurs 35 % repeated 66 % forbidden 0,0 km (trunk 0,0) off bearing  27° spurs, distance
+   call 7: 40° R 15,9 →  90,2 km (+50%) spurs 0 % repeated 49 % forbidden 0,0 km (trunk 0,0) off bearing  73° distance, bearing
+   call 8: target island at 40° R 10,6
+   call 9: target island at -40° R 10,6
+== leon-E: 60 km towards 90°
+   call 1: 90° R 10,3 → 103,4 km (+72%) spurs 36 % repeated 58 % forbidden 0,0 km (trunk 0,0) off bearing  11° spurs, distance
+   call 2: 90° R 10,3 →  82,2 km (+37%) spurs 21 % repeated 49 % forbidden 0,0 km (trunk 0,0) off bearing  31° spurs, distance
+   call 3: target island at 90° R 7,6
+   call 4: target island at 110° R 7,6
+   call 5: 70° R 7,6 →  48,9 km (-19%) spurs 19 % repeated 40 % forbidden 0,0 km (trunk 0,0) off bearing  22° spurs, distance
+   call 6: 70° R 7,6 →  43,1 km (-28%) spurs 12 % repeated 37 % forbidden 0,0 km (trunk 0,0) off bearing  16° spurs, distance
+   call 7: 70° R 10,5 → 101,7 km (+70%) spurs 58 % repeated 78 % forbidden 0,0 km (trunk 0,0) off bearing  11° spurs, distance
+   call 8: 70° R 10,5 →  71,4 km (+19%) spurs 43 % repeated 72 % forbidden 0,0 km (trunk 0,0) off bearing  39° spurs, distance
+   call 9: 70° R 10,5 →  60,3 km ( +1%) spurs 34 % repeated 68 % forbidden 0,0 km (trunk 0,0) off bearing  51° spurs, bearing
+   call 10: 70° R 10,5 → 101,3 km (+69%) spurs 58 % repeated 78 % forbidden 0,0 km (trunk 0,0) off bearing  12° spurs, distance
+   call 11: 70° R 10,5 →  71,5 km (+19%) spurs 43 % repeated 72 % forbidden 0,0 km (trunk 0,0) off bearing  40° spurs, distance
+   call 12: 70° R 10,5 →  60,3 km ( +1%) spurs 34 % repeated 68 % forbidden 0,0 km (trunk 0,0) off bearing  51° spurs, bearing
+== leon-S: 80 km towards 180°
+   call 1: target island at 180° R 13,8
+   call 2: target island at 200° R 13,8
+   call 3: target island at 160° R 13,8
+   call 4: 220° R 13,8 →  83,3 km ( +4%) spurs 16 % repeated 16 % forbidden 0,0 km (trunk 0,0) off bearing  39° spurs
+   call 5: 220° R 13,8 →  67,1 km (-16%) spurs 0 % repeated 0 % forbidden 0,0 km (trunk 0,0) off bearing  53° distance, bearing
+   call 6: 220° R 16,4 → 107,2 km (+34%) spurs 15 % repeated 15 % forbidden 0,0 km (trunk 0,0) off bearing  37° spurs, distance
+   call 7: 220° R 16,4 →  87,6 km (+10%) spurs 0 % repeated 0 % forbidden 0,0 km (trunk 0,0) off bearing  31° VALID
+== leon-W: 40 km towards 270°
+   call 1: 270° R 6,9 →  40,5 km ( +1%) spurs 0 % repeated 0 % forbidden 0,0 km (trunk 0,0) off bearing   7° VALID
+== tres-N: 60 km towards 0°
+   call 1: target island at 0° R 10,3
+   call 2: 20° R 10,3 → 101,7 km (+70%) spurs 41 % repeated 74 % forbidden 0,0 km (trunk 0,0) off bearing  54° spurs, distance, bearing
+   call 3: 20° R 10,3 →  77,1 km (+28%) spurs 24 % repeated 67 % forbidden 0,0 km (trunk 0,0) off bearing 100° spurs, distance, bearing
+   call 4: 20° R 10,3 →  52,0 km (-13%) spurs 0 % repeated 64 % forbidden 0,0 km (trunk 0,0) off bearing 122° distance, bearing
+   call 5: 20° R 11,9 → 110,8 km (+85%) spurs 54 % repeated 72 % forbidden 0,0 km (trunk 0,0) off bearing  49° spurs, distance, bearing
+   call 6: 20° R 11,9 →  81,2 km (+35%) spurs 26 % repeated 66 % forbidden 0,0 km (trunk 0,0) off bearing  91° spurs, distance, bearing
+   call 7: 20° R 11,9 →  58,4 km ( -3%) spurs 38 % repeated 74 % forbidden 0,0 km (trunk 0,0) off bearing  55° spurs, bearing
+   call 8: 20° R 11,9 →  31,6 km (-47%) spurs 0 % repeated 67 % forbidden 0,0 km (trunk 0,0) off bearing  34° distance
+   call 9: target island at 20° R 22,7
+   call 10: -20° R 22,7 → 185,2 km (+209%) spurs 21 % repeated 52 % forbidden 0,0 km (trunk 0,0) off bearing  36° spurs, distance
+   call 11: -20° R 22,7 → 149,1 km (+149%) spurs 8 % repeated 46 % forbidden 0,0 km (trunk 0,0) off bearing  37° distance
+   call 12: -20° R 11,3 →  77,1 km (+28%) spurs 35 % repeated 80 % forbidden 0,0 km (trunk 0,0) off bearing  27° spurs, distance
+== tres-E: 80 km towards 90°
+   call 1: 90° R 13,8 → 158,4 km (+98%) spurs 57 % repeated 66 % forbidden 0,0 km (trunk 0,0) off bearing  25° spurs, distance
+   call 2: 90° R 13,8 →  68,6 km (-14%) spurs 7 % repeated 29 % forbidden 0,0 km (trunk 0,0) off bearing  52° distance, bearing
+   call 3: 90° R 16,1 → 152,8 km (+91%) spurs 1 % repeated 2 % forbidden 0,0 km (trunk 0,0) off bearing  43° distance
+   call 4: 90° R 8,4 → 107,4 km (+34%) spurs 46 % repeated 77 % forbidden 0,0 km (trunk 0,0) off bearing   6° spurs, distance
+   call 5: 90° R 8,4 →  57,8 km (-28%) spurs 7 % repeated 63 % forbidden 0,0 km (trunk 0,0) off bearing  39° distance
+   call 6: 110° R 13,8 → 147,3 km (+84%) spurs 49 % repeated 56 % forbidden 0,0 km (trunk 0,0) off bearing  40° spurs, distance
+   call 7: 110° R 13,8 →  70,3 km (-12%) spurs 7 % repeated 21 % forbidden 0,0 km (trunk 0,0) off bearing  54° distance, bearing
+   call 8: 110° R 15,7 → 123,5 km (+54%) spurs 21 % repeated 80 % forbidden 0,0 km (trunk 0,0) off bearing  41° spurs, distance
+   call 9: 110° R 15,7 →  94,8 km (+18%) spurs 45 % repeated 78 % forbidden 0,0 km (trunk 0,0) off bearing  49° spurs, distance, bearing
+   call 10: 110° R 15,7 →  47,0 km (-41%) spurs 0 % repeated 66 % forbidden 0,0 km (trunk 0,0) off bearing  73° distance, bearing
+   call 11: target island at 110° R 26,7
+   call 12: 70° R 26,7 → 195,6 km (+145%) spurs 13 % repeated 13 % forbidden 0,0 km (trunk 0,0) off bearing  19° spurs, distance
+== madrid-SW: 70 km towards 225°
+   call 1: target island at 225° R 12,1
+   call 2: 245° R 12,1 → 102,0 km (+46%) spurs 7 % repeated 7 % forbidden 0,0 km (trunk 0,0) off bearing  16° distance
+   call 3: 245° R 8,3 →  58,9 km (-16%) spurs 10 % repeated 23 % forbidden 0,0 km (trunk 0,0) off bearing  21° distance
+   call 4: target island at 245° R 9,9
+   call 5: target island at 205° R 9,9
+   call 6: target island at 265° R 9,9
+   call 7: target island at 185° R 9,9
+== fuenla-S: 80 km towards 180°
+   call 1: 180° R 13,8 → 126,9 km (+59%) spurs 28 % repeated 28 % forbidden 0,0 km (trunk 0,0) off bearing  43° spurs, distance
+   call 2: 180° R 13,8 →  84,7 km ( +6%) spurs 0 % repeated 0 % forbidden 0,0 km (trunk 0,0) off bearing  64° bearing
+   call 3: 180° R 13,0 →  84,4 km ( +5%) spurs 25 % repeated 75 % forbidden 0,0 km (trunk 0,0) off bearing   5° spurs
+   call 4: 180° R 13,0 →  57,8 km (-28%) spurs 0 % repeated 72 % forbidden 0,0 km (trunk 0,0) off bearing   3° distance
+   call 5: 180° R 18,0 →  95,7 km (+20%) spurs 13 % repeated 30 % forbidden 0,0 km (trunk 0,0) off bearing   1° spurs, distance
+   call 6: 180° R 18,0 →  81,3 km ( +2%) spurs 0 % repeated 20 % forbidden 0,0 km (trunk 0,0) off bearing   1° VALID
+
+profile strict, network calls 67
+leon-N           60 km   0°: invalid  90,2 km (+50%) spurs 0 % repeated 49 % forbidden 0,0 km (trunk 0,0) off bearing  73° (9 calls) — distance, bearing
+leon-E           60 km  90°: invalid  48,9 km (-19%) spurs 19 % repeated 40 % forbidden 0,0 km (trunk 0,0) off bearing  22° (12 calls) — spurs, distance
+leon-S           80 km 180°: VALID    87,6 km (+10%) spurs 0 % repeated 0 % forbidden 0,0 km (trunk 0,0) off bearing  31° (7 calls)
+leon-W           40 km 270°: VALID    40,5 km ( +1%) spurs 0 % repeated 0 % forbidden 0,0 km (trunk 0,0) off bearing   7° (1 calls)
+tres-N           60 km   0°: invalid  31,6 km (-47%) spurs 0 % repeated 67 % forbidden 0,0 km (trunk 0,0) off bearing  34° (12 calls) — distance
+tres-E           80 km  90°: invalid  57,8 km (-28%) spurs 7 % repeated 63 % forbidden 0,0 km (trunk 0,0) off bearing  39° (12 calls) — distance
+madrid-SW        70 km 225°: invalid  58,9 km (-16%) spurs 10 % repeated 23 % forbidden 0,0 km (trunk 0,0) off bearing  21° (7 calls) — distance
+fuenla-S         80 km 180°: VALID    81,3 km ( +2%) spurs 0 % repeated 20 % forbidden 0,0 km (trunk 0,0) off bearing   1° (6 calls)
