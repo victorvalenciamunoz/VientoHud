@@ -334,3 +334,14 @@ Formato: contexto → decisión → alternativas descartadas.
   `trunk` desdoblados (los tramos de sentido único en glorietas y cruces cortarían carreteras de un carril; se podrá
   cobrar más a los desdoblados sin prohibirlos).
 
+
+## 017 — Límites del generador de vueltas
+- Contexto: el generador (fase 2, paso 4c) pide rutas a BRouter, que admite una petición por segundo y limita sin avisar
+  (STATUS). En la prueba en vivo del 2026-10-15 hicieron falta de 1 a 12 peticiones por vuelta.
+- Decisión (del autor, 2026-10-15):
+  - **Como mucho 12 peticiones por candidata** (unos 12-15 s a una por segundo).
+  - **3 candidatas por defecto** en la consola, con rumbos separados; en la fase 3 el viento decidirá.
+  - **Sin límite aparte para el desvío de un punto de paso:** un punto que cae muy lejos (el del mar dio 446 km) ya
+    hace fallar la distancia o el rumbo. El análisis sigue midiendo el desvío.
+- Alternativas: más peticiones por candidata (más vueltas válidas, pero más espera y más riesgo de bloqueo); una sola
+  candidata (la fase 3 necesita elegir entre varias).

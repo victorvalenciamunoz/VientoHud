@@ -32,6 +32,9 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   repartidos en 180° alrededor del rumbo, y la salida otra vez; n = 5 por defecto), con sentido horario en el mapa;
   radio inicial = objetivo / (polígono recto 3,85 R × factor de carretera 1,5) ≈ objetivo / 5,8. `Coordinate` sabe
   ya el rumbo hacia otro punto (`BearingTo`) y el punto a X km en un rumbo (`Destination`), en el círculo máximo.
+- **Generador de una vuelta** (`LoopGenerator`, cualquier `IRouteEngine`): desde la salida, hacia un rumbo y de una
+  distancia objetivo; mueve los puntos que provocan ramales, corrige el radio y gira el rumbo si hace falta, con un tope
+  de peticiones. Cada intento lleva su análisis y sus problemas (ramales, distancia, prohibido, rumbo).
 
 ### Qué falta (fase 2)
 
@@ -73,13 +76,15 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   - [x] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
     objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3. (`LoopWaypoints`)
-  - [ ] 4c. Generador: ajuste de R hasta ±10 % del objetivo con pocas llamadas, reintentos ante "target island", girar
-    el rumbo ±15-30° si repite mucho, descarte de candidatas malas y varias candidatas con rumbos distintos. El rumbo es
-    un parámetro (la fase 3 lo elegirá según el viento). Probado con un motor falso y luego en vivo en Madrid y León.
-    Criterio de forma: ≤ 10 % de la ruta en ramales (provisional, `DECISIONS.md` 015). El análisis dice qué tramos son
-    ramales y dónde: sirve para mover el punto de paso que los provoca.
-    **Decisiones del autor pendientes:** desvío máximo de un punto, llamadas o segundos de espera aceptables y número
-    de candidatas.
+  - [ ] 4c. Generador. Límites decididos por el autor (`DECISIONS.md` 017): como mucho 12 peticiones por candidata,
+    3 candidatas por defecto, sin límite aparte para el desvío de un punto. Dividido en:
+    - [x] 4c1. Una vuelta hacia un rumbo (`LoopGenerator`): abanico, mover los puntos de ramal, corregir R (entre un
+      radio corto y uno largo cuando se conocen los dos) y girar el rumbo ±20°, ±40° ante "target island" o sin vuelta
+      válida. Válida: ≤ 10 % en ramales, ±10 % de distancia, 0 km prohibidos o desconocidos, centro de la ruta a menos
+      de 45° del rumbo. Devuelve la válida o la menos mala, las peticiones hechas y todos los intentos. Probado con un
+      motor falso.
+    - [ ] 4c2. Varias candidatas (rumbos separados), orden de preferencia (válidas, distancia más cercana, menos
+      `trunk`) y el caso "hacia allí no hay vuelta". Pasada en vivo en Madrid y León con el cliente real.
 - [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
   `[--lat --lon] [--count 3]`: escribe los GPX y un resumen.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
@@ -153,6 +158,13 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   rumbos esperados (también con rumbo 0°, −90° y 270°), cualquier n desde 3, meridiano de 180°, polígono recto de
   3,85 R medido sobre un abanico pequeño, y que reproduce al décimo de metro los puntos con los que se grabaron las
   fixtures de León este y Tres Cantos.
+- Paso 4c1 (2026-10-15): 12 tests nuevos (246 en total) con un motor falso (`FakeRouteEngine`): vuelta válida a la
+  primera (1 petición); ruta un tercio larga → radio × 0,75 y válida a la segunda; longitud que salta con el radio →
+  el tercer radio sale de interpolar entre el corto y el largo; punto de paso alcanzado por un ramal → se mueve al
+  inicio del ramal y la vuelta sale válida; "target island" hacia 0° → gira a 20°; sin vuelta posible en ningún rumbo
+  → sin resultado tras 5 peticiones (0°, 20°, 340°, 40°, 320°); tope de peticiones; errores del servicio se propagan.
+  Con datos reales: si el motor devuelve la estrella grabada de León este, los puntos de sus ramales se mueven a
+  puntos de esa ruta más cerca de la salida. Aún no probado en vivo (4c2).
 
 ### Riesgos y pendientes (fase 2)
 

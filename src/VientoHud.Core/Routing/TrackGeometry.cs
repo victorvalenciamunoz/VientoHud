@@ -69,6 +69,32 @@ internal sealed class ProjectedTrack
 
     public double LengthKm => AlongKm[^1];
 
+    /// <summary>The closest point of the track to <paramref name="p"/>: how far it is and where it is along the track.</summary>
+    public (double DistanceKm, double AlongKm) Closest(PlanePoint p) => ClosestWithin(p, 0, LengthKm);
+
+    /// <summary>The average of the track's points: roughly the middle of the area the route covers.</summary>
+    public PlanePoint Centre => new(Points.Average(p => p.X), Points.Average(p => p.Y));
+
+    /// <summary>Index of the track point nearest to <paramref name="alongKm"/> along the track.</summary>
+    public int NearestPointIndex(double alongKm)
+    {
+        var i = Array.BinarySearch(AlongKm, alongKm);
+        if (i >= 0)
+        {
+            return i;
+        }
+        i = ~i;
+        if (i == 0)
+        {
+            return 0;
+        }
+        if (i == Points.Count)
+        {
+            return Points.Count - 1;
+        }
+        return alongKm - AlongKm[i - 1] <= AlongKm[i] - alongKm ? i - 1 : i;
+    }
+
     /// <summary>Shortest distance from <paramref name="p"/> to any part of the track.</summary>
     public double DistanceTo(PlanePoint p)
     {
