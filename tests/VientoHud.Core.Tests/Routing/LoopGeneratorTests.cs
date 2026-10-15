@@ -113,6 +113,36 @@ public class LoopGeneratorTests
     }
 
     [Fact]
+    public async Task Rejects_a_dead_end_that_ends_in_a_small_loop_even_if_it_is_a_small_share_of_the_route()
+    {
+        // As on the N-630 north of León: the route goes 1.5 km up a road towards the third waypoint, round a small
+        // loop at the end and back down. Not a sharp turn-back, and well under 10 % of the route, but a spur.
+        Coordinate? roadStart = null;
+        var engine = new FakeRouteEngine(w =>
+        {
+            var radius = Radius(w);
+            if (w[0].DistanceKmTo(w[2]) < 0.97 * radius)
+            {
+                return Exact(w);
+            }
+            var bearing = w[0].BearingTo(w[2]);
+            roadStart = w[0].Destination(bearing, 0.6 * radius);
+            var roadEnd = w[0].Destination(bearing, 0.6 * radius + 1.5);
+            var loop1 = roadEnd.Destination(bearing + 90, 0.3);
+            var loop2 = loop1.Destination(bearing, 0.3);
+            return Exact([w[0], w[1], roadStart.Value, roadEnd, loop1, loop2, roadEnd, roadStart.Value, w[3], w[4], w[5]]);
+        });
+
+        var result = await new LoopGenerator(engine).GenerateAsync(Leon, 90, 60);
+
+        var first = result.Attempts[0];
+        Assert.True(first.Analysis.SpurFraction is > 0 and < 0.1, $"{first.Analysis.SpurFraction:P1}");
+        Assert.True(first.Problems.HasFlag(LoopProblems.TurnBacks), first.Problems.ToString());
+        Assert.True(engine.Requests[1][2].DistanceKmTo(roadStart!.Value) < 0.05, $"moved to {engine.Requests[1][2]}");
+        Assert.True(result.Best!.IsValid, result.Best.Problems.ToString());
+    }
+
+    [Fact]
     public async Task Moves_the_waypoints_of_a_real_star_onto_the_route_where_their_spurs_leave_it()
     {
         // The recorded star from León towards the east (radius 6 km) answers the first request, whatever it is.

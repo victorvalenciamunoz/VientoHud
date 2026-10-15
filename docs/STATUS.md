@@ -114,7 +114,16 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
     `-descartada` si no es válida) con un resumen en la descripción (km, desnivel, km por `trunk`, caminos asfaltados,
     % repetido). Si BRouter deja de responder, enseña y guarda lo que ya tenía y no prueba más rumbos. Código de salida
     0 con al menos una vuelta válida, 1 si ninguna o error, 2 argumentos incorrectos, 130 cancelado.
-  - [ ] Prueba en vivo con brouter.de (junto con la pasada pendiente del 4c2).
+  - [ ] Prueba en vivo con brouter.de (junto con la pasada pendiente del 4c2). El bloqueo se levantó el mismo día
+    (una petición de prueba respondió 200).
+    - [x] León capital, 60 km, 3 rumbos (`vientohud route --km 60 --lat 42.5987 --lon -5.5671`). Primera ejecución:
+      3 válidas en 9 peticiones; las medias vueltas en seco bajan a 50-180 m (BRouter las recorta), pero la del norte
+      subía 2,4 km por la N-630 y bajaba con una vuelta pequeña al final (ramal del 7 %, por debajo del 10 %). Con la
+      regla de ramales de más de 200 m (`DECISIONS.md` 015): N 56,4 km y ESE 63,9 km válidas, **0 % repetido y sin
+      medias vueltas**; OSO sin vuelta válida (la mejor 51,1 km, −15 %) en 12 peticiones; 23 peticiones en total.
+      Antes OSO salió válida: rechazar un ramal cambia el orden de los intentos y el ajuste del radio acaba en otro
+      sitio. **Mejora pendiente:** control de la distancia más robusto.
+    - [ ] Fuenlabrada y Tres Cantos.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
   y León con varias distancias; abrir en gpx.studio y cargar en el GPS de la bici.
 - [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo

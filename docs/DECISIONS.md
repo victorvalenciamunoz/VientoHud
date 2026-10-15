@@ -313,6 +313,11 @@ Formato: contexto → decisión → alternativas descartadas.
     en las salidas del autor). Además, el perfil activa `correctMisplacedViaPoints` de BRouter sin tope de longitud:
     BRouter recorta él mismo la ida y vuelta a un punto de paso intermedio (comprobado en su código fuente; revisa como
     mucho 500 nodos).
+  - **También cualquier ramal de más de 200 m** que no sea el destino invalida una ruta generada, aunque sea poco
+    porcentaje (2026-10-15, misma regla aplicada al caso que se escapaba): en vivo, la vuelta hacia el norte de León
+    subía 2,4 km por la N-630 y bajaba por el mismo sitio con una vuelta pequeña al final; no es una media vuelta en
+    seco (ni BRouter ni el detector la ven así) y solo era el 7 % de la ruta. El límite del 10 % en ramales queda, pero
+    lo que manda para una ruta generada es esto.
 - Limitaciones: un tramo repetido tres veces se empareja solo con la pasada más cercana; los umbrales (5 km, 15 %, 3 km)
   salen de pocas rutas reales, todas de Madrid y León. Una media vuelta que termina con una vuelta pequeña (una glorieta
   al final del ramal) no se detecta como media vuelta.

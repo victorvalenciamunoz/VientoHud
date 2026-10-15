@@ -20,7 +20,8 @@ public enum LoopProblems
 
     /// <summary>
     /// The route goes into a dead end and comes out the same way (at least <see cref="RouteAnalysisOptions.MinTurnBackKm"/>
-    /// deep) other than at its destination: usually the way to a waypoint in the middle of a road.
+    /// deep) other than at its destination: usually the way to a waypoint in the middle of a road. Whether it turns
+    /// sharply (a turn-back) or round a small loop at the end (a spur), however small a share of the route it is.
     /// </summary>
     TurnBacks = 16,
 }
@@ -291,7 +292,8 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
         {
             problems |= LoopProblems.Bearing;
         }
-        if (analysis.TurnBacks.Any(t => !t.IsDestination))
+        if (analysis.TurnBacks.Any(t => !t.IsDestination)
+            || analysis.Repeats.Any(r => r.IsSpur && r.EndKm - r.StartKm >= _options.Analysis.MinTurnBackKm))
         {
             problems |= LoopProblems.TurnBacks;
         }
