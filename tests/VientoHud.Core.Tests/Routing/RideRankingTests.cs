@@ -127,6 +127,25 @@ public class RideRankingTests
     }
 
     [Fact]
+    public void Tells_which_way_round_a_route_turns()
+    {
+        Assert.True(Rectangle().TurnsClockwise());
+        Assert.False(Rectangle().Reversed().TurnsClockwise());
+    }
+
+    [Fact]
+    public void Keeps_each_route_once_in_its_better_way_round()
+    {
+        var score = RideRanking.Score(Ride((0, 10, 0, null)));
+        RideOption Option(int index, bool reversed) => new(index, Rectangle(), reversed, [], score);
+        var ranked = new[] { Option(1, true), Option(0, false), Option(1, false), Option(0, true) };
+
+        var best = RideRanking.BestWayRound(ranked);
+
+        Assert.Equal([(1, true), (0, false)], best.Select(o => (o.RouteIndex, o.Reversed)));
+    }
+
+    [Fact]
     public async Task Rates_both_ways_of_a_loop_the_same_in_a_steady_wind()
     {
         // The halfway point is the same both ways, so with the same wind everywhere and all the time, the wind in the

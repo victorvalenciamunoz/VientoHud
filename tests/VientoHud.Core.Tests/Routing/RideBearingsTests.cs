@@ -27,6 +27,14 @@ public class RideBearingsTests
         Assert.Equal([0.0, 120, 240], RideBearings.For(Wind(kind, null), 3));
 
     [Fact]
+    public void Widens_to_the_sides_and_then_with_the_wind_behind() =>
+        Assert.Equal([284.0, 104, 14], RideBearings.Wider(194, [194, 239, 149]));
+
+    [Fact]
+    public void Does_not_widen_to_bearings_already_tried() =>
+        Assert.Equal([190.0], RideBearings.Wider(10, [10, 55, 325, 100, 280, 145]));
+
+    [Fact]
     public void Takes_the_spread_from_the_caller() =>
         Assert.Equal([90.0, 120, 60], RideBearings.For(Wind(StartAdviceKind.HeadIntoWind, 90), 3, spreadDegrees: 30));
 }

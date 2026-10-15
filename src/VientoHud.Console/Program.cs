@@ -61,8 +61,10 @@ switch (args[0])
     case "route":
         if (RouteOptions.Parse(args[1..], out error) is { } routeOptions && BRouterServer(out error) is { } brouter)
         {
-            var generator = new LoopGenerator(new BRouterRouteEngine(http, brouter.Options));
-            run = () => new RouteCommand(generator, device, Console.Out, brouter.Name).RunAsync(routeOptions, cancellation.Token);
+            var planner = new RidePlanner(
+                new LoopGenerator(new BRouterRouteEngine(http, brouter.Options)), new OpenMeteoWindForecastProvider(http));
+            run = () => new RouteCommand(planner, device, Console.Out, brouter.Name, OpenMeteoWindForecastProvider.Attribution)
+                .RunAsync(routeOptions, cancellation.Token);
         }
         break;
 

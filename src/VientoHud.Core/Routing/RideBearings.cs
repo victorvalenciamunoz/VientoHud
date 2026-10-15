@@ -31,4 +31,14 @@ public static class RideBearings
             .Select(offset => ((intoWind + offset) % 360 + 360) % 360)
             .ToList();
     }
+
+    /// <summary>
+    /// Bearings to widen the search with when no loop into the wind is valid, in order: 90° to either side, then
+    /// with the wind behind (180°). Those within a degree of <paramref name="tried"/> are left out.
+    /// </summary>
+    public static IReadOnlyList<double> Wider(double intoWindDegrees, IReadOnlyList<double> tried) =>
+        new[] { 90.0, -90, 180 }
+            .Select(offset => ((intoWindDegrees + offset) % 360 + 360) % 360)
+            .Where(b => tried.All(t => Compass.AngleBetween(t, b) >= 1))
+            .ToList();
 }

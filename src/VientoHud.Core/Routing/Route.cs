@@ -49,6 +49,18 @@ public sealed record Route(
         : throw new ArgumentException("A route needs at least two points.", nameof(Points));
 
     /// <summary>
+    /// Whether the route goes round clockwise on the map (seen from above, north up): the area it encloses, signed,
+    /// is negative. For a route that does not close, as if a straight line joined its end to its start.
+    /// </summary>
+    public bool TurnsClockwise()
+    {
+        var projection = new LocalProjection(Points[0].Position);
+        var plane = Points.Select(p => projection.Project(p.Position)).ToList();
+        var twiceArea = plane.Zip(plane.Skip(1).Append(plane[0]), (a, b) => a.X * b.Y - b.X * a.Y).Sum();
+        return twiceArea < 0;
+    }
+
+    /// <summary>
     /// The same route ridden the other way round: points and stretches in reverse order. The climb stays for a loop
     /// (it climbs as much as it drops); for a route that ends elsewhere it is unknown.
     /// </summary>

@@ -479,6 +479,15 @@ Formato: contexto → decisión → alternativas descartadas.
   favor, de lado por la derecha o por la izquierda, según la componente mayor; flojo si ninguna llega a 5 km/h); los
   tramos seguidos iguales se unen y los de menos de 5 km se pegan a su vecino más largo, hasta que todos llegan a 5 km.
   Cada tramo da la media de lo que se nota y la racha de lado más fuerte. Una vuelta de 60 km queda en unas 4 líneas.
+- Decisión (del autor): **si contra el viento no sale ninguna vuelta válida, se amplía el abanico**, de uno en uno,
+  a +90°, −90° y 180° (con el viento a la espalda), hasta tener una. Descubierto en la prueba en vivo desde
+  Fuenlabrada (viento del E): las tres del sector este fallaron (autovías y polígonos; ya era zona difícil en la fase 2)
+  y salió una hacia el N tras fallar la del S. Cuesta hasta 36 peticiones más; no se amplía si el rumbo lo da el usuario
+  (`--bearing`) ni con calma o viento variable (los rumbos ya van en todas direcciones).
+- Hora de salida (técnica): `--at hh:mm`, hora local, la próxima vez que llega (hoy o mañana); por defecto, ahora. Se
+  calcula en Core (`DepartureTime`) con la zona horaria del sistema, incluidos los cambios de hora. `--speed` vale ya
+  también con `--km`: decide la hora de paso.
 - Alternativas: ±30° (las tres pueden salir parecidas o fallar donde hay pocas carreteras) o ±60° (las de los lados ya
-  llevan mucho viento de lado); escribir los dos sentidos (6 ficheros) o solo la ganadora; tramos fijos de 10 km en la
+  llevan mucho viento de lado); sin ampliar (puede quedarse sin ruta) o siempre una de reserva en otra dirección (casi
+  nunca buena para el viento); escribir los dos sentidos (6 ficheros) o solo la ganadora; tramos fijos de 10 km en la
   explicación (cortan por la mitad los cambios de viento).

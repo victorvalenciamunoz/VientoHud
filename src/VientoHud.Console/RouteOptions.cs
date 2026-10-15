@@ -1,20 +1,30 @@
+using System.Globalization;
 using VientoHud.Core;
 using VientoHud.Core.Routing;
 
 namespace VientoHud.ConsoleApp;
 
 /// <summary>Arguments of the <c>route</c> command. Exactly one of <see cref="Km"/> and <see cref="Hours"/> is set.</summary>
+/// <param name="At">Local time of day to leave at (the next time it comes); null to leave now.</param>
 internal sealed record RouteOptions(
-    Coordinate? Location, double? Km, double? Hours, double SpeedKmh, int Count, double? Bearing, string OutputDirectory)
+    Coordinate? Location,
+    double? Km,
+    double? Hours,
+    double SpeedKmh,
+    int Count,
+    double? Bearing,
+    TimeOnly? At,
+    string OutputDirectory)
 {
     public const int DefaultCount = 3;
     public const int MaxCount = 6;
 
     public const string Usage =
-        "vientohud route (--km <10-300> | --hours <0,5-12> [--speed <10-45 km/h>]) [--lat <grados> --lon <grados>]\n" +
-        "                [--count <1-6>] [--bearing <0-360>] [--out <carpeta>]";
+        "vientohud route (--km <10-300> | --hours <0,5-12>) [--speed <10-45 km/h>] [--at <hh:mm>]\n" +
+        "                [--lat <grados> --lon <grados>] [--count <1-6>] [--bearing <0-360>] [--out <carpeta>]";
 
-    private static readonly HashSet<string> Known = ["--km", "--hours", "--speed", "--lat", "--lon", "--count", "--bearing", "--out"];
+    private static readonly HashSet<string> Known =
+        ["--km", "--hours", "--speed", "--at", "--lat", "--lon", "--count", "--bearing", "--out"];
 
     /// <summary>Parses the arguments after the command name. Returns null and an error message when invalid.</summary>
     public static RouteOptions? Parse(IReadOnlyList<string> args, out string? error)
@@ -34,10 +44,16 @@ internal sealed record RouteOptions(
             error = "Indica la distancia (--km) o el tiempo (--hours), uno de los dos.";
             return null;
         }
-        if (speed is not null && hours is null)
+
+        TimeOnly? at = null;
+        if (values.TryGetValue("--at", out var atText))
         {
-            error = "--speed solo vale con --hours.";
-            return null;
+            if (!TimeOnly.TryParseExact(atText, ["H:mm", "HH:mm"], CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+            {
+                error = $"Hora no válida para --at: {atText} (hh:mm, p. ej. 10:30).";
+                return null;
+            }
+            at = parsed;
         }
 
         var count = DefaultCount;
@@ -46,7 +62,7 @@ internal sealed record RouteOptions(
             return null;
         }
         return new RouteOptions(
-            location, km, hours, speed ?? RideDistance.DefaultAverageSpeedKmh, count, bearing,
+            location, km, hours, speed ?? RideDistance.DefaultAverageSpeedKmh, count, bearing, at,
             values.GetValueOrDefault("--out", "."));
     }
 }

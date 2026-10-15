@@ -44,11 +44,17 @@ public sealed record RideScore(
 }
 
 /// <summary>One way of riding a route: the route as ridden, the wind on each leg and its score.</summary>
+/// <param name="RouteIndex">Position of the route in the list that was ranked.</param>
 /// <param name="Route">The route in riding order (already reversed when <paramref name="Reversed"/>).</param>
 /// <param name="Reversed">Whether this is the route ridden the other way round from how it was generated.</param>
 /// <param name="Winds">The wind on each leg, in riding order.</param>
 /// <param name="Score">How good it is for the wind.</param>
-public sealed record RideOption(Route Route, bool Reversed, IReadOnlyList<LegWind> Winds, RideScore Score);
+public sealed record RideOption(
+    int RouteIndex,
+    Route Route,
+    bool Reversed,
+    IReadOnlyList<LegWind> Winds,
+    RideScore Score);
 
 /// <summary>Scores rides for the wind and ranks routes ridden both ways (DECISIONS 022).</summary>
 public static class RideRanking
@@ -111,8 +117,12 @@ public static class RideRanking
         }
 
         var rides = routes
-            .SelectMany(route => new[] { (Route: route, Reversed: false), (Route: route.Reversed(), Reversed: true) })
-            .Select(r => (r.Route, r.Reversed, Legs: RouteLegs.Split(r.Route, departure, averageSpeedKmh)))
+            .SelectMany((route, i) => new[]
+            {
+                (Index: i, Route: route, Reversed: false),
+                (Index: i, Route: route.Reversed(), Reversed: true),
+            })
+            .Select(r => (r.Index, r.Route, r.Reversed, Legs: RouteLegs.Split(r.Route, departure, averageSpeedKmh)))
             .ToList();
         var field = await WindField.ForecastAsync(
             provider,
@@ -125,9 +135,13 @@ public static class RideRanking
             .Select(r =>
             {
                 var winds = RouteWind.Along(r.Legs, field);
-                return new RideOption(r.Route, r.Reversed, winds, Score(winds, maxCrossGustKmh));
+                return new RideOption(r.Index, r.Route, r.Reversed, winds, Score(winds, maxCrossGustKmh));
             })
             .OrderBy(o => o.Score)
             .ToList();
     }
+
+    /// <summary>Each route once, in its better way round, keeping the order of <paramref name="ranked"/>.</summary>
+    public static IReadOnlyList<RideOption> BestWayRound(IReadOnlyList<RideOption> ranked) =>
+        ranked.DistinctBy(o => o.RouteIndex).ToList();
 }
