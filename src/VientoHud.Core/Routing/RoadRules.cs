@@ -12,7 +12,13 @@ public enum RoadCategory
     /// </summary>
     PavedTrack,
 
-    /// <summary>Motorway, trunk road, unpaved surface, unpaved or undeclared track, works, steps, ferry…</summary>
+    /// <summary>
+    /// A trunk road ("trunk", "trunk_link"). Allowed but counted apart: in Spain many are quiet national roads, others are
+    /// busy (DECISIONS 016).
+    /// </summary>
+    Trunk,
+
+    /// <summary>Motorway, unpaved surface, unpaved or undeclared track, works, steps, ferry…</summary>
     Forbidden,
 
     /// <summary>The engine reported no road type, so the stretch cannot be checked.</summary>
@@ -27,9 +33,10 @@ public static class RoadRules
 {
     private static readonly HashSet<string> ForbiddenHighways =
     [
-        "motorway", "motorway_link", "trunk", "trunk_link",
-        "construction", "proposed", "abandoned", "steps", "bridleway",
+        "motorway", "motorway_link", "construction", "proposed", "abandoned", "steps", "bridleway",
     ];
+
+    private static readonly HashSet<string> TrunkHighways = ["trunk", "trunk_link"];
 
     // Ways that are unpaved unless tagged otherwise. "road" is a way whose type the mapper did not know.
     private static readonly HashSet<string> TrackLikeHighways = ["track", "path", "footway", "road"];
@@ -71,6 +78,6 @@ public static class RoadRules
                 : tags.GetValueOrDefault("smoothness") is { } smoothness && SmoothSmoothness.Contains(smoothness);
             return paved ? RoadCategory.PavedTrack : RoadCategory.Forbidden;
         }
-        return RoadCategory.Road;
+        return TrunkHighways.Contains(highway) ? RoadCategory.Trunk : RoadCategory.Road;
     }
 }

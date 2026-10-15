@@ -219,6 +219,7 @@ Formato: contexto → decisión → alternativas descartadas.
     en España. En algunos países es una carretera normal y allí habrá más rodeos o rutas imposibles; se acepta antes que
     arriesgarse a meter una autovía. También prohíbe carreteras en obras, escaleras y ferris. BRouter descarta cualquier
     tramo con coste mayor de 9998, así que el tope de 9999 del perfil sigue siendo una prohibición.
+    **Cambiado por DECISIONS 016:** `trunk` permitido con coste 3.
 - Alternativas:
   - openrouteservice: la mejor opción con clave, pero vueltas de 100 km como máximo, no prohíbe `trunk` ni la tierra,
     y sus resultados quedan bajo CC BY-SA.
@@ -245,10 +246,11 @@ Formato: contexto → decisión → alternativas descartadas.
 - Decisión (`RoadRules`, `RouteAnalyzer` en `VientoHud.Core.Routing`):
   - **Cuatro categorías por tramo:** carretera; **camino asfaltado** (`track`, `path`, `footway` o `road` con firme
     asfaltado, hormigón, adoquín o `smoothness` buena); **prohibido**; **desconocido** (el motor no dio tipo de vía).
-  - **Prohibido:** `motorway`, `trunk` y sus enlaces, obras (`construction`, `proposed`, `abandoned`), escaleras,
+  - **Prohibido:** `motorway` y sus enlaces, obras (`construction`, `proposed`, `abandoned`), escaleras,
     `bridleway`, ferris; cualquier vía con firme sin asfaltar; pistas y sendas sin firme asfaltado declarado. Sigue las
     reglas del perfil estricto, pero con una lista más larga de firmes sin asfaltar (p. ej. `earth`, `mud`, `rock`):
-    es una comprobación independiente que puede pillar huecos del perfil.
+    es una comprobación independiente que puede pillar huecos del perfil. `trunk` estaba en esta lista hasta
+    DECISIONS 016; ahora tiene categoría propia (permitido, contado aparte).
   - **Caminos asfaltados permitidos, contados aparte** (decisión del autor, 2026-10-15). Muchos caminos de concentración
     parcelaria de León están asfaltados; unos están bien y otros rotos. Se permiten, como hace el perfil, y el juez
     enseña sus km. Si resultan malos, se prohibirán en el perfil y aquí.
@@ -322,7 +324,12 @@ Formato: contexto → decisión → alternativas descartadas.
   lo use cuando la alternativa sea mucho más larga o no exista. Autopistas y autovías (`motorway`) siguen prohibidas.
   El análisis contará los km por `trunk` aparte (no como prohibidos) y el resumen de la ruta los dirá. Sin tope de km
   por ruta de momento; entre candidatas, mejor la de menos `trunk`.
-  - **Coste pendiente:** se elegirá con una prueba en vivo con costes 2, 3 y 5 (vueltas válidas frente a km por `trunk`).
+  - **Coste 3** (decidido por el autor, 2026-10-15): un km por `trunk` cuesta como 3 por una `tertiary`. Prueba en vivo
+    con costes 2, 3 y 5: 6 de 8 vueltas válidas con los tres; km por `trunk` sumados en las seis válidas 24,1, 13,9 y
+    18,2. Entre 3 y 5 la diferencia es ruido del generador; 3 deja usar nacionales tranquilas como la antigua N-VI
+    cuando el rodeo por comarcales es largo, y 5 las evitaría casi siempre.
+  - Aplicado en `road-strict.brf` y en `RoadRules` (categoría `Trunk`, `RouteAnalysis.TrunkKm`). En otros países el
+    acceso lo siguen decidiendo las etiquetas (`bicycle=no`, `motorroad=yes` prohíben la vía).
 - Alternativas: mantener la prohibición (rechaza carreteras que el autor usa y deja 3 de 8 vueltas); prohibir solo los
   `trunk` desdoblados (los tramos de sentido único en glorietas y cruces cortarían carreteras de un carril; se podrá
   cobrar más a los desdoblados sin prohibirlos).

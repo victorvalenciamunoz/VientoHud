@@ -21,14 +21,23 @@ public class RoadRulesTests
     [Theory]
     [InlineData("highway=motorway")]
     [InlineData("highway=motorway_link")]
-    [InlineData("highway=trunk surface=asphalt")]
-    [InlineData("highway=trunk_link")]
     [InlineData("highway=construction")]
     [InlineData("highway=steps")]
     [InlineData("highway=bridleway surface=asphalt")]
     [InlineData("route=ferry")]
-    public void Motorways_trunk_roads_works_steps_and_ferries_are_forbidden(string tags) =>
+    public void Motorways_works_steps_and_ferries_are_forbidden(string tags) =>
         Assert.Equal(RoadCategory.Forbidden, RoadRules.Classify(Segment(tags)));
+
+    [Theory]
+    [InlineData("highway=trunk surface=asphalt")]
+    [InlineData("highway=trunk")]
+    [InlineData("highway=trunk_link oneway=yes")]
+    public void Trunk_roads_are_allowed_but_counted_apart(string tags) =>
+        Assert.Equal(RoadCategory.Trunk, RoadRules.Classify(Segment(tags)));
+
+    [Fact]
+    public void An_unpaved_trunk_road_is_forbidden() =>
+        Assert.Equal(RoadCategory.Forbidden, RoadRules.Classify(Segment("highway=trunk surface=gravel")));
 
     [Theory]
     [InlineData("highway=unclassified surface=gravel")]

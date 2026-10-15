@@ -143,7 +143,8 @@ public class BRouterRouteEngineTests
     [Fact]
     public async Task Recorded_strict_route_has_no_forbidden_ways()
     {
-        // Characterises the profile on real data: no trunk, no tracks, no unpaved surface.
+        // Characterises the profile on real data: no tracks, no unpaved surface. Recorded while trunk roads were still
+        // forbidden (DECISIONS 016), so there is no trunk either.
         var route = await Engine(Server()).RouteAsync(LeonLoop);
 
         Assert.DoesNotContain(route.Segments, s => s.Highway is "motorway" or "motorway_link" or "trunk" or "trunk_link" or "track");
@@ -254,12 +255,14 @@ public class BRouterRouteEngineTests
     }
 
     [Fact]
-    public void Strict_profile_is_embedded_and_forbids_trunk_construction_and_unpaved_tracks()
+    public void Strict_profile_is_embedded_penalises_trunk_and_forbids_construction_and_unpaved_tracks()
     {
         var profile = BRouterRouteEngine.StrictRoadProfile;
 
         Assert.StartsWith("# VientoHud strict road-bike profile.", profile);
-        Assert.Contains("switch or highway=trunk highway=trunk_link          10000", profile);
+        Assert.Contains("switch or highway=trunk highway=trunk_link          3\n", profile.ReplaceLineEndings("\n"));
+        Assert.Contains("switch or highway=motorway highway=motorway_link    switch allow_motorways 1.5 10000", profile);
+        Assert.Contains("assign allow_motorways       = false", profile);
         Assert.Contains("switch or highway=proposed or highway=abandoned highway=construction 10000", profile);
         Assert.Contains("switch    explicitlyunpaved                         10000", profile);
         Assert.Contains("   switch ispaved 2.0 10000", profile);

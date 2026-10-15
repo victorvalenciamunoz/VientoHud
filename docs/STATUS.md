@@ -21,9 +21,10 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
 - **Cliente de BRouter** (`BRouterRouteEngine`): sube el perfil estricto `road-strict.brf` (recurso incrustado en Core)
   una vez y pide rutas en GeoJSON con el id que devuelve el servidor. Si el servidor responde 500 sin texto (perfil
   perdido) lo sube de nuevo y repite una vez. Como mucho una petición por segundo (configurable). También admite un
-  perfil del servidor (`ServerProfile`, p. ej. `fastbike`) sin subir nada.
+  perfil del servidor (`ServerProfile`, p. ej. `fastbike`) sin subir nada. El perfil permite `trunk` con coste 3 (solo
+  cuando el rodeo por otras carreteras es largo; `DECISIONS.md` 016) y prohíbe autovías, tierra y obras.
 - **Análisis de una ruta, sin red** (`RouteAnalyzer`, `RoadRules`; `DECISIONS.md` 014): km por tipo de vía y firme con
-  su categoría (carretera, camino asfaltado, prohibido, desconocido), distancia de cada punto de paso pedido a la línea
+  su categoría (carretera, camino asfaltado, `trunk`, prohibido, desconocido), distancia de cada punto de paso pedido a la línea
   del track y fracción del recorrido repetido. Devuelve cada tramo repetido (dónde está y dónde su otra pasada) y si es
   un **ramal**: entrar y salir por la misma carretera sin salida en mitad de la ruta, lo que hace una estrella. Las
   cuerdas de un globo, los cuellos de un lazo y las idas y vueltas desde casa no son ramales (`DECISIONS.md` 015).
@@ -34,7 +35,8 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   (`DECISIONS.md` 013).
 - [x] 2. Escritor de GPX 1.1 en Core (track con puntos), validado en los tests contra el esquema oficial.
 - [x] 3. Cliente de BRouter detrás de una interfaz: perfil estricto en el repositorio (prohíbe también carreteras en
-  obras; `trunk` prohibido en todo el mundo, `DECISIONS.md` 013), subida del perfil, ruta entre puntos de paso,
+  obras; `trunk` prohibido en todo el mundo, `DECISIONS.md` 013, luego permitido con coste 3, `DECISIONS.md` 016),
+  subida del perfil, ruta entre puntos de paso,
   lectura de las etiquetas de cada tramo, errores ("target island", 400, 500) y fixtures grabadas.
 - [ ] 4. Generador de vueltas. Dividido en:
   - [x] 4a. Análisis de una ruta, sin red: desvío de cada punto pedido, % repetido y km por tramos prohibidos
@@ -54,13 +56,16 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
     - Salidas del autor emparejadas con BRouter (`tools/investigacion/matchrides.cs`): 21 km por `trunk` en una vuelta
       por Soto de la Vega (antigua N-VI), 2,8 km en otra y 12 km en una de Humanes. El lazo de Boadilla no se pudo
       emparejar ("target island" en un punto).
-    - Decisión del autor: `trunk` permitido con penalización fuerte (`DECISIONS.md` 016). **Falta** elegir el coste con
-      una prueba en vivo con costes 2, 3 y 5.
+    - Decisión del autor: `trunk` permitido con penalización fuerte (`DECISIONS.md` 016), coste elegido con la prueba
+      de abajo.
     - Prueba con costes 2, 3 y 5 (2026-10-15, registros `fase2-prueba-vivo-trunk{2,3,5}-*.txt`; script corregido para no
       repetir peticiones): **6 de 8** válidas con los tres. Km por `trunk` sumados en las seis válidas: 24,1 (coste 2),
       13,9 (coste 3) y 18,2 (coste 5); 2-4 "target island" por tanda; 45-49 peticiones por tanda, sin bloqueos. Entre 3 y
       5 la diferencia es ruido: depende de qué puntos de paso acaba usando el generador (León E: 0,8 km con coste 3 y
       6,3 km con coste 5, con rutas distintas). Tres Cantos N y E fallan siempre por distancia (geografía).
+    - **Coste 3**, decidido por el autor y aplicado (2026-10-15): `road-strict.brf` y `RoadRules` (categoría `Trunk`,
+      `RouteAnalysis.TrunkKm`). 2 tests nuevos y 4 adaptados (210 en total). Es el mismo perfil que usó la tanda en vivo
+      de coste 3, así que brouter.de lo acepta.
   - [ ] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
     objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3.

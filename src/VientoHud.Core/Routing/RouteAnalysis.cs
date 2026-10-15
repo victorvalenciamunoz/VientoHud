@@ -78,6 +78,8 @@ public sealed record RouteAnalysis(
 
     public double PavedTrackKm => KmOf(RoadCategory.PavedTrack);
 
+    public double TrunkKm => KmOf(RoadCategory.Trunk);
+
     public double UnknownKm => KmOf(RoadCategory.Unknown);
 
     public double RepeatedKm => RepeatedFraction * DistanceKm;

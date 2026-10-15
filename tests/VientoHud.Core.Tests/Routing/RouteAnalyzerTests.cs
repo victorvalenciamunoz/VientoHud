@@ -246,11 +246,12 @@ public class RouteAnalyzerTests
                 new RoadUsage("track", "gravel", RoadCategory.Forbidden, 1),
                 new RoadUsage(null, null, RoadCategory.Unknown, 1),
                 new RoadUsage("track", "asphalt", RoadCategory.PavedTrack, 0.5),
-                new RoadUsage("trunk", "asphalt", RoadCategory.Forbidden, 0.3),
+                new RoadUsage("trunk", "asphalt", RoadCategory.Trunk, 0.3),
             ],
             analysis.Roads);
-        Assert.Equal(1.3, analysis.ForbiddenKm, 9);
+        Assert.Equal(1, analysis.ForbiddenKm, 9);
         Assert.Equal(0.5, analysis.PavedTrackKm, 9);
+        Assert.Equal(0.3, analysis.TrunkKm, 9);
         Assert.Equal(1, analysis.UnknownKm, 9);
     }
 
@@ -311,10 +312,11 @@ public class RouteAnalyzerTests
 
         var forbidden = analysis.Roads.Where(r => r.Category == RoadCategory.Forbidden).ToList();
         Assert.Equal(
-            ["path/", "track/", "track/ground", "trunk/asphalt", "trunk_link/"],
+            ["path/", "track/", "track/ground"],
             forbidden.Select(r => $"{r.Highway}/{r.Surface}").Order(StringComparer.Ordinal));
-        Assert.Equal(2.528, analysis.ForbiddenKm, 3);
+        Assert.Equal(2.443, analysis.ForbiddenKm, 3);
         Assert.Equal(0.324, analysis.PavedTrackKm, 3);
+        Assert.Equal(0.085, analysis.TrunkKm, 3);
         // Every km of the route is in some category.
         Assert.Equal(route.DistanceKm, analysis.Roads.Sum(r => r.Km), 3);
     }

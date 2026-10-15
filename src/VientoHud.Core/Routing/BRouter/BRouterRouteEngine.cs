@@ -47,7 +47,10 @@ public sealed class BRouterRouteEngine(HttpClient httpClient, BRouterOptions? op
     private long? _lastRequestTimestamp;
     private string? _profileId;
 
-    /// <summary>Strict road-bike profile shipped with Core: paved roads only, no motorways or trunk roads.</summary>
+    /// <summary>
+    /// Strict road-bike profile shipped with Core: paved roads only, no motorways, trunk roads only when needed
+    /// (DECISIONS 016).
+    /// </summary>
     public static string StrictRoadProfile { get; } = LoadStrictRoadProfile();
 
     public async Task<Route> RouteAsync(IReadOnlyList<Coordinate> waypoints, CancellationToken cancellationToken = default)

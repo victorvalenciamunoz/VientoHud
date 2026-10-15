@@ -2,8 +2,10 @@
 #
 # Derived from BRouter's fastbike.brf (https://github.com/abrensch/brouter, misc/profiles2/fastbike.brf,
 # MIT licence, (c) BRouter contributors), as served by brouter.de on 2026-10-14.
-# Changes for VientoHud (see docs/DECISIONS.md 003 and 013): only paved roads, no motorways or trunk roads.
-#  - Forbidden (cost 10000): trunk and trunk_link; any way with an explicitly unpaved surface; unpaved unclassified
+# Changes for VientoHud (see docs/DECISIONS.md 003, 013 and 016): only paved roads, no motorways.
+#  - Trunk and trunk_link cost 3 per metre (tertiary 1): used only when other roads are much longer or missing. In
+#    Spain many quiet single-carriageway national roads are tagged trunk.
+#  - Forbidden (cost 10000): any way with an explicitly unpaved surface; unpaved unclassified
 #    and service roads; bridleways; roads under construction; steps; ferries; tracks, paths and footways unless
 #    their surface is explicitly paved (unknown surface counts as unpaved there).
 #  - consider_traffic raised from 0.1 to 0.3 to prefer quieter roads.
@@ -256,7 +258,7 @@ assign costfactor
 
 
   switch or highway=motorway highway=motorway_link    switch allow_motorways 1.5 10000
-  switch or highway=trunk highway=trunk_link          10000
+  switch or highway=trunk highway=trunk_link          3
   switch    explicitlyunpaved                         10000
   switch or highway=primary highway=primary_link      1.2
   switch or highway=secondary highway=secondary_link  1.1
