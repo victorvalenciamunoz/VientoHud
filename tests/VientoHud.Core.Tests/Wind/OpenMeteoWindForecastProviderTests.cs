@@ -206,6 +206,68 @@ public class OpenMeteoWindForecastProviderTests
         Assert.IsType<HttpRequestException>(ex.InnerException);
     }
 
+    // Recorded 2026-10-15 for 2026-10-16T08:00Z .. 12:00Z: the 19 wind points (every 5 km) of the La Bañeza ride.
+    private static readonly DateTimeOffset RouteStart = new(2026, 10, 16, 8, 0, 0, TimeSpan.Zero);
+
+    private static IReadOnlyList<Coordinate> LaBanezaWindPoints() =>
+        Core.Routing.RouteWind.SamplePoints(RecordedRides.LaBanezaOutAndBack());
+
+    [Fact]
+    public async Task Asks_for_several_locations_in_one_request()
+    {
+        var (provider, handler) = Create(
+            HttpStatusCode.OK, Fixture.Read("OpenMeteo/labaneza-route-19-points-arome-2026-10-16T08.json"));
+        var points = LaBanezaWindPoints();
+
+        var forecasts = await provider.GetHourlyAsync(points, RouteStart, 5);
+
+        var request = Assert.Single(handler.Requests);
+        var query = HttpUtility.ParseQueryString(request.Query);
+        Assert.Equal(19, query["latitude"]!.Split(',').Length);
+        Assert.Equal(Arome, query["models"]);
+        Assert.Equal(points, forecasts.Select(f => f.Requested));
+        Assert.Equal(new WindSample(RouteStart, 4.3, 4.7, 265, Arome), forecasts[0].Hours[0]);
+        Assert.Equal(new WindSample(RouteStart.AddHours(4), 5.4, 17.6, 143, Arome), forecasts[1].Hours[4]);
+        Assert.Equal(new Coordinate(42.275, -5.975), forecasts[1].GridPoint);
+        Assert.All(forecasts, f => Assert.Equal(5, f.Hours.Count));
+    }
+
+    [Fact]
+    public async Task Moves_every_location_to_the_next_model_when_the_first_misses_one()
+    {
+        // Real behaviour: AROME rejects the whole request because Tarifa is outside its domain.
+        var (provider, handler) = Create(new Dictionary<string, (HttpStatusCode, string)>
+        {
+            [Arome] = (HttpStatusCode.BadRequest, Fixture.Read("OpenMeteo/error-no-data-for-location-lemd-tarifa-arome.json")),
+            [BestMatch] = (HttpStatusCode.OK, Fixture.Read("OpenMeteo/madrid-tarifa-best-match-2026-10-16T08.json")),
+        });
+
+        var forecasts = await provider.GetHourlyAsync([Madrid, Tarifa], RouteStart, 3);
+
+        Assert.Equal([Arome, BestMatch], handler.Requests.Select(ModelOf));
+        Assert.Equal([Madrid, Tarifa], forecasts.Select(f => f.Requested));
+        Assert.Equal(new WindSample(RouteStart, 1.6, 5.0, 333, BestMatch), forecasts[0].Hours[0]);
+        Assert.Equal(new WindSample(RouteStart, 27.3, 46.4, 78, BestMatch), forecasts[1].Hours[0]);
+        Assert.Equal(0.0, forecasts[1].ElevationMeters);
+    }
+
+    [Fact]
+    public async Task Asks_nothing_for_no_locations()
+    {
+        var (provider, handler) = Create(MadridResponses);
+
+        Assert.Empty(await provider.GetHourlyAsync([], RouteStart, 3));
+        Assert.Empty(handler.Requests);
+    }
+
+    [Fact]
+    public async Task Throws_when_the_answer_has_a_different_number_of_locations()
+    {
+        var (provider, _) = Create(HttpStatusCode.OK, Fixture.Read("OpenMeteo/madrid-arome-only-2026-10-15T22.json"));
+
+        await Assert.ThrowsAsync<WindForecastException>(() => provider.GetHourlyAsync([Madrid, Tarifa], FixtureStart, 3));
+    }
+
     [Fact]
     public async Task Rejects_less_than_one_hour()
     {

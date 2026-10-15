@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (en curso: paso 3a hecho)
+**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a y 3b hechos)
 
 ## Fase 3
 
@@ -10,6 +10,11 @@
   (N = longitud redondeada) con su principio y final, rumbo de la línea recta (grados HACIA), rectitud (1 = recto,
   ~0 = vuelve sobre sí mismo) y hora de paso al principio, a la mitad y al final (UTC), desde la hora de salida a una
   velocidad media fija (25 km/h por defecto). Sin red.
+- **Viento en cada tramo** (`RouteWind`, `LegWind`, `WindField`; `DECISIONS.md` 020): pide la previsión en un punto
+  cada 5 km de la ruta, en una sola llamada (AROME → `best_match`; si AROME no cubre algún punto, todos pasan a
+  `best_match`), y da a cada tramo el viento de su punto medio a la hora de paso, mezclando los dos puntos más cercanos
+  y las dos horas que lo rodean. De ese viento saca cuánto viene de cara (negativo: a favor), cuánto de lado (positivo:
+  por la derecha) y la racha de lado. `IWindForecastProvider` admite ya varios puntos por llamada.
 
 ### Qué falta (fase 3)
 
@@ -17,7 +22,7 @@ División aceptada por el autor el 2026-10-15:
 
 - [x] 3a. Tramos y horas de paso: cortar la ruta en tramos de ~1 km con su rumbo (grados HACIA) y la hora a la que se
   pasa por cada uno (hora de salida + velocidad media). En Core, sin red, probado con rutas grabadas.
-- [ ] 3b. Viento en cada tramo: previsión de Open-Meteo (AROME → `best_match`, como en la fase 1) en pocos puntos de la
+- [x] 3b. Viento en cada tramo: previsión de Open-Meteo (AROME → `best_match`, como en la fase 1) en pocos puntos de la
   ruta y en una sola llamada, a la hora de paso; componente de cara/a favor y de lado (viento DESDE frente a rumbo HACIA).
 - [ ] 3c. Ajuste de velocidad por el viento (sencillo al principio; idea: calibrarlo con las salidas reales del autor,
   cuyos GPX originales llevan la hora de cada punto, y el viento de esos días) y puntuación: viento de cara en la
@@ -40,6 +45,18 @@ Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018):
   Rechaza salida que no esté en UTC, velocidades fuera de 5-60 km/h, tramos fuera de 0,1-10 km y rutas sin longitud.
   A mano con `tools/investigacion/legs.cs` sobre La Bañeza: 96 tramos, ida al suroeste (210-275°), vuelta al noreste,
   y la zona del giro (km 46-51) con tramos poco rectos (0,6-0,7) y rumbos variados, como corresponde.
+- Paso 3b (2026-10-15): 31 tests nuevos (323 en total). Proveedor: varios puntos en una llamada con una respuesta real
+  grabada (los 19 puntos de la salida de La Bañeza, AROME, 16 oct. 08-12 UTC); Madrid + Tarifa: AROME rechaza la
+  llamada entera (respuesta real) y los dos pasan a `best_match` (respuesta real), en orden. Campo de viento: la muestra
+  exacta en su sitio y hora; mezcla de horas (350° y 10° dan cerca del norte, no del sur); la racha de la hora en que
+  cae el momento; dos sitios con vientos distintos no se anulan; el más cercano pesa más; solo los dos más cercanos;
+  fuera de las horas, error; pide todas las horas de la salida en una llamada. Tramos: viento de cara, a favor y de
+  lado por la derecha y por la izquierda en los rumbos principales y en diagonal; la rectitud reduce el de cara; un
+  viento del suroeste en la ida y vuelta de La Bañeza da de cara a la ida (> 12 km/h de media con 20) y a favor a la
+  vuelta; con la previsión real grabada, el viento del sur entra por la derecha a la vuelta.
+  A mano con `tools/investigacion/routewind.cs` (previsión real para el 16 oct. a las 8:00 UTC): 96 tramos, 19 puntos,
+  una llamada; viento flojo (2-9 km/h) que rola al sur y sube; en la vuelta (rumbo noreste) entra por la derecha
+  (5-8 km/h). **Medida previa** (la que llevó a elegir 5 km): ver `DECISIONS.md` 020.
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 

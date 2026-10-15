@@ -6,6 +6,7 @@ namespace VientoHud.Core.Routing;
 /// <param name="LengthKm">Length of the leg along the track.</param>
 /// <param name="Start">Where the leg begins.</param>
 /// <param name="End">Where the leg ends.</param>
+/// <param name="Middle">The point halfway along the leg, on the track.</param>
 /// <param name="BearingDegrees">
 /// Route bearing: degrees TOWARDS where the rider goes, clockwise from north, in [0, 360), of the straight line from
 /// <paramref name="Start"/> to <paramref name="End"/>. Not to be confused with wind directions, which are FROM.
@@ -23,6 +24,7 @@ public sealed record RouteLeg(
     double LengthKm,
     Coordinate Start,
     Coordinate End,
+    Coordinate Middle,
     double BearingDegrees,
     double Straightness,
     DateTimeOffset StartTime,
@@ -90,6 +92,7 @@ public static class RouteLegs
                 length,
                 start,
                 end,
+                PointAt(points, alongKm, startKm + length / 2),
                 start.BearingTo(end),
                 Math.Min(1, start.DistanceKmTo(end) / length),
                 departure + TimeSpan.FromHours(startKm / averageSpeedKmh),

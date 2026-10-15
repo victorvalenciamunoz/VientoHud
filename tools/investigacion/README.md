@@ -25,3 +25,4 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `judge.cs` | Juez de la fase 2: genera vueltas en varias salidas y distancias contra un BRouter (pensado para el local) y saca una tabla con validez, error de distancia, km por tipo de vía y sin dato de firme, repetición, medias vueltas y validez del GPX contra el esquema. |
 | `togpx.cs` | Convierte una respuesta grabada de BRouter en GPX para mirarla en gpx.studio. |
 | `legs.cs` | Fase 3: tramos de ~1 km de un GPX (`RouteLegs`) con su rumbo, rectitud y hora de paso. |
+| `routewind.cs` | Fase 3: viento previsto (Open-Meteo, un punto cada 5 km, una llamada) en cada tramo de un GPX: de cara y de lado. Puede guardar la respuesta (fixtures). |

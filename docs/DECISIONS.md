@@ -392,3 +392,32 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: tramos de 1 km exacto con uno más corto al final (un tramo de 100 m pesaría como uno entero si se
   promedia por tramos); un tramo por cada segmento del track (cientos de tramos de pocos metros, con rumbos ruidosos);
   rumbo medio de los segmentos (no tiene la propiedad de la suma exacta).
+
+## 020 — Viento en cada tramo: un punto de previsión cada 5 km, en una llamada
+- Contexto: la fase 3 (paso 3b) necesita el viento previsto en cada tramo a la hora en que se pasa por él.
+  Medido el 2026-10-15 con las previsiones archivadas de AROME (1-14 oct., horas de día con viento ≥ 12 km/h,
+  rejilla de 5 × 5 puntos): la diferencia media del viento con el del centro es de 3,7-5,1 km/h a 5 km y de
+  5,2-8,7 km/h a 10 km (León, La Bañeza, Tres Cantos; en Tres Cantos, junto a la sierra, 10,7 km/h a 14 km).
+  Es tanto o más que el error de la propia previsión (unos 4 km/h, DECISIONS 012): un solo punto no basta.
+- Decisión (del autor, 2026-10-15): **un punto cada 5 km** de ruta (el centro de tramos iguales de ~5 km; 19 en
+  96 km), todos en **una sola llamada** a Open-Meteo. Cada punto de una llamada cuenta como una llamada del cupo
+  gratuito (10.000 al día): una ruta de 100 km gasta unas 20.
+- Detalles técnicos:
+  - Se mantiene AROME → `best_match` (DECISIONS 005 y 012). Si AROME no cubre algún punto, Open-Meteo rechaza la
+    llamada entera (comprobado con Madrid + Tarifa) y todos los puntos pasan a `best_match`: la ruta queda con un
+    solo modelo, sin costura.
+  - El viento de un tramo es el de su punto medio a la hora en que se pasa por él (`WindField`): mezcla los **dos
+    puntos más cercanos** (peso 1/distancia²; si está a menos de 50 m de uno, solo ese) y las **dos horas** que lo
+    rodean (lineal). La velocidad se mezcla como velocidad y la dirección como flechas, para que dos vientos
+    distintos no se anulen en una calma falsa. La racha es la de la hora en que cae el momento (la racha de
+    Open-Meteo a las 9:00 es la más fuerte entre las 8:00 y las 9:00).
+  - Componentes (`LegWind`): **de cara** = velocidad × cos(dirección DESDE − rumbo HACIA) × rectitud (positivo de
+    cara, negativo a favor; es la media exacta a lo largo de las curvas, DECISIONS 019); **de lado** = velocidad ×
+    sen(…) sobre la línea recta del tramo (positivo por la derecha), y la racha de lado igual, sin signo. En un tramo
+    con curvas, el de lado se queda corto.
+  - Por posición y no por km de ruta: sirve igual para los dos sentidos de una vuelta, para varias candidatas que
+    compartan puntos y, en el juez (3e), para el viento observado en estaciones.
+- Alternativas: un punto cada 10 km (la mitad de gasto, pero junto a la sierra el viento cambia ~9 km/h a 10 km); uno
+  por tramo de 1 km (5 veces más gasto y la rejilla de AROME es de 2,5 km: datos repetidos); un solo punto (pierde lo
+  que cambia el viento a lo largo de la ruta); mezclar todos los puntos y no solo los dos más cercanos (los lejanos
+  diluyen el viento local).

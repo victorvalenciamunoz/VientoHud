@@ -13,4 +13,15 @@ public interface IWindForecastProvider
         DateTimeOffset from,
         int hours,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Like the single-location overload, for several locations at once: one forecast per location, in the same order
+    /// as <paramref name="locations"/>.
+    /// </summary>
+    /// <exception cref="WindForecastException">The provider failed or has no data for some location and hour.</exception>
+    Task<IReadOnlyList<WindForecast>> GetHourlyAsync(
+        IReadOnlyList<Coordinate> locations,
+        DateTimeOffset from,
+        int hours,
+        CancellationToken cancellationToken = default);
 }
