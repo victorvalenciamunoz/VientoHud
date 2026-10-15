@@ -103,6 +103,10 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   estrellas grabadas de León este y Tres Cantos, más del 70 % fuera de la cuerda. **Fallo corregido:** en un track
   abierto (que no acaba justo en la salida, como una salida grabada) la repetición daba siempre 0. No afectaba a las
   cifras anteriores, porque las rutas de BRouter acaban exactamente en la salida.
+  Después, con una ida y vuelta pura del autor (La Bañeza, 96 km, también en `Fixtures/Rides/`): salía 48 % fuera de la
+  cuerda porque el primer km de salida va por otras calles y la cuerda solo podía empezar a 1 km de casa. Ahora puede
+  empezar hasta a 3 km de cada extremo: 94,9 km de cuerda y 0 % fuera de ella. Caso a mano equivalente (calles
+  paralelas los 2 primeros km). 200 tests en total.
 
 ### Riesgos y pendientes (fase 2)
 

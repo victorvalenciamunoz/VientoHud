@@ -38,17 +38,17 @@ foreach (var file in args)
     }
 
     // The string: from each end, the run of repeated points whose other pass is at the other end of the track.
-    // Gaps under 1 km are allowed (the 0.5 km nearest home never count as repeated).
     bool InTail(double u) => u > L / 2; bool InHead(double u) => u < L / 2;
-    var head = 0.0; var gap = 0.0;
+    // The stem may start up to 3 km from each end (leaving town by other streets); once started, gaps under 1 km.
+    var head = 0.0; var gap = 0.0; var started = false;
     for (var j = 0; j < n && j * Spacing < L / 2; j++)
     {
-        if (partner[j] is { } u && InTail(u)) { head = j * Spacing; gap = 0; } else if ((gap += Spacing) > 1.0) break;
+        if (partner[j] is { } u && InTail(u)) { head = j * Spacing; gap = 0; started = true; } else if ((gap += Spacing) > (started ? 1.0 : 3.0)) break;
     }
-    var tail = L; gap = 0;
+    var tail = L; gap = 0; started = false;
     for (var j = n - 1; j >= 0 && j * Spacing > L / 2; j--)
     {
-        if (partner[j] is { } u && InHead(u)) { tail = j * Spacing; gap = 0; } else if ((gap += Spacing) > 1.0) break;
+        if (partner[j] is { } u && InHead(u)) { tail = j * Spacing; gap = 0; started = true; } else if ((gap += Spacing) > (started ? 1.0 : 3.0)) break;
     }
     var repeated = partner.Count(p => p is not null) * Spacing;
     var middle = Enumerable.Range(0, n).Count(j => partner[j] is not null && j * Spacing > head && j * Spacing < tail) * Spacing;

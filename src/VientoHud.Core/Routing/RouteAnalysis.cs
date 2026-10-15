@@ -19,6 +19,12 @@ public sealed record RouteAnalysisOptions
     /// count. Also tolerates short out-and-back detours, like turning at a roundabout.
     /// </summary>
     public double MinRepeatSeparationKm { get; init; } = 1;
+
+    /// <summary>
+    /// The stem may start this far from either end of the track: leaving and entering a town by different streets
+    /// (one-way streets, a ring road), or a recording that stops short of home.
+    /// </summary>
+    public double MaxStemStartKm { get; init; } = 3;
 }
 
 /// <summary>What a routed loop is like: kinds of road, how close it passes to each waypoint and how much it repeats.</summary>
@@ -76,7 +82,8 @@ public static class RouteAnalyzer
         ArgumentNullException.ThrowIfNull(route);
         ArgumentNullException.ThrowIfNull(waypoints);
         options ??= new RouteAnalysisOptions();
-        if (options.SampleSpacingKm <= 0 || options.RepeatToleranceKm <= 0 || options.MinRepeatSeparationKm <= 0)
+        if (options.SampleSpacingKm <= 0 || options.RepeatToleranceKm <= 0 || options.MinRepeatSeparationKm <= 0
+            || options.MaxStemStartKm < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options), "Repetition settings must be positive.");
         }
@@ -108,8 +115,9 @@ public static class RouteAnalyzer
     /// </summary>
     /// <remarks>
     /// The stem is found from each end of the track: the run of repeated points whose other pass is in the other half
-    /// of the track (the way out ridden again on the way home). The run may have gaps shorter than the separation,
-    /// like the stretch next to home, which never counts as repeated.
+    /// of the track (the way out ridden again on the way home). It may start up to
+    /// <see cref="RouteAnalysisOptions.MaxStemStartKm"/> from the end, and once started may have gaps shorter than the
+    /// separation. A spur near home is not a stem: both its passes are in the same half.
     /// </remarks>
     private static (double Repeated, double Stem, double RepeatedOffStem) Repetition(
         ProjectedTrack track, RouteAnalysisOptions options)
@@ -150,7 +158,9 @@ public static class RouteAnalyzer
                     end = i;
                     gapKm = 0;
                 }
-                else if ((gapKm += options.SampleSpacingKm) > options.MinRepeatSeparationKm)
+                else if ((gapKm += options.SampleSpacingKm) > (end is null
+                             ? Math.Max(options.MaxStemStartKm, options.MinRepeatSeparationKm)
+                             : options.MinRepeatSeparationKm))
                 {
                     break;
                 }

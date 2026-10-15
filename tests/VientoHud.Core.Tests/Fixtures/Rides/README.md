@@ -4,3 +4,6 @@ ejemplos de rutas buenas.
 
 - `humanes-balloon-2026-09-13.gpx`: Humanes de Madrid, 13 sept. 2026, 73,3 km. Forma de globo: sale y vuelve por los
   mismos ~19 km de carretera (la cuerda) y da una vuelta al final. Repite el 50 %, todo en la cuerda: es una ruta válida.
+- `labaneza-out-and-back-2026-08-02.gpx`: La Bañeza, 2 ago. 2026, 96,0 km. Ida y vuelta pura por la misma carretera; el
+  primer km de salida va por calles distintas de las de llegada, y la grabación acaba a 450 m de donde empezó.
+  Repite el 97 %, todo en la cuerda: es una ruta válida.

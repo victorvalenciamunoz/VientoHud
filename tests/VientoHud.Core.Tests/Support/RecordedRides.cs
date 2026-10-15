@@ -15,6 +15,11 @@ internal static class RecordedRides
     /// </summary>
     public static Route HumanesBalloon() => Load("humanes-balloon-2026-09-13.gpx");
 
+    /// <summary>
+    /// A pure out-and-back ride of 96 km from La Bañeza, leaving and entering town by different streets (first ~1 km).
+    /// </summary>
+    public static Route LaBanezaOutAndBack() => Load("labaneza-out-and-back-2026-08-02.gpx");
+
     private static Route Load(string file)
     {
         XNamespace gpx = "http://www.topografix.com/GPX/1/1";

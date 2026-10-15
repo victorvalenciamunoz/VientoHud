@@ -93,6 +93,21 @@ public class RouteAnalyzerTests
     }
 
     [Fact]
+    public void The_stem_may_start_after_leaving_town_by_other_streets()
+    {
+        // Out and back 8 km on one road, but the first 2 km out and the last 2 km home use parallel streets 200 m apart.
+        var route = Track(20.4, (0, 0), (0, 2), (0, 10), (0, 2), (0.2, 2), (0.2, 0), (0, 0));
+
+        var analysis = RouteAnalyzer.Analyze(route, []);
+
+        // Repeated: km 2-9.5 out and km 10.5-18 back, 76 + 76 checked points of 205. The stem starts 2 km from each
+        // end and runs to km 9.5 out and from km 10.5 home: 9.5 + 9.9 km.
+        Assert.Equal(152 / 205.0, analysis.RepeatedFraction, 6);
+        Assert.Equal(19.4, analysis.StemKm, 6);
+        Assert.Equal(0, analysis.RepeatedOffStemFraction);
+    }
+
+    [Fact]
     public void An_out_and_back_spur_in_the_middle_of_a_loop_is_repetition_off_the_stem()
     {
         // A 20 km square with a 2 km dead end at its far corner, ridden there and back: a star with one arm.
@@ -152,15 +167,17 @@ public class RouteAnalyzerTests
     }
 
     [Theory]
-    [InlineData(0, 0.03, 1)]
-    [InlineData(0.1, 0, 1)]
-    [InlineData(0.1, 0.03, -1)]
-    public void Rejects_non_positive_repetition_settings(double spacing, double tolerance, double separation)
+    [InlineData(0, 0.03, 1, 3)]
+    [InlineData(0.1, 0, 1, 3)]
+    [InlineData(0.1, 0.03, -1, 3)]
+    [InlineData(0.1, 0.03, 1, -1)]
+    public void Rejects_non_positive_repetition_settings(double spacing, double tolerance, double separation, double stemStart)
     {
         var route = Track(1, (0, 0), (0, 1));
         var options = new RouteAnalysisOptions
         {
             SampleSpacingKm = spacing, RepeatToleranceKm = tolerance, MinRepeatSeparationKm = separation,
+            MaxStemStartKm = stemStart,
         };
 
         Assert.Throws<ArgumentOutOfRangeException>(() => RouteAnalyzer.Analyze(route, [], options));
@@ -249,9 +266,9 @@ public class RouteAnalyzerTests
         {
             var analysis = RouteAnalyzer.Analyze(await recorded.LoadAsync(), recorded.Waypoints);
 
-            Assert.Equal(0, analysis.StemFraction);
-            Assert.Equal(analysis.RepeatedFraction, analysis.RepeatedOffStemFraction);
-            Assert.True(analysis.RepeatedOffStemFraction > 0.7, $"{recorded.File}: {analysis.RepeatedOffStemFraction:P0}");
+            // Coming home along a road already ridden out of town is a short stem; the rest are spurs.
+            Assert.True(analysis.StemFraction < 0.25, $"{recorded.File}: stem {analysis.StemFraction:P0}");
+            Assert.True(analysis.RepeatedOffStemFraction > 0.5, $"{recorded.File}: off stem {analysis.RepeatedOffStemFraction:P0}");
         }
     }
 
@@ -263,6 +280,16 @@ public class RouteAnalyzerTests
         Assert.InRange(analysis.DistanceKm, 73, 74);
         Assert.InRange(analysis.RepeatedFraction, 0.45, 0.55);
         Assert.InRange(analysis.StemKm, 37, 40);
+        Assert.True(analysis.RepeatedOffStemFraction < 0.01, $"{analysis.RepeatedOffStemFraction:P1}");
+    }
+
+    [Fact]
+    public void A_real_out_and_back_ride_is_all_stem()
+    {
+        var analysis = RouteAnalyzer.Analyze(RecordedRides.LaBanezaOutAndBack(), []);
+
+        Assert.InRange(analysis.DistanceKm, 95, 97);
+        Assert.True(analysis.StemFraction > 0.9, $"{analysis.StemFraction:P1}");
         Assert.True(analysis.RepeatedOffStemFraction < 0.01, $"{analysis.RepeatedOffStemFraction:P1}");
     }
 

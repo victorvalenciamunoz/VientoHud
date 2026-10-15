@@ -278,12 +278,15 @@ Formato: contexto → decisión → alternativas descartadas.
 - Decisión (aceptada por el autor, 2026-10-15): lo que se mide es **dónde** se repite.
   - **Cuerda:** salir y volver a casa por la misma carretera. Se busca desde cada extremo del track: los puntos repetidos
     cuya otra pasada está en la otra mitad del recorrido (huecos de menos de 1 km permitidos, como los 500 m junto a
-    casa, que nunca cuentan como repetidos). Puede ser tan larga como haga falta.
+    casa, que nunca cuentan como repetidos). Puede empezar hasta a 3 km de cada extremo: salir y entrar de un pueblo
+    por calles distintas (La Bañeza: el primer km). Puede ser tan larga como haga falta. Un ramal cerca de casa no es
+    cuerda: sus dos pasadas están en la misma mitad del recorrido.
   - **Repetición fuera de la cuerda:** lo repetido en cualquier otro sitio, los ramales de ida y vuelta en mitad de la
     ruta. Una vuelta, un globo y una ida y vuelta pura dan casi 0; una estrella da mucho.
-  - Con datos: globo del autor 0 % fuera de la cuerda (cuerda de 38,9 km contando ida y vuelta); vuelta del autor por
+  - Con datos: globo del autor 0 % fuera de la cuerda (cuerda de 38,9 km contando ida y vuelta); ida y vuelta pura del
+    autor por La Bañeza (96 km) 0 % fuera de la cuerda (cuerda de 94,9 km); vuelta del autor por
     Soto de la Vega 0 %; vuelta generada por León oeste 2 %; vuelta corta por León capital 6 % (rodeos de ciudad);
-    estrellas generadas 35-84 %.
+    estrellas generadas 35-75 % (alguna tiene unos km de cuerda: vuelve a casa por una carretera ya usada al salir).
   - Criterio para el generador (4c), **umbral provisional**: como mucho un 10 % fuera de la cuerda, para tolerar rodeos
     de ciudad. Se revisará con los datos de la prueba en vivo.
 - Alternativas: límite al % repetido total (rechaza globos e idas y vueltas); contar puntos de giro (no distingue un
