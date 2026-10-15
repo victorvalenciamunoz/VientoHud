@@ -1,6 +1,27 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (sin empezar; división de pasos pendiente de confirmar)
+**Fase actual: 3 — Viento en la ruta** (sin empezar)
+
+## Fase 3
+
+### Qué falta (fase 3)
+
+División aceptada por el autor el 2026-10-15:
+
+- [ ] 3a. Tramos y horas de paso: cortar la ruta en tramos de ~1 km con su rumbo (grados HACIA) y la hora a la que se
+  pasa por cada uno (hora de salida + velocidad media). En Core, sin red, probado con rutas grabadas.
+- [ ] 3b. Viento en cada tramo: previsión de Open-Meteo (AROME → `best_match`, como en la fase 1) en pocos puntos de la
+  ruta y en una sola llamada, a la hora de paso; componente de cara/a favor y de lado (viento DESDE frente a rumbo HACIA).
+- [ ] 3c. Ajuste de velocidad por el viento (sencillo al principio; idea: calibrarlo con las salidas reales del autor,
+  cuyos GPX originales llevan la hora de cada punto, y el viento de esos días) y puntuación: viento de cara en la
+  primera mitad, a favor en la segunda, penalizar rachas fuertes de lado; cada vuelta en los dos sentidos. **Decisión
+  del autor:** los pesos de la puntuación (se le plantearán con ejemplos).
+- [ ] 3d. Consola: `route` elige los rumbos alrededor del viento (no cada 120°) y el sentido, ordena por puntuación con
+  explicación por tramos ("km 0-18: de cara 12 km/h…") y admite la hora de salida (por defecto, ahora).
+- [ ] 3e. Juez: días pasados, recalcular la puntuación con el viento observado (METAR, fase 1) y ver si la ruta
+  elegida con la previsión seguía siendo buena.
+
+Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018): no cargar brouter.de.
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 
