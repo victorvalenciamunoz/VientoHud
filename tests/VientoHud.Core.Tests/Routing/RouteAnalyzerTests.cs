@@ -31,6 +31,14 @@ public class RouteAnalyzerTests
         null,
         "test");
 
+    /// <summary>Stretch positions rounded to the metre, so hand-computed values compare exactly.</summary>
+    private static List<RepeatedStretch> Rounded(IEnumerable<RepeatedStretch> stretches) =>
+        stretches.Select(r => r with
+        {
+            StartKm = Math.Round(r.StartKm, 3), EndKm = Math.Round(r.EndKm, 3),
+            OtherPassStartKm = Math.Round(r.OtherPassStartKm, 3), OtherPassEndKm = Math.Round(r.OtherPassEndKm, 3),
+        }).ToList();
+
     [Fact]
     public void Out_and_back_on_one_road_is_repeated_except_near_the_start_and_the_turn()
     {
@@ -44,10 +52,11 @@ public class RouteAnalyzerTests
         // 41 repeated on the way out (km 0.5-4.5) and 41 on the way back (km 5.5-9.5).
         Assert.Equal(82 / 101.0, analysis.RepeatedFraction, 6);
         Assert.Equal(82 / 101.0 * 10, analysis.RepeatedKm, 6);
-        // All of it is the stem: km 0-4.5 out and km 5.5-10 back (the turn, ridden once, is not).
-        Assert.Equal(0.9, analysis.StemFraction, 6);
-        Assert.Equal(9, analysis.StemKm, 6);
-        Assert.Equal(0, analysis.RepeatedOffStemFraction);
+        // Only the turn lies between the passes, but the road starts at home: the ride itself, not a spur.
+        Assert.Equal(
+            [new RepeatedStretch(0.5, 4.5, 5.5, 9.5, IsSpur: false), new RepeatedStretch(5.5, 9.5, 0.5, 4.5, IsSpur: false)],
+            Rounded(analysis.Repeats));
+        Assert.Equal(0, analysis.SpurFraction);
     }
 
     [Fact]
@@ -58,10 +67,9 @@ public class RouteAnalyzerTests
 
         var analysis = RouteAnalyzer.Analyze(route, []);
 
-        // 96 checked points: km 0.5-4.5 out (41) and km 5.5-9.5 back (41). Stem: 4.5 km out and 4 km back.
+        // 96 checked points: km 0.5-4.5 out (41) and km 5.5-9.5 back (41).
         Assert.Equal(82 / 96.0, analysis.RepeatedFraction, 6);
-        Assert.Equal(8.5, analysis.StemKm, 6);
-        Assert.Equal(0, analysis.RepeatedOffStemFraction);
+        Assert.Equal(0, analysis.SpurFraction);
     }
 
     [Fact]
@@ -72,8 +80,8 @@ public class RouteAnalyzerTests
         var analysis = RouteAnalyzer.Analyze(route, []);
 
         Assert.Equal(0, analysis.RepeatedFraction);
-        Assert.Equal(0, analysis.StemFraction);
-        Assert.Equal(0, analysis.RepeatedOffStemFraction);
+        Assert.Equal(0, analysis.SpurFraction);
+        Assert.Empty(analysis.Repeats);
     }
 
     [Fact]
@@ -87,28 +95,46 @@ public class RouteAnalyzerTests
         // Separation is measured around the loop, so the 0.5 km nearest home do not count:
         // km 0.5-1 on the way out and km 21-21.5 on the way back, 6 + 6 checked points of 221.
         Assert.Equal(12 / 221.0, analysis.RepeatedFraction, 6);
-        // A balloon: the stem includes the stretch next to home.
-        Assert.Equal(2, analysis.StemKm, 6);
-        Assert.Equal(0, analysis.RepeatedOffStemFraction);
+        // A balloon: the 20 km loop lies between the two passes of its string.
+        Assert.Equal(
+            [new RepeatedStretch(0.5, 1, 21, 21.5, IsSpur: false), new RepeatedStretch(21, 21.5, 0.5, 1, IsSpur: false)],
+            Rounded(analysis.Repeats));
+        Assert.Equal(0, analysis.SpurFraction);
     }
 
     [Fact]
-    public void The_stem_may_start_after_leaving_town_by_other_streets()
+    public void A_neck_between_a_loop_near_home_and_a_loop_far_away_is_not_a_spur()
+    {
+        // A lasso: 3 km out of home, a 3 km neck, a 20 km loop, the neck back, and 9 km home by other roads.
+        var route = Track(
+            38, (0, 0), (0, 3), (0, 6), (0, 11), (5, 11), (5, 6), (0, 6), (0, 3), (-3, 3), (-3, 0), (0, 0));
+
+        var analysis = RouteAnalyzer.Analyze(route, []);
+
+        // The neck, km 3-6 and km 26-29: 31 + 31 checked points of 381.
+        Assert.Equal(62 / 381.0, analysis.RepeatedFraction, 6);
+        Assert.Equal(
+            [new RepeatedStretch(3, 6, 26, 29, IsSpur: false), new RepeatedStretch(26, 29, 3, 6, IsSpur: false)],
+            Rounded(analysis.Repeats));
+        Assert.Equal(0, analysis.SpurFraction);
+    }
+
+    [Fact]
+    public void An_out_and_back_ride_may_leave_and_enter_town_by_other_streets()
     {
         // Out and back 8 km on one road, but the first 2 km out and the last 2 km home use parallel streets 200 m apart.
         var route = Track(20.4, (0, 0), (0, 2), (0, 10), (0, 2), (0.2, 2), (0.2, 0), (0, 0));
 
         var analysis = RouteAnalyzer.Analyze(route, []);
 
-        // Repeated: km 2-9.5 out and km 10.5-18 back, 76 + 76 checked points of 205. The stem starts 2 km from each
-        // end and runs to km 9.5 out and from km 10.5 home: 9.5 + 9.9 km.
+        // Repeated: km 2-9.5 out and km 10.5-18 back, 76 + 76 checked points of 205. It starts 2 km from home and
+        // ends 2.4 km from home, within the 3 km allowed: the ride itself.
         Assert.Equal(152 / 205.0, analysis.RepeatedFraction, 6);
-        Assert.Equal(19.4, analysis.StemKm, 6);
-        Assert.Equal(0, analysis.RepeatedOffStemFraction);
+        Assert.Equal(0, analysis.SpurFraction);
     }
 
     [Fact]
-    public void An_out_and_back_spur_in_the_middle_of_a_loop_is_repetition_off_the_stem()
+    public void A_dead_end_ridden_in_and_out_in_the_middle_of_a_loop_is_a_spur()
     {
         // A 20 km square with a 2 km dead end at its far corner, ridden there and back: a star with one arm.
         var route = Track(24, (0, 0), (0, 5), (0, 7), (0, 5), (5, 5), (5, 0), (0, 0));
@@ -117,8 +143,39 @@ public class RouteAnalyzerTests
 
         // Repeated: km 5-6.5 into the spur and km 7.5-9 out of it, 16 + 16 checked points of 241.
         Assert.Equal(32 / 241.0, analysis.RepeatedFraction, 6);
-        Assert.Equal(0, analysis.StemFraction);
-        Assert.Equal(32 / 241.0, analysis.RepeatedOffStemFraction, 6);
+        Assert.Equal(
+            [new RepeatedStretch(5, 6.5, 7.5, 9, IsSpur: true), new RepeatedStretch(7.5, 9, 5, 6.5, IsSpur: true)],
+            Rounded(analysis.Repeats));
+        Assert.Equal(32 / 241.0, analysis.SpurFraction, 6);
+        Assert.Equal(32 / 241.0 * 24, analysis.SpurKm, 6);
+    }
+
+    [Fact]
+    public void A_spur_right_after_the_string_from_home_is_still_a_spur()
+    {
+        // 5 km out of home, a 3 km dead end ridden in and out, a 20 km loop, and the same 5 km home. The string and the
+        // spur are back to back along the route, but their other passes are in different places.
+        var route = Track(36, (0, 0), (0, 5), (3, 5), (0, 5), (0, 10), (-5, 10), (-5, 5), (0, 5), (0, 0));
+
+        var analysis = RouteAnalyzer.Analyze(route, []);
+
+        Assert.All(analysis.Repeats.Where(r => r.EndKm <= 5), r => Assert.False(r.IsSpur));
+        Assert.Contains(analysis.Repeats, r => r.IsSpur && r.StartKm is >= 5 and <= 5.2 && Math.Abs(r.EndKm - 7.5) < 0.01);
+        // The spur, km 5-7.5 in and km 8.5-11 out: about 26 + 26 checked points of 361.
+        Assert.InRange(analysis.SpurFraction, 50 / 361.0, 53 / 361.0);
+    }
+
+    [Fact]
+    public void A_short_loop_at_the_end_of_a_dead_end_is_still_a_spur()
+    {
+        // As above, but the dead end ends in a 2 km block around a village instead of turning back.
+        var route = Track(26, (0, 0), (0, 5), (0, 7), (0.5, 7), (0.5, 7.5), (0, 7.5), (0, 7), (0, 5), (5, 5), (5, 0), (0, 0));
+
+        var analysis = RouteAnalyzer.Analyze(route, []);
+
+        Assert.NotEmpty(analysis.Repeats);
+        Assert.All(analysis.Repeats, r => Assert.True(r.IsSpur));
+        Assert.True(analysis.SpurFraction > 0.1, $"{analysis.SpurFraction:P1}");
     }
 
     [Fact]
@@ -167,17 +224,19 @@ public class RouteAnalyzerTests
     }
 
     [Theory]
-    [InlineData(0, 0.03, 1, 3)]
-    [InlineData(0.1, 0, 1, 3)]
-    [InlineData(0.1, 0.03, -1, 3)]
-    [InlineData(0.1, 0.03, 1, -1)]
-    public void Rejects_non_positive_repetition_settings(double spacing, double tolerance, double separation, double stemStart)
+    [InlineData(0, 0.03, 1, 5, 3)]
+    [InlineData(0.1, 0, 1, 5, 3)]
+    [InlineData(0.1, 0.03, -1, 5, 3)]
+    [InlineData(0.1, 0.03, 1, -1, 3)]
+    [InlineData(0.1, 0.03, 1, 5, -1)]
+    public void Rejects_non_positive_repetition_settings(
+        double spacing, double tolerance, double separation, double minLoop, double homeStretch)
     {
         var route = Track(1, (0, 0), (0, 1));
         var options = new RouteAnalysisOptions
         {
             SampleSpacingKm = spacing, RepeatToleranceKm = tolerance, MinRepeatSeparationKm = separation,
-            MaxStemStartKm = stemStart,
+            MinLoopKm = minLoop, HomeStretchKm = homeStretch,
         };
 
         Assert.Throws<ArgumentOutOfRangeException>(() => RouteAnalyzer.Analyze(route, [], options));
@@ -260,37 +319,46 @@ public class RouteAnalyzerTests
     }
 
     [Fact]
-    public async Task A_star_from_fan_waypoints_repeats_off_the_stem()
+    public async Task A_star_from_fan_waypoints_repeats_mostly_on_spurs()
     {
         foreach (var recorded in new[] { RecordedRoutes.LeonEastRepeats, RecordedRoutes.TresCantosSouthwestOffset })
         {
             var analysis = RouteAnalyzer.Analyze(await recorded.LoadAsync(), recorded.Waypoints);
 
-            // Coming home along a road already ridden out of town is a short stem; the rest are spurs.
-            Assert.True(analysis.StemFraction < 0.25, $"{recorded.File}: stem {analysis.StemFraction:P0}");
-            Assert.True(analysis.RepeatedOffStemFraction > 0.5, $"{recorded.File}: off stem {analysis.RepeatedOffStemFraction:P0}");
+            Assert.True(analysis.SpurFraction > 0.5, $"{recorded.File}: spurs {analysis.SpurFraction:P0}");
         }
     }
 
     [Fact]
-    public void A_real_balloon_ride_repeats_half_the_way_but_only_on_its_stem()
+    public void A_real_balloon_ride_repeats_half_the_way_but_on_no_spur()
     {
         var analysis = RouteAnalyzer.Analyze(RecordedRides.HumanesBalloon(), []);
 
         Assert.InRange(analysis.DistanceKm, 73, 74);
         Assert.InRange(analysis.RepeatedFraction, 0.45, 0.55);
-        Assert.InRange(analysis.StemKm, 37, 40);
-        Assert.True(analysis.RepeatedOffStemFraction < 0.01, $"{analysis.RepeatedOffStemFraction:P1}");
+        Assert.True(analysis.SpurFraction < 0.01, $"{analysis.SpurFraction:P1}");
     }
 
     [Fact]
-    public void A_real_out_and_back_ride_is_all_stem()
+    public void A_real_out_and_back_ride_repeats_almost_all_the_way_but_on_no_spur()
     {
         var analysis = RouteAnalyzer.Analyze(RecordedRides.LaBanezaOutAndBack(), []);
 
         Assert.InRange(analysis.DistanceKm, 95, 97);
-        Assert.True(analysis.StemFraction > 0.9, $"{analysis.StemFraction:P1}");
-        Assert.True(analysis.RepeatedOffStemFraction < 0.01, $"{analysis.RepeatedOffStemFraction:P1}");
+        Assert.True(analysis.RepeatedFraction > 0.9, $"{analysis.RepeatedFraction:P1}");
+        Assert.True(analysis.SpurFraction < 0.01, $"{analysis.SpurFraction:P1}");
+    }
+
+    [Fact]
+    public void A_real_lasso_ride_repeats_its_neck_but_on_no_spur()
+    {
+        var analysis = RouteAnalyzer.Analyze(RecordedRides.BoadillaLasso(), []);
+
+        Assert.InRange(analysis.DistanceKm, 83, 85);
+        // The 4.6 km neck, km 8-13 out and km 62-67 back, with the 50 km loop in between.
+        Assert.Contains(analysis.Repeats, r => !r.IsSpur && r.StartKm < 9 && r.EndKm > 12 && r.OtherPassStartKm > 61);
+        Assert.InRange(analysis.RepeatedFraction, 0.09, 0.13);
+        Assert.True(analysis.SpurFraction < 0.02, $"{analysis.SpurFraction:P1}");
     }
 
     [Fact]

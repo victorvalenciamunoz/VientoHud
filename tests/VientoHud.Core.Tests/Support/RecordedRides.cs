@@ -20,6 +20,12 @@ internal static class RecordedRides
     /// </summary>
     public static Route LaBanezaOutAndBack() => Load("labaneza-out-and-back-2026-08-02.gpx");
 
+    /// <summary>
+    /// A lasso of 84 km from Boadilla del Monte: a loop near home joined by a 4.6 km neck, ridden there and back,
+    /// to a 50 km loop.
+    /// </summary>
+    public static Route BoadillaLasso() => Load("boadilla-lasso-2025-05-25.gpx");
+
     private static Route Load(string file)
     {
         XNamespace gpx = "http://www.topografix.com/GPX/1/1";

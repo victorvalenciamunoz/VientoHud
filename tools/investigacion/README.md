@@ -14,7 +14,8 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 |---|---|
 | `record.cs` | Pide vueltas en abanico (salida + 4 puntos a R km) a brouter.de y guarda la respuesta tal cual (fixtures). |
 | `analyze.cs` | Pasa `RouteAnalyzer` sobre respuestas grabadas de BRouter, con varias opciones de repetición. |
-| `stem.cs` | Dónde se repite un track: la cuerda (salir y volver por la misma carretera) frente a lo repetido fuera de ella (estrellas), con una tira de texto a lo largo de la ruta. |
+| `repeats.cs` | Tramos repetidos de un GPX según `RouteAnalyzer`: dónde, dónde está su otra pasada y si son ramales (estrellas). |
+| `stem.cs` | Primera versión del criterio de forma (cuerda junto a casa frente a lo repetido fuera de ella), con una tira de texto a lo largo de la ruta. Sustituido por los ramales de `RouteAnalyzer` (`DECISIONS.md` 015). |
 | `shape.cs` | Forma de un track (GPX o GeoJSON de BRouter): km, % repetido, punto más lejano, superficie encerrada. |
 | `loops.cs` | Fase 2: compara formas de evitar la repetición (abanico actual, penalizar lo recorrido, mover puntos de ramales). Con `ALLOW_TRUNK=1`, el perfil estricto con `trunk` permitido. Escribe un GPX por resultado. |
 | `togpx.cs` | Convierte una respuesta grabada de BRouter en GPX para mirarla en gpx.studio. |

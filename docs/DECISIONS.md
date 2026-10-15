@@ -270,24 +270,35 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: muestras contra muestras (lo usado en el paso 1; subestima); comparar tramos por identificador de vía
   OSM (BRouter no lo devuelve); Overpass para las etiquetas (saturado y una dependencia más).
 
-## 015 — Forma válida de una ruta: se puede repetir la cuerda, no hacer estrellas
+## 015 — Forma válida de una ruta: se puede repetir, pero no hacer ramales (estrellas)
 - Contexto: las vueltas en abanico salían como estrellas (entrar y salir de cada punto de paso por el mismo ramal), con
-  un 48-84 % del recorrido repetido. Pero repetir no siempre está mal: una salida real del autor (Humanes, 73 km) es un
-  globo, sale y vuelve por los mismos ~19 km y da una vuelta al final, y repite el 50 %. También valen las idas y vueltas
-  puras cuando no hay vuelta posible (un valle que acaba en un puerto). Un límite al % repetido rechazaría rutas buenas.
-- Decisión (aceptada por el autor, 2026-10-15): lo que se mide es **dónde** se repite.
-  - **Cuerda:** salir y volver a casa por la misma carretera. Se busca desde cada extremo del track: los puntos repetidos
-    cuya otra pasada está en la otra mitad del recorrido (huecos de menos de 1 km permitidos, como los 500 m junto a
-    casa, que nunca cuentan como repetidos). Puede empezar hasta a 3 km de cada extremo: salir y entrar de un pueblo
-    por calles distintas (La Bañeza: el primer km). Puede ser tan larga como haga falta. Un ramal cerca de casa no es
-    cuerda: sus dos pasadas están en la misma mitad del recorrido.
-  - **Repetición fuera de la cuerda:** lo repetido en cualquier otro sitio, los ramales de ida y vuelta en mitad de la
-    ruta. Una vuelta, un globo y una ida y vuelta pura dan casi 0; una estrella da mucho.
-  - Con datos: globo del autor 0 % fuera de la cuerda (cuerda de 38,9 km contando ida y vuelta); ida y vuelta pura del
-    autor por La Bañeza (96 km) 0 % fuera de la cuerda (cuerda de 94,9 km); vuelta del autor por
-    Soto de la Vega 0 %; vuelta generada por León oeste 2 %; vuelta corta por León capital 6 % (rodeos de ciudad);
-    estrellas generadas 35-75 % (alguna tiene unos km de cuerda: vuelve a casa por una carretera ya usada al salir).
-  - Criterio para el generador (4c), **umbral provisional**: como mucho un 10 % fuera de la cuerda, para tolerar rodeos
-    de ciudad. Se revisará con los datos de la prueba en vivo.
-- Alternativas: límite al % repetido total (rechaza globos e idas y vueltas); contar puntos de giro (no distingue un
-  ramal corto de una media vuelta en una rotonda; la separación de 1 km ya ignora esos giros cortos).
+  un 35-84 % del recorrido repetido. Pero repetir no siempre está mal. Salidas reales del autor, todas válidas:
+  - Globo (Humanes, 73 km): sale y vuelve por los mismos ~19 km (la cuerda) y da una vuelta al final; repite el 50 %.
+  - Ida y vuelta pura (La Bañeza, 96 km): repite el 97 %; sale y entra del pueblo por calles distintas el primer km.
+  - Lazo (Boadilla del Monte, 84 km): una vuelta cerca de casa unida por un cuello de 4,6 km, ida y vuelta, a una vuelta
+    de 50 km; repite el 11 %, en mitad de la ruta.
+  - Vueltas (Soto de la Vega, 73 y 84 km): repiten 0-4 %.
+  Un límite al % repetido, o exigir que lo repetido esté junto a casa, rechaza rutas buenas (se probó y falló con la ida
+  y vuelta y con el lazo).
+- Decisión (criterio del autor: "lo que no debemos hacer es crear estrellas"; afinado con sus rutas el 2026-10-15): lo
+  único malo es el **ramal**, entrar por una carretera sin salida y salir por la misma en mitad de la ruta.
+  - Cada tramo repetido tiene dos pasadas. Entre ellas está lo que se recorre de una a otra: una vuelta, en una cuerda o
+    un cuello; solo la media vuelta, en un ramal.
+  - **Ramal:** entre las dos pasadas hay menos de 5 km recorridos una sola vez, y menos del 15 % de la ruta. Solo cuentan
+    los km hechos una vez: si no, un ramal al final de otro ramal pasaba por vuelta (lo destapó una estrella de Tres
+    Cantos). Una vuelta de 2 km alrededor de un pueblo al final de un ramal sigue siendo un ramal.
+  - **Salvo que salga de casa:** si el tramo empieza a menos de 3 km de los dos extremos de la ruta, es la ida y vuelta
+    misma, no un desvío. Los 3 km dan margen para salir y entrar del pueblo por calles distintas o para una grabación
+    que acaba antes de llegar.
+  - Un tramo repetido se parte donde su otra pasada salta de sitio: así una cuerda seguida justo de un ramal no se mezcla
+    con él (otra estrella de Tres Cantos).
+  - Con datos: rutas del autor 0-0,6 % en ramales (el 0,6 % es un giro corto en el lazo); vueltas generadas buenas
+    0-1,6 %; estrellas generadas 35-84 %.
+  - Criterio para el generador (4c), **umbral provisional**: como mucho un 10 % de la ruta en ramales. Se revisará con
+    los datos de la prueba en vivo.
+- Limitaciones: un tramo repetido tres veces se empareja solo con la pasada más cercana; los umbrales (5 km, 15 %, 3 km)
+  salen de pocas rutas reales, todas de Madrid y León.
+- Alternativas: límite al % repetido total (rechaza globos e idas y vueltas); repetición permitida solo junto a casa
+  (rechaza lazos; fue la primera versión de este mismo día); contar puntos de giro (no distingue un ramal corto de una
+  media vuelta en una rotonda).
+

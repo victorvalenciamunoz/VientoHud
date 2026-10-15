@@ -24,9 +24,9 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   perfil del servidor (`ServerProfile`, p. ej. `fastbike`) sin subir nada.
 - **Análisis de una ruta, sin red** (`RouteAnalyzer`, `RoadRules`; `DECISIONS.md` 014): km por tipo de vía y firme con
   su categoría (carretera, camino asfaltado, prohibido, desconocido), distancia de cada punto de paso pedido a la línea
-  del track y fracción del recorrido repetido (ida y vuelta por la misma carretera). Separa la repetición en **cuerda**
-  (salir y volver a casa por la misma carretera, válida) y **fuera de la cuerda** (ramales en mitad de la ruta, las
-  estrellas; `DECISIONS.md` 015).
+  del track y fracción del recorrido repetido. Devuelve cada tramo repetido (dónde está y dónde su otra pasada) y si es
+  un **ramal**: entrar y salir por la misma carretera sin salida en mitad de la ruta, lo que hace una estrella. Las
+  cuerdas de un globo, los cuellos de un lazo y las idas y vueltas desde casa no son ramales (`DECISIONS.md` 015).
 
 ### Qué falta (fase 2)
 
@@ -38,20 +38,21 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   lectura de las etiquetas de cada tramo, errores ("target island", 400, 500) y fixtures grabadas.
 - [ ] 4. Generador de vueltas. Dividido en:
   - [x] 4a. Análisis de una ruta, sin red: desvío de cada punto pedido, % repetido y km por tramos prohibidos
-    (`DECISIONS.md` 014). Probado con rutas reales grabadas. Ampliado con la cuerda y la repetición fuera de ella
-    (`DECISIONS.md` 015).
+    (`DECISIONS.md` 014). Probado con rutas reales grabadas. Ampliado con los tramos repetidos y los ramales
+    (`DECISIONS.md` 015), calibrado con cinco salidas reales del autor.
   - [ ] Prueba en vivo antes de 4b (cuando brouter.de lo permita, pocas peticiones y espaciadas): unas 8 vueltas en
     Madrid y León, 40-100 km, rumbos variados, moviendo los puntos de ramal, ajustando R y girando el rumbo si no hay
-    vuelta; perfil estricto frente a `trunk` permitido. Éxito: en al menos 6 de 8, ruta con ≤ 10 % repetido fuera de
-    la cuerda, ±10 % de la distancia, 0 km prohibidos y a menos de 45° del rumbo pedido. Con los datos, el autor
-    decide lo del `trunk`.
+    vuelta; perfil estricto frente a `trunk` permitido. Éxito: en al menos 6 de 8, ruta con ≤ 10 % en ramales,
+    ±10 % de la distancia, 0 km prohibidos y a menos de 45° del rumbo pedido. Con los datos, el autor decide lo del
+    `trunk`.
   - [ ] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
     objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3.
   - [ ] 4c. Generador: ajuste de R hasta ±10 % del objetivo con pocas llamadas, reintentos ante "target island", girar
     el rumbo ±15-30° si repite mucho, descarte de candidatas malas y varias candidatas con rumbos distintos. El rumbo es
     un parámetro (la fase 3 lo elegirá según el viento). Probado con un motor falso y luego en vivo en Madrid y León.
-    Criterio de forma: ≤ 10 % repetido fuera de la cuerda (provisional, `DECISIONS.md` 015).
+    Criterio de forma: ≤ 10 % de la ruta en ramales (provisional, `DECISIONS.md` 015). El análisis dice qué tramos son
+    ramales y dónde: sirve para mover el punto de paso que los provoca.
     **Decisiones del autor pendientes:** desvío máximo de un punto, llamadas o segundos de espera aceptables y número
     de candidatas.
 - [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
@@ -107,6 +108,14 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   cuerda porque el primer km de salida va por otras calles y la cuerda solo podía empezar a 1 km de casa. Ahora puede
   empezar hasta a 3 km de cada extremo: 94,9 km de cuerda y 0 % fuera de ella. Caso a mano equivalente (calles
   paralelas los 2 primeros km). 200 tests en total.
+- Ramales en vez de cuerda (2026-10-15): un lazo del autor (Boadilla del Monte, 84 km: vuelta cerca de casa, cuello de
+  4,6 km y vuelta de 50 km) salía con 11 % fuera de la cuerda, rechazado. El criterio pasa a ser "ramal o no" (cada
+  tramo repetido se juzga por lo que hay entre sus dos pasadas; `DECISIONS.md` 015). Al pasarlo por las estrellas
+  generadas salieron dos fallos más, corregidos con tests: un ramal dentro de otro ramal pasaba por vuelta (ahora solo
+  cuentan los km hechos una vez) y una cuerda seguida justo de un ramal se mezclaba con él (ahora el tramo se parte
+  donde salta su otra pasada). Resultado: salidas del autor (globo, ida y vuelta, lazo, dos vueltas) 0-0,6 % en
+  ramales; vueltas generadas buenas 0-1,6 %; estrellas generadas 35-84 %. Casos a mano nuevos: lazo, ramal con una
+  vuelta de 2 km al final, cuerda seguida de ramal. 205 tests en total.
 
 ### Riesgos y pendientes (fase 2)
 

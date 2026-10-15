@@ -5,7 +5,7 @@ namespace VientoHud.Core.Routing;
 /// <param name="Surface">OSM "surface" tag, or null if not reported.</param>
 public sealed record RoadUsage(string? Highway, string? Surface, RoadCategory Category, double Km);
 
-/// <summary>How the repetition of a route is measured (DECISIONS 014).</summary>
+/// <summary>How the repetition of a route is measured (DECISIONS 014 and 015).</summary>
 public sealed record RouteAnalysisOptions
 {
     /// <summary>The track is checked at points this far apart.</summary>
@@ -21,11 +21,34 @@ public sealed record RouteAnalysisOptions
     public double MinRepeatSeparationKm { get; init; } = 1;
 
     /// <summary>
-    /// The stem may start this far from either end of the track: leaving and entering a town by different streets
-    /// (one-way streets, a ring road), or a recording that stops short of home.
+    /// A road ridden there and back is a connector, not a spur, when between its two passes there are at least this many
+    /// km ridden only once: a loop at the far end (a balloon's string, a lasso's neck), not just a turn, a lap of a
+    /// village or more spurs. See also <see cref="MinLoopFraction"/>.
     /// </summary>
-    public double MaxStemStartKm { get; init; } = 3;
+    public double MinLoopKm { get; init; } = 5;
+
+    /// <summary>As <see cref="MinLoopKm"/>, as a share of the route: the larger of the two applies.</summary>
+    public double MinLoopFraction { get; init; } = 0.15;
+
+    /// <summary>
+    /// A spur that starts this close to both ends of the track is the ride itself (out and back from home), not a
+    /// detour. Leaving and entering a town by different streets, or a recording that stops short of home, fit in it.
+    /// </summary>
+    public double HomeStretchKm { get; init; } = 3;
 }
+
+/// <summary>
+/// A stretch of the route that runs where another part of it also runs. Each such stretch appears twice, once per pass.
+/// </summary>
+/// <param name="StartKm">Where the stretch begins, along the route.</param>
+/// <param name="EndKm">Where it ends, along the route.</param>
+/// <param name="OtherPassStartKm">Where the other pass is, along the route, nearest the start of the route.</param>
+/// <param name="OtherPassEndKm">Where the other pass is, along the route, farthest from the start of the route.</param>
+/// <param name="IsSpur">
+/// True for a dead-end detour: in and out by the same road with almost nothing in between, away from home. That is
+/// what makes a route a star. False for a balloon's string, a lasso's neck or an out-and-back ride from home.
+/// </param>
+public sealed record RepeatedStretch(double StartKm, double EndKm, double OtherPassStartKm, double OtherPassEndKm, bool IsSpur);
 
 /// <summary>What a routed loop is like: kinds of road, how close it passes to each waypoint and how much it repeats.</summary>
 /// <param name="DistanceKm">Length of the route, as the engine measured it.</param>
@@ -37,21 +60,18 @@ public sealed record RouteAnalysisOptions
 /// <param name="RepeatedFraction">
 /// Share of the route, from 0 to 1, that runs where another part of the route also runs. Both passes count.
 /// </param>
-/// <param name="StemFraction">
-/// Share of the route, from 0 to 1, that is its stem: leaving and coming home by the same road, like the string of a
-/// balloon. Both passes count. 0 for a loop without a stem, almost 1 for a pure out-and-back ride.
+/// <param name="SpurFraction">
+/// Share of the route, from 0 to 1, repeated on spurs (see <see cref="RepeatedStretch.IsSpur"/>). Both passes count.
+/// Loops, balloons, lassos and out-and-back rides are near 0; stars are not (DECISIONS 015).
 /// </param>
-/// <param name="RepeatedOffStemFraction">
-/// Share of the route, from 0 to 1, repeated anywhere but on the stem: out-and-back spurs in the middle of the ride,
-/// as in a star. Loops, balloons and out-and-back rides are near 0 (DECISIONS 015).
-/// </param>
+/// <param name="Repeats">The repeated stretches, in riding order.</param>
 public sealed record RouteAnalysis(
     double DistanceKm,
     IReadOnlyList<RoadUsage> Roads,
     IReadOnlyList<double> WaypointOffsetsKm,
     double RepeatedFraction,
-    double StemFraction,
-    double RepeatedOffStemFraction)
+    double SpurFraction,
+    IReadOnlyList<RepeatedStretch> Repeats)
 {
     public double ForbiddenKm => KmOf(RoadCategory.Forbidden);
 
@@ -61,9 +81,7 @@ public sealed record RouteAnalysis(
 
     public double RepeatedKm => RepeatedFraction * DistanceKm;
 
-    public double StemKm => StemFraction * DistanceKm;
-
-    public double RepeatedOffStemKm => RepeatedOffStemFraction * DistanceKm;
+    public double SpurKm => SpurFraction * DistanceKm;
 
     /// <summary>The largest of <see cref="WaypointOffsetsKm"/>.</summary>
     public double MaxWaypointOffsetKm => WaypointOffsetsKm.Count > 0 ? WaypointOffsetsKm.Max() : 0;
@@ -83,20 +101,20 @@ public static class RouteAnalyzer
         ArgumentNullException.ThrowIfNull(waypoints);
         options ??= new RouteAnalysisOptions();
         if (options.SampleSpacingKm <= 0 || options.RepeatToleranceKm <= 0 || options.MinRepeatSeparationKm <= 0
-            || options.MaxStemStartKm < 0)
+            || options.MinLoopKm < 0 || options.MinLoopFraction < 0 || options.HomeStretchKm < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(options), "Repetition settings must be positive.");
         }
 
         var track = new ProjectedTrack(route.Points.Select(p => p.Position).ToList());
-        var repetition = Repetition(track, options);
+        var (repeated, spur, repeats) = Repetition(track, options);
         return new RouteAnalysis(
             route.DistanceKm,
             Roads(route.Segments),
             waypoints.Select(w => track.DistanceTo(track.Projection.Project(w))).ToList(),
-            repetition.Repeated,
-            repetition.Stem,
-            repetition.RepeatedOffStem);
+            repeated,
+            spur,
+            repeats);
     }
 
     private static List<RoadUsage> Roads(IReadOnlyList<RouteSegment> segments) =>
@@ -114,18 +132,20 @@ public static class RouteAnalyzer
     /// its start, the separation is measured around the loop: arriving home is not repeating the way out.
     /// </summary>
     /// <remarks>
-    /// The stem is found from each end of the track: the run of repeated points whose other pass is in the other half
-    /// of the track (the way out ridden again on the way home). It may start up to
-    /// <see cref="RouteAnalysisOptions.MaxStemStartKm"/> from the end, and once started may have gaps shorter than the
-    /// separation. A spur near home is not a stem: both its passes are in the same half.
+    /// Repeated points closer than the separation make up one stretch. Between the two passes of a stretch lies the
+    /// part of the route ridden from one to the other: a whole loop for a string or a neck, only the turn for a spur.
+    /// So a stretch is a spur when, at its innermost point, the km ridden only once between the passes are fewer than
+    /// <see cref="RouteAnalysisOptions.MinLoopKm"/> (or <see cref="RouteAnalysisOptions.MinLoopFraction"/> of the
+    /// route), unless the stretch starts within <see cref="RouteAnalysisOptions.HomeStretchKm"/> of both ends of the
+    /// track (an out-and-back ride from home). Counting only km ridden once keeps a spur at the end of a longer spur
+    /// from passing as a loop.
     /// </remarks>
-    private static (double Repeated, double Stem, double RepeatedOffStem) Repetition(
+    private static (double Repeated, double Spur, List<RepeatedStretch> Repeats) Repetition(
         ProjectedTrack track, RouteAnalysisOptions options)
     {
         var closed = track.Points[0].DistanceTo(track.Points[^1]) < options.RepeatToleranceKm;
         // The margin keeps a length that is a whole number of spacings (22 / 0.1 = 219.999…) from losing its last point.
         var count = (int)Math.Floor(track.LengthKm / options.SampleSpacingKm + 1e-9) + 1;
-        var half = track.LengthKm / 2;
 
         // Where along the track the other pass of each checked point is; null if the point is not repeated.
         var otherPass = new double?[count];
@@ -136,36 +156,67 @@ public static class RouteAnalyzer
             otherPass[i] = closest.DistanceKm < options.RepeatToleranceKm ? closest.AlongKm : null;
         }
 
-        var stemOutEnd = StemEnd(Enumerable.Range(0, count).Where(i => i * options.SampleSpacingKm < half), other => other > half);
-        var stemBackStart = StemEnd(Enumerable.Range(0, count).Reverse().Where(i => i * options.SampleSpacingKm > half), other => other < half);
-        var repeated = otherPass.Count(o => o is not null);
-        var offStem = Enumerable.Range(0, count)
-            .Count(i => otherPass[i] is not null && (stemOutEnd is null || i > stemOutEnd) && (stemBackStart is null || i < stemBackStart));
-        var stemKm = (stemOutEnd ?? 0) * options.SampleSpacingKm
-            + (stemBackStart is { } back ? track.LengthKm - back * options.SampleSpacingKm : 0);
-
-        return (repeated / (double)count, Math.Min(1, stemKm / track.LengthKm), offStem / (double)count);
-
-        // Last checked point, walking from one end, of the run whose other pass is in the other half; null if none.
-        int? StemEnd(IEnumerable<int> walk, Func<double, bool> otherHalf)
+        // Checked points ridden only once before each point, to count them between two positions quickly.
+        var onceBefore = new int[count + 1];
+        for (var i = 0; i < count; i++)
         {
-            int? end = null;
-            var gapKm = 0.0;
-            foreach (var i in walk)
+            onceBefore[i + 1] = onceBefore[i] + (otherPass[i] is null ? 1 : 0);
+        }
+        double OnceKmBetween(double lowKm, double highKm)
+        {
+            var from = Math.Clamp((int)Math.Floor(lowKm / options.SampleSpacingKm) + 1, 0, count);
+            var to = Math.Clamp((int)Math.Ceiling(highKm / options.SampleSpacingKm), 0, count);
+            return to > from ? (onceBefore[to] - onceBefore[from]) * options.SampleSpacingKm : 0;
+        }
+        var minLoopKm = Math.Max(options.MinLoopKm, options.MinLoopFraction * track.LengthKm);
+
+        var repeats = new List<RepeatedStretch>();
+        var repeated = 0;
+        var onSpurs = 0;
+        var maxGap = (int)Math.Round(options.MinRepeatSeparationKm / options.SampleSpacingKm);
+        var first = 0;
+        while (first < count)
+        {
+            if (otherPass[first] is null)
             {
-                if (otherPass[i] is { } other && otherHalf(other))
+                first++;
+                continue;
+            }
+
+            // A stretch: repeated points with gaps shorter than the separation, whose other pass moves along with them.
+            // Where the other pass jumps elsewhere, a different stretch begins (e.g. the string home followed by a spur).
+            var last = first;
+            for (var i = first + 1; i < count && i - last < maxGap; i++)
+            {
+                if (otherPass[i] is not { } other)
                 {
-                    end = i;
-                    gapKm = 0;
+                    continue;
                 }
-                else if ((gapKm += options.SampleSpacingKm) > (end is null
-                             ? Math.Max(options.MaxStemStartKm, options.MinRepeatSeparationKm)
-                             : options.MinRepeatSeparationKm))
+                if (Math.Abs(other - otherPass[last]!.Value) > (i - last) * options.SampleSpacingKm + options.MinRepeatSeparationKm)
                 {
                     break;
                 }
+                last = i;
             }
-            return end;
+
+            var points = Enumerable.Range(first, last - first + 1).Where(i => otherPass[i] is not null).ToList();
+            var pairs = points
+                .Select(i => (Here: i * options.SampleSpacingKm, Other: otherPass[i]!.Value))
+                .Select(p => (Low: Math.Min(p.Here, p.Other), High: Math.Max(p.Here, p.Other)))
+                .ToList();
+            var loopKm = pairs.Min(p => OnceKmBetween(p.Low, p.High));
+            var fromHome = pairs.Min(p => p.Low) <= options.HomeStretchKm
+                && track.LengthKm - pairs.Max(p => p.High) <= options.HomeStretchKm;
+            var isSpur = loopKm < minLoopKm && !fromHome;
+
+            var others = points.Select(i => otherPass[i]!.Value).ToList();
+            repeats.Add(new RepeatedStretch(
+                first * options.SampleSpacingKm, last * options.SampleSpacingKm, others.Min(), others.Max(), isSpur));
+            repeated += points.Count;
+            onSpurs += isSpur ? points.Count : 0;
+            first = last + 1;
         }
+
+        return (repeated / (double)count, onSpurs / (double)count, repeats);
     }
 }
