@@ -59,6 +59,23 @@ public class LoopGeneratorTests
     }
 
     [Fact]
+    public async Task Starts_a_new_bearing_from_the_radius_the_roads_measured_so_far_point_to()
+    {
+        // Roads twice as long as the straight polygon everywhere, but towards 0° only on a motorway: the generator
+        // learns the length there and starts the next bearing, 10°, at the right radius.
+        var engine = new FakeRouteEngine(w => FakeRouteEngine.Straight(
+            w, roadFactor: 2, highway: Compass.AngleBetween(FakeRouteEngine.FanBearing(w), 0) < 1 ? "motorway" : "tertiary"));
+
+        var result = await new LoopGenerator(engine).GenerateAsync(Leon, 0, 60);
+
+        var firstAt10 = engine.Requests.First(w => Compass.AngleBetween(FakeRouteEngine.FanBearing(w), 10) < 1);
+        Assert.Equal(0.75 * LoopWaypoints.InitialRadiusKm(60), Radius(firstAt10), precision: 3);
+        Assert.Same(result.Attempts[^1], result.Best);
+        Assert.True(result.Best!.IsValid);
+        Assert.Equal(10, result.Best.FanBearingDegrees, precision: 6);
+    }
+
+    [Fact]
     public async Task Moves_a_waypoint_reached_through_a_dead_end_to_where_the_dead_end_leaves_the_route()
     {
         // The third waypoint is off the roads: the route reaches it along a dead end from 30 % of the radius to 90 %,
@@ -175,9 +192,9 @@ public class LoopGeneratorTests
         var result = await new LoopGenerator(engine).GenerateAsync(Leon, 0, 60);
 
         Assert.Equal(2, result.Requests);
-        Assert.Equal(20, result.Best!.FanBearingDegrees, precision: 6);
+        Assert.Equal(10, result.Best!.FanBearingDegrees, precision: 6);
         Assert.True(result.Best.IsValid);
-        Assert.InRange(result.Best.BearingDeviationDegrees, 19, 21);
+        Assert.InRange(result.Best.BearingDeviationDegrees, 9, 11);
     }
 
     [Fact]
@@ -189,9 +206,9 @@ public class LoopGeneratorTests
 
         Assert.Null(result.Best);
         Assert.Empty(result.Attempts);
-        // One per bearing: 0, +20, −20, +40, −40.
+        // One per bearing: 0, +10, −10, +20, −20, +40, −40.
         Assert.Equal(
-            [0.0, 20, 340, 40, 320],
+            [0.0, 10, 350, 20, 340, 40, 320],
             engine.Requests.Select(w => Math.Round(FakeRouteEngine.FanBearing(w), 6)));
     }
 
@@ -301,7 +318,7 @@ public class LoopGeneratorTests
         // Towards the north there is no loop, not even turning ±40°.
         Assert.False(results[2].Found);
         Assert.Null(results[2].Best);
-        Assert.Equal(5, results[2].Requests);
+        Assert.Equal(7, results[2].Requests);
     }
 
     [Fact]

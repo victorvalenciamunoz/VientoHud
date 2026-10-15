@@ -45,12 +45,13 @@ public sealed record LoopGeneratorOptions
 
     /// <summary>
     /// Bearings to try, as turns from the requested one, in order. The next one is tried when the engine cannot join
-    /// the waypoints ("target island") or a bearing gives no valid loop.
+    /// the waypoints ("target island") or a bearing gives no valid loop. Small turns first: on a road network the
+    /// length jumps with the radius (one road or another), and a slightly different bearing picks other roads.
     /// </summary>
-    public IReadOnlyList<double> BearingTurns { get; init; } = [0, 20, -20, 40, -40];
+    public IReadOnlyList<double> BearingTurns { get; init; } = [0, 10, -10, 20, -20, 40, -40];
 
     /// <summary>Rounds of waypoints (each with its own radius) on one bearing before turning.</summary>
-    public int MaxRoundsPerBearing { get; init; } = 3;
+    public int MaxRoundsPerBearing { get; init; } = 4;
 
     /// <summary>Points of the fan, start included (see <see cref="LoopWaypoints.Fan"/>).</summary>
     public int FanPoints { get; init; } = LoopWaypoints.DefaultPoints;
@@ -116,7 +117,8 @@ public sealed record LoopResult(
 /// <item>The radius is corrected from the distances obtained: between a radius that fell short and one that went too
 /// far once both are known, otherwise in proportion. The length jumps with the radius (the road network is not smooth),
 /// so a few rounds may be needed.</item>
-/// <item>If the engine cannot join the waypoints, or a bearing gives no valid loop, the bearing turns (±20°, ±40°).</item>
+/// <item>If the engine cannot join the waypoints, or a bearing gives no valid loop, the bearing turns (±10°, ±20°, ±40°),
+/// starting from the radius that the distances measured so far point to.</item>
 /// </list>
 /// It stops at the first valid loop or after <see cref="LoopGeneratorOptions.MaxRequests"/> requests.
 /// </summary>
@@ -142,6 +144,8 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
 
         var attempts = new List<LoopCandidate>();
         var requests = 0;
+        // Every radius tried and the distance it gave, on any bearing: how long the roads around here are.
+        var everything = new List<(double RadiusKm, double DistanceKm)>();
 
         try
         {
@@ -149,7 +153,7 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
             {
                 var fanBearing = Normalize(bearingDegrees + turn);
                 var history = new List<(double RadiusKm, double DistanceKm)>();
-                double? radius = LoopWaypoints.InitialRadiusKm(targetKm, _options.FanPoints);
+                double? radius = StartRadius(everything, targetKm);
 
                 for (var round = 0; round < _options.MaxRoundsPerBearing && radius is { } r; round++)
                 {
@@ -186,6 +190,7 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
                     }
 
                     history.Add((r, reached));
+                    everything.Add((r, reached));
                     radius = NextRadius(history, targetKm);
                 }
             }
@@ -331,6 +336,23 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
             }
         }
         return moved ? waypoints : null;
+    }
+
+    /// <summary>
+    /// The first radius on a new bearing: from the median km of route per km of radius measured so far (on other
+    /// bearings, around the same start), or from the fan's geometry if nothing has been measured yet.
+    /// </summary>
+    private double StartRadius(List<(double RadiusKm, double DistanceKm)> measured, double targetKm)
+    {
+        if (measured.Count == 0)
+        {
+            return LoopWaypoints.InitialRadiusKm(targetKm, _options.FanPoints);
+        }
+        var ratios = measured.Select(m => m.DistanceKm / m.RadiusKm).Order().ToList();
+        var median = ratios.Count % 2 == 1
+            ? ratios[ratios.Count / 2]
+            : (ratios[ratios.Count / 2 - 1] + ratios[ratios.Count / 2]) / 2;
+        return targetKm / median;
     }
 
     /// <summary>

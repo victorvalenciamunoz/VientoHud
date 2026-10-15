@@ -1,4 +1,4 @@
-# vientohud route, 2026-10-15 (segunda ejecución de León tras la regla de ramales de más de 200 m)
+# vientohud route, 2026-10-15: Fuenlabrada y Tres Cantos (la segunda ejecución de León solo se vio en pantalla; resumen en STATUS)
 
 Vueltas de 60 km desde 40.2842, -3.7942 (indicada con --lat/--lon)
 Rumbos: hacia el N (0°), hacia el ESE (120°), hacia el OSO (240°). Puede tardar un minuto.
