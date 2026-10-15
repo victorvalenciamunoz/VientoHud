@@ -1,0 +1,38 @@
+# vientohud route, 2026-10-15 (segunda ejecución de León tras la regla de ramales de más de 200 m)
+
+Vueltas de 60 km desde 40.2842, -3.7942 (indicada con --lat/--lon)
+Rumbos: hacia el N (0°), hacia el ESE (120°), hacia el OSO (240°). Puede tardar un minuto.
+
+  hacia el N (0°): vuelta de 58,6 km (2 peticiones)
+  hacia el ESE (120°): sin vuelta válida (12 peticiones; la más cercana falla por distancia)
+  hacia el OSO (240°): sin vuelta válida (12 peticiones; la más cercana falla por distancia)
+
+1. hacia el N (0°): 58,6 km (-2 %), desnivel 334 m, nacionales (trunk) 1,3 km, repite 0 %
+   GPX: C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-fuenla\vuelta-60km-N-20261015-1358.gpx
+2. hacia el OSO (240°): sin vuelta válida. La más cercana: 71,7 km (+20 %), desnivel 460 m, nacionales (trunk) 0 km, repite 26 %. Falla: distancia.
+   GPX (descartada): C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-fuenla\vuelta-60km-OSO-20261015-1358-descartada.gpx
+3. hacia el ESE (120°): sin vuelta válida. La más cercana: 80,8 km (+35 %), desnivel 445 m, nacionales (trunk) 1,5 km, repite 0 %. Falla: distancia.
+   GPX (descartada): C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-fuenla\vuelta-60km-ESE-20261015-1358-descartada.gpx
+
+26 peticiones al motor de rutas.
+Routing: BRouter (brouter.de) · Map data © OpenStreetMap contributors (ODbL)
+fuenla código 0
+
+Vueltas de 60 km desde 40.6006, -3.7083 (indicada con --lat/--lon)
+Rumbos: hacia el N (0°), hacia el ESE (120°), hacia el OSO (240°). Puede tardar un minuto.
+
+  hacia el N (0°): sin vuelta válida (12 peticiones; la más cercana falla por distancia, medias vueltas)
+  hacia el ESE (120°): vuelta de 61,7 km (1 peticiones)
+  hacia el OSO (240°): sin vuelta válida (12 peticiones; la más cercana falla por distancia, medias vueltas)
+
+1. hacia el ESE (120°): 61,7 km (+3 %), desnivel 399 m, nacionales (trunk) 0,2 km, repite 21 %
+   GPX: C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-tres\vuelta-60km-ESE-20261015-1404.gpx
+2. hacia el N (0°): sin vuelta válida. La más cercana: 37,3 km (-38 %), desnivel 344 m, nacionales (trunk) 0 km, repite 63 %. Falla: distancia, medias vueltas.
+   GPX (descartada): C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-tres\vuelta-60km-N-20261015-1404-descartada.gpx
+3. hacia el OSO (240°): sin vuelta válida. La más cercana: 99,1 km (+65 %), desnivel 906 m, nacionales (trunk) 0 km, repite 0 %. Falla: distancia, medias vueltas.
+   GPX (descartada): C:\Users\victo\AppData\Local\Temp\claude\c--desarrollos-VientoHud\c2e2fe0a-1b0c-402b-b3bd-3e0250da8bfc\scratchpad\route-tres\vuelta-60km-OSO-20261015-1404-descartada.gpx
+
+25 peticiones al motor de rutas.
+Routing: BRouter (brouter.de) · Map data © OpenStreetMap contributors (ODbL)
+tres código 0
+

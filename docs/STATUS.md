@@ -123,7 +123,13 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
       medias vueltas**; OSO sin vuelta válida (la mejor 51,1 km, −15 %) en 12 peticiones; 23 peticiones en total.
       Antes OSO salió válida: rechazar un ramal cambia el orden de los intentos y el ajuste del radio acaba en otro
       sitio. **Mejora pendiente:** control de la distancia más robusto.
-    - [ ] Fuenlabrada y Tres Cantos.
+      El autor revisó en gpx.studio las dos válidas (N y ESE) y las da por buenas.
+    - [x] Fuenlabrada y Tres Cantos, 60 km, 3 rumbos (26 y 25 peticiones, sin bloqueos). Fuenlabrada: N 58,6 km válida
+      (0 % repetido); ESE (+35 %) y OSO (+20 %) sin vuelta válida. Tres Cantos: ESE 61,7 km válida (21 % repetido, sin
+      ramales); N (−38 %, una media vuelta de 240 m) y OSO (+65 %) sin vuelta válida.
+    - Resumen con las reglas actuales: **4 de 9 válidas**, todas limpias (medias vueltas restantes de 40-80 m). Las 5
+      que fallan, fallan por distancia; dos de ellas tienen buena forma pero se pasan (+20 %, +35 %). **Siguiente
+      mejora: el control de la distancia.**
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
   y León con varias distancias; abrir en gpx.studio y cargar en el GPS de la bici.
 - [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
