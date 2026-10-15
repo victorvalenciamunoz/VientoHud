@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a a 3c-2 hechos; 3c-2 pendiente del ojo del autor)
+**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a a 3c-2 hechos)
 
 ## Fase 3
 
@@ -34,7 +34,7 @@ División aceptada por el autor el 2026-10-15:
   velocidad (efecto pequeño e incierto); la pendiente sí reparte el tiempo (`DECISIONS.md` 021).
 - [x] 3c-2. Puntuación: viento de cara en la primera mitad, a favor en la segunda, penalizar rachas fuertes de lado;
   cada vuelta en los dos sentidos. Sin pesos: ventaja de viento por mitades y límite de racha de lado de 40 km/h
-  (**decisión del autor**). Falta que el autor mire los ejemplos (abajo).
+  (**decisión del autor**). Ejemplos revisados por el autor (abajo).
 - [ ] 3d. Consola: `route` elige los rumbos alrededor del viento (no cada 120°) y el sentido, ordena por puntuación con
   explicación por tramos ("km 0-18: de cara 12 km/h…") y admite la hora de salida (por defecto, ahora).
 - [ ] 3e. Juez: días pasados, recalcular la puntuación con el viento observado (METAR, fase 1) y ver si la ruta
@@ -79,7 +79,8 @@ Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018):
   salida el 30 sept. 2026 a las 8:00 UTC con el viento archivado de AROME (13 km/h del SSO, rachas de 28): 5 vueltas
   válidas (hacia el sur ninguna). Primera la de 240° (contra el viento, ventaja +12,1 y +11,5 en el otro sentido),
   luego 120° (+4,2), 300° (+0,9) y últimas 0° y 60° (−13 a −16). Rachas de lado de 31-38 km/h: ninguna sobre 40.
-  **Pendiente:** que el autor mire los GPX (`Descargas/vientohud-ejemplos-3c2`) y diga si elegiría la primera.
+  **El autor miró los GPX** (2026-10-15) y el orden le parece correcto: "al ser circulares siempre hay tramo que da
+  mal el aire", pero la elegida pone la mayor parte del viento de cara al principio.
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 
