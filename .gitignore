@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Local BRouter for development (tools/brouter-local): downloads and map data
+tools/brouter-local/data/

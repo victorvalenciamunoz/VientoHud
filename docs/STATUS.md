@@ -41,6 +41,9 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   Varias candidatas (`GenerateManyAsync`) avisando de cada una al terminar; si el motor deja de responder, devuelve lo
   que tenía (`EngineFailure`) y no prueba más rumbos.
 - **Comando `route`** de la consola: genera las vueltas, escribe un GPX por rumbo y un resumen (ver paso 5).
+- **BRouter local para desarrollar** (`tools/brouter-local/`, `DECISIONS.md` 018): `start.ps1` descarga BRouter 1.7.10
+  y los datos de Madrid y León y arranca el servidor en el puerto 17777; con `VIENTOHUD_BROUTER_URL` la consola lo usa
+  en lugar de brouter.de. Da las mismas rutas que brouter.de.
 - `GpxTrack.FromRoute` (track con altitudes y licencia de OpenStreetMap) y `RideDistance` (km a partir de horas).
 
 ### Qué falta (fase 2)
@@ -256,8 +259,8 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   unas 330 peticiones en total y solo ~23 de la última tanda (una cada 2 s): parece un cupo acumulado por IP (por hora o
   por día), no un límite de velocidad. Una generación normal (3 candidatas, como mucho 36 peticiones) no debería
   tocarlo, pero las pruebas intensivas sí. Refuerza la idea de la fase 6 de usar BRouter en el móvil (`DECISIONS.md`
-  013). Un fallo del servicio a mitad de `GenerateManyAsync` hace perder las candidatas ya halladas: valorar en el
-  paso 5 devolverlas igualmente.
+  013). Un fallo del servicio a mitad de `GenerateManyAsync` hacía perder las candidatas ya halladas: resuelto en el
+  paso 5 (las devuelve y deja de pedir). Para desarrollar y probar, BRouter en local (`DECISIONS.md` 018).
 - **Las vueltas en abanico salen como estrellas, no como anillos** (investigación del 2026-10-15, scripts en
   `tools/investigacion/`): con puntos geométricos, BRouter entra y sale de cada punto por el mismo ramal. Con R = 6-8 km:
   León oeste 2 % repetido (bien), León norte 48 %, León este 84 %, Tres Cantos este 77 %, Tres Cantos suroeste 74 %;

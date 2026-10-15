@@ -37,7 +37,7 @@ public sealed record BRouterOptions
 /// </remarks>
 public sealed class BRouterRouteEngine(HttpClient httpClient, BRouterOptions? options = null) : IRouteEngine
 {
-    public const string Attribution = "Routing: BRouter (brouter.de) · Map data © OpenStreetMap contributors (ODbL)";
+    public const string Attribution = "Routing: BRouter · Map data © OpenStreetMap contributors (ODbL)";
 
     private const string ProfileResource = "VientoHud.Core.Routing.BRouter.road-strict.brf";
 

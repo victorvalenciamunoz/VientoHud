@@ -10,7 +10,7 @@ namespace VientoHud.ConsoleApp;
 /// Generates loops towards several bearings, writes one GPX per bearing and prints a summary. Formatting only: the
 /// loops, their checks and the distance come from Core.
 /// </summary>
-internal sealed class RouteCommand(LoopGenerator generator, ILocationProvider device, TextWriter output)
+internal sealed class RouteCommand(LoopGenerator generator, ILocationProvider device, TextWriter output, string engineName)
 {
     /// <summary>0 when at least one valid loop was written, 1 otherwise.</summary>
     public async Task<int> RunAsync(RouteOptions options, CancellationToken cancellationToken)
@@ -24,7 +24,7 @@ internal sealed class RouteCommand(LoopGenerator generator, ILocationProvider de
         {
             output.WriteLine($"({hours.ToString("0.#", Spanish)} h a {Kmh(options.SpeedKmh)} de media)");
         }
-        output.WriteLine($"Rumbos: {string.Join(", ", bearings.Select(Heading))}. Puede tardar un minuto.");
+        output.WriteLine($"Rumbos: {string.Join(", ", bearings.Select(Heading))}. Motor de rutas: BRouter en {engineName}.");
         output.WriteLine();
 
         var results = await generator.GenerateManyAsync(

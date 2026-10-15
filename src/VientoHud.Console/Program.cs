@@ -59,10 +59,10 @@ switch (args[0])
         break;
 
     case "route":
-        if (RouteOptions.Parse(args[1..], out error) is { } routeOptions)
+        if (RouteOptions.Parse(args[1..], out error) is { } routeOptions && BRouterServer(out error) is { } brouter)
         {
-            var generator = new LoopGenerator(new BRouterRouteEngine(http));
-            run = () => new RouteCommand(generator, device, Console.Out).RunAsync(routeOptions, cancellation.Token);
+            var generator = new LoopGenerator(new BRouterRouteEngine(http, brouter.Options));
+            run = () => new RouteCommand(generator, device, Console.Out, brouter.Name).RunAsync(routeOptions, cancellation.Token);
         }
         break;
 
@@ -90,4 +90,22 @@ catch (Exception ex) when (ex is WindForecastException or WindObservationExcepti
 catch (OperationCanceledException)
 {
     return 130;
+}
+
+// The BRouter server: brouter.de, or the one in VIENTOHUD_BROUTER_URL (a local one for development, see
+// tools/brouter-local and DECISIONS 018), asked without waiting between requests. Null and an error if the URL is bad.
+static (BRouterOptions Options, string Name)? BRouterServer(out string? error)
+{
+    error = null;
+    var url = Environment.GetEnvironmentVariable("VIENTOHUD_BROUTER_URL");
+    if (string.IsNullOrWhiteSpace(url))
+    {
+        return (new BRouterOptions(), "brouter.de");
+    }
+    if (!Uri.TryCreate(url.EndsWith('/') ? url : url + "/", UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
+    {
+        error = $"VIENTOHUD_BROUTER_URL no es una URL válida: {url}";
+        return null;
+    }
+    return (new BRouterOptions { BaseUri = uri, MinRequestInterval = TimeSpan.Zero }, uri.ToString());
 }

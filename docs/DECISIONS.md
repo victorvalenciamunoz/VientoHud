@@ -360,3 +360,18 @@ Formato: contexto → decisión → alternativas descartadas.
     hace fallar la distancia o el rumbo. El análisis sigue midiendo el desvío.
 - Alternativas: más peticiones por candidata (más vueltas válidas, pero más espera y más riesgo de bloqueo); una sola
   candidata (la fase 3 necesita elegir entre varias).
+
+## 018 — BRouter en local para desarrollar
+- Contexto: brouter.de limita sin avisar (dos bloqueos con HTTP 403 el 2026-10-15, uno tras unas 330 peticiones en el
+  día). Las pruebas del generador y el juez de la fase 2 necesitan cientos de rutas.
+- Decisión (del autor, 2026-10-15): para desarrollar y probar, un servidor de BRouter en el propio ordenador
+  (`tools/brouter-local/`). Verificado en las fuentes: BRouter 1.7.10 (la misma versión que brouter.de), licencia MIT,
+  paquete de 6,7 MB en GitHub comprobado con su SHA-256; datos de brouter.de/brouter/segments4 (descarga pública,
+  regenerados cada semana; OpenStreetMap, ODbL), dos ficheros de 5° × 5° para Madrid y León (168 MB); Java 17 ya
+  instalado. La consola lo usa si existe la variable de entorno `VIENTOHUD_BROUTER_URL` (no es una opción del comando:
+  la app no pide datos al usuario), sin esperar entre peticiones. La atribución deja de nombrar brouter.de.
+  - No contradice DECISIONS 001 (sin backend propio): es una herramienta de desarrollo, no algo que la app necesite.
+    Para la app, la fase 6 ya preveía BRouter dentro del móvil.
+  - Comprobado: la misma vuelta da exactamente las mismas rutas que brouter.de, en 9 s en lugar de ~1 min.
+- Alternativas: seguir con brouter.de espaciando las pruebas (lento y con riesgo de bloqueo); BRouter en Docker (más
+  piezas sin ventaja en Windows); motor propio (descartado en DECISIONS 013).
