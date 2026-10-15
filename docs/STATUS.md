@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 a 3 de 7 hechos; del 4, el 4a y el 4b)
+**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 a 3 hechos; del 4, el 4a, 4b y 4c1, y el 4c2 salvo la pasada en vivo; el 5 con el código hecho)
 
 Fase 1 — Viento en consola: terminada el 2026-10-14 (los 6 pasos hechos y el juez ejecutado).
 Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
@@ -37,7 +37,11 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   ya el rumbo hacia otro punto (`BearingTo`) y el punto a X km en un rumbo (`Destination`), en el círculo máximo.
 - **Generador de una vuelta** (`LoopGenerator`, cualquier `IRouteEngine`): desde la salida, hacia un rumbo y de una
   distancia objetivo; mueve los puntos que provocan ramales, corrige el radio y gira el rumbo si hace falta, con un tope
-  de peticiones. Cada intento lleva su análisis y sus problemas (ramales, distancia, prohibido, rumbo).
+  de peticiones. Cada intento lleva su análisis y sus problemas (ramales, medias vueltas, distancia, prohibido, rumbo).
+  Varias candidatas (`GenerateManyAsync`) avisando de cada una al terminar; si el motor deja de responder, devuelve lo
+  que tenía (`EngineFailure`) y no prueba más rumbos.
+- **Comando `route`** de la consola: genera las vueltas, escribe un GPX por rumbo y un resumen (ver paso 5).
+- `GpxTrack.FromRoute` (track con altitudes y licencia de OpenStreetMap) y `RideDistance` (km a partir de horas).
 
 ### Qué falta (fase 2)
 
@@ -103,6 +107,14 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
         valdrían: la pasada en vivo pendiente dirá cuántas salen limpias.
 - [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
   `[--lat --lon] [--count 3]`: escribe los GPX y un resumen.
+  - [x] Código (2026-10-15): `vientohud route (--km <10-300> | --hours <0,5-12> [--speed <10-45>]) [--lat --lon]
+    [--count <1-6>] [--bearing <0-360>] [--out <carpeta>]`. Sin `--lat/--lon`, la ubicación de Windows. Velocidad
+    media por defecto 25 km/h (`RideDistance`). Rumbos cada 360/count grados desde `--bearing` (0 por defecto). Enseña
+    cada rumbo según termina y luego la lista ordenada; un GPX por rumbo (`vuelta-60km-SO-aaaammdd-hhmm.gpx`, con
+    `-descartada` si no es válida) con un resumen en la descripción (km, desnivel, km por `trunk`, caminos asfaltados,
+    % repetido). Si BRouter deja de responder, enseña y guarda lo que ya tenía y no prueba más rumbos. Código de salida
+    0 con al menos una vuelta válida, 1 si ninguna o error, 2 argumentos incorrectos, 130 cancelado.
+  - [ ] Prueba en vivo con brouter.de (junto con la pasada pendiente del 4c2).
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
   y León con varias distancias; abrir en gpx.studio y cargar en el GPS de la bici.
 - [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
@@ -188,6 +200,12 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   a la entrada y la vuelta sale válida. Sobre las vueltas generadas en vivo (`tools/investigacion/stubs.cs` y Core
   dan lo mismo): León N 3 (610 m, 2,4 km, 340 m), León E 1 (510 m), León O 1 (610 m), León S 0. El perfil lleva las
   dos líneas de `correctMisplacedViaPoints` (test).
+- Paso 5, código (2026-10-15): 12 tests nuevos (271 en total): `RideDistance` (2 h a 25 km/h = 50 km; límites),
+  `GpxTrack.FromRoute` con una ruta grabada (puntos y altitudes iguales, licencia OSM, válido contra el esquema), el
+  generador guarda lo que tenía si el motor responde 403 a mitad, deja de probar rumbos tras un fallo y avisa de cada
+  rumbo al terminar y en orden. La consola no tiene tests: probados a mano los errores de argumentos (sin `--km` ni
+  `--hours`, los dos, `--km 5`, `--speed` sin `--hours`, `--count 9`, `--lat` sin `--lon`, `--bearing 400`, opción
+  desconocida, valor que falta: mensaje y código 2) y la ayuda. **Falta** la ejecución completa contra brouter.de.
 
 ### Riesgos y pendientes (fase 2)
 

@@ -84,6 +84,26 @@ internal static class CommandArgs
         return false;
     }
 
+    /// <summary>Optional number in [min, max]; <paramref name="value"/> stays null when absent.</summary>
+    public static bool TryGetDouble(
+        Dictionary<string, string> values, string name, double min, double max, out double? value, out string? error)
+    {
+        value = null;
+        error = null;
+        if (!values.TryGetValue(name, out var text))
+        {
+            return true;
+        }
+        if (TryParseDouble(text, out var parsed) && parsed >= min && parsed <= max)
+        {
+            value = parsed;
+            return true;
+        }
+        error = $"Valor no válido para {name}: {text} (entre {min.ToString(CultureInfo.InvariantCulture)} y " +
+            $"{max.ToString(CultureInfo.InvariantCulture)}).";
+        return false;
+    }
+
     // Accepts both "40.42" and the Spanish "40,42".
     public static bool TryParseDouble(string value, out double result) =>
         double.TryParse(value.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out result);

@@ -34,6 +34,19 @@ public class GpxWriterTests
         Assert.Empty(SchemaErrors(GpxWriter.ToXml(FullTrack())));
 
     [Fact]
+    public async Task A_recorded_route_becomes_a_valid_track_with_its_points_elevations_and_OpenStreetMap_licence()
+    {
+        var route = await RecordedRoutes.LeonNorth.LoadAsync();
+
+        var track = GpxTrack.FromRoute(route, "León 17 km", Created, "Vuelta corta");
+
+        Assert.Equal(route.Points.Select(p => (p.Position, p.ElevationMeters)), track.Points.Select(p => (p.Position, p.ElevationMeters)));
+        Assert.Equal(GpxCopyright.OpenStreetMap, track.Copyright);
+        Assert.Equal("Vuelta corta", track.Description);
+        Assert.Empty(SchemaErrors(GpxWriter.ToXml(track)));
+    }
+
+    [Fact]
     public void Minimal_track_is_valid_against_the_official_gpx_1_1_schema() =>
         Assert.Empty(SchemaErrors(GpxWriter.ToXml(MinimalTrack())));
 

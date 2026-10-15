@@ -94,7 +94,12 @@ public sealed record LoopCandidate(
 /// <param name="Best">The valid loop found, or else the least bad one; null if the engine never found a route.</param>
 /// <param name="Requests">Requests made to the route engine.</param>
 /// <param name="Attempts">Every loop routed, in order.</param>
-public sealed record LoopResult(double BearingDegrees, LoopCandidate? Best, int Requests, IReadOnlyList<LoopCandidate> Attempts)
+/// <param name="EngineFailure">
+/// Why the route engine stopped answering (network, server, usage limit), if it did; <see cref="Best"/> is then the best
+/// of what it had answered before.
+/// </param>
+public sealed record LoopResult(
+    double BearingDegrees, LoopCandidate? Best, int Requests, IReadOnlyList<LoopCandidate> Attempts, string? EngineFailure = null)
 {
     /// <summary>False when there is no acceptable loop towards that bearing (not even turning it ±40°).</summary>
     public bool Found => Best?.IsValid == true;
@@ -118,8 +123,10 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
 {
     private readonly LoopGeneratorOptions _options = options ?? new LoopGeneratorOptions();
 
-    /// <summary>Generates a loop from <paramref name="start"/> towards <paramref name="bearingDegrees"/> (degrees TOWARDS).</summary>
-    /// <exception cref="RouteException">The engine failed for a reason other than unreachable waypoints.</exception>
+    /// <summary>
+    /// Generates a loop from <paramref name="start"/> towards <paramref name="bearingDegrees"/> (degrees TOWARDS). If the
+    /// engine stops answering, returns what it had with <see cref="LoopResult.EngineFailure"/> set.
+    /// </summary>
     public async Task<LoopResult> GenerateAsync(
         Coordinate start, double bearingDegrees, double targetKm, CancellationToken cancellationToken = default)
     {
@@ -135,51 +142,59 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
         var attempts = new List<LoopCandidate>();
         var requests = 0;
 
-        foreach (var turn in _options.BearingTurns)
+        try
         {
-            var fanBearing = Normalize(bearingDegrees + turn);
-            var history = new List<(double RadiusKm, double DistanceKm)>();
-            double? radius = LoopWaypoints.InitialRadiusKm(targetKm, _options.FanPoints);
-
-            for (var round = 0; round < _options.MaxRoundsPerBearing && radius is { } r; round++)
+            foreach (var turn in _options.BearingTurns)
             {
-                if (requests >= _options.MaxRequests)
-                {
-                    return Result();
-                }
-                var waypoints = LoopWaypoints.Fan(start, fanBearing, r, _options.FanPoints);
-                requests++;
-                var candidate = await TryRouteAsync(waypoints, fanBearing);
-                if (candidate is null)
-                {
-                    break; // Unreachable: try the next bearing.
-                }
-                if (candidate.IsValid)
-                {
-                    return Result();
-                }
+                var fanBearing = Normalize(bearingDegrees + turn);
+                var history = new List<(double RadiusKm, double DistanceKm)>();
+                double? radius = LoopWaypoints.InitialRadiusKm(targetKm, _options.FanPoints);
 
-                var reached = candidate.Route.DistanceKm;
-                if ((candidate.Problems & (LoopProblems.Spurs | LoopProblems.TurnBacks)) != 0
-                    && MoveOffDeadEnds(candidate) is { } moved
-                    && requests < _options.MaxRequests)
+                for (var round = 0; round < _options.MaxRoundsPerBearing && radius is { } r; round++)
                 {
-                    requests++;
-                    if (await TryRouteAsync(moved, fanBearing) is { } repaired)
+                    if (requests >= _options.MaxRequests)
                     {
-                        if (repaired.IsValid)
-                        {
-                            return Result();
-                        }
-                        reached = repaired.Route.DistanceKm;
+                        return Result();
                     }
-                }
+                    var waypoints = LoopWaypoints.Fan(start, fanBearing, r, _options.FanPoints);
+                    requests++;
+                    var candidate = await TryRouteAsync(waypoints, fanBearing);
+                    if (candidate is null)
+                    {
+                        break; // Unreachable: try the next bearing.
+                    }
+                    if (candidate.IsValid)
+                    {
+                        return Result();
+                    }
 
-                history.Add((r, reached));
-                radius = NextRadius(history, targetKm);
+                    var reached = candidate.Route.DistanceKm;
+                    if ((candidate.Problems & (LoopProblems.Spurs | LoopProblems.TurnBacks)) != 0
+                        && MoveOffDeadEnds(candidate) is { } moved
+                        && requests < _options.MaxRequests)
+                    {
+                        requests++;
+                        if (await TryRouteAsync(moved, fanBearing) is { } repaired)
+                        {
+                            if (repaired.IsValid)
+                            {
+                                return Result();
+                            }
+                            reached = repaired.Route.DistanceKm;
+                        }
+                    }
+
+                    history.Add((r, reached));
+                    radius = NextRadius(history, targetKm);
+                }
             }
+            return Result();
         }
-        return Result();
+        catch (RouteException ex) when (ex.Failure == RouteFailure.Service)
+        {
+            // Asking again right away would not help (and may prolong a usage limit): keep what there is.
+            return Result(ex.Message);
+        }
 
         async Task<LoopCandidate?> TryRouteAsync(IReadOnlyList<Coordinate> waypoints, double fanBearing)
         {
@@ -196,22 +211,34 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
             }
         }
 
-        LoopResult Result() => new(Normalize(bearingDegrees), attempts.MinBy(c => c.Badness), requests, attempts);
+        LoopResult Result(string? failure = null) =>
+            new(Normalize(bearingDegrees), attempts.MinBy(c => c.Badness), requests, attempts, failure);
     }
 
     /// <summary>
     /// One loop towards each of <paramref name="bearingsDegrees"/>, one after another (the engine takes one request at a
-    /// time), ranked: those with a valid loop first, best first; then the bearings without one.
+    /// time), ranked: those with a valid loop first, best first; then the bearings without one. If the engine stops
+    /// answering, the remaining bearings are not tried: the last result carries <see cref="LoopResult.EngineFailure"/>.
     /// </summary>
-    /// <exception cref="RouteException">The engine failed for a reason other than unreachable waypoints.</exception>
+    /// <param name="progress">Told about each bearing as soon as it is done, in the order tried.</param>
     public async Task<IReadOnlyList<LoopResult>> GenerateManyAsync(
-        Coordinate start, IReadOnlyList<double> bearingsDegrees, double targetKm, CancellationToken cancellationToken = default)
+        Coordinate start,
+        IReadOnlyList<double> bearingsDegrees,
+        double targetKm,
+        IProgress<LoopResult>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(bearingsDegrees);
         var results = new List<LoopResult>();
         foreach (var bearing in bearingsDegrees)
         {
-            results.Add(await GenerateAsync(start, bearing, targetKm, cancellationToken));
+            var result = await GenerateAsync(start, bearing, targetKm, cancellationToken);
+            results.Add(result);
+            progress?.Report(result);
+            if (result.EngineFailure is not null)
+            {
+                break;
+            }
         }
         return results
             .OrderBy(r => r.Found ? 0 : 1)

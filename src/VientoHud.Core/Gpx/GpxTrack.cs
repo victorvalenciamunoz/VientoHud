@@ -48,4 +48,16 @@ public sealed record GpxTrack(
     public DateTimeOffset Time { get; } = Time.Offset == TimeSpan.Zero
         ? Time
         : throw new ArgumentException("Time must be in UTC.", nameof(Time));
+
+    /// <summary>The track of a route, with elevations, under OpenStreetMap's licence (routes are built from its data).</summary>
+    public static GpxTrack FromRoute(Routing.Route route, string name, DateTimeOffset time, string? description = null)
+    {
+        ArgumentNullException.ThrowIfNull(route);
+        return new GpxTrack(
+            name,
+            route.Points.Select(p => new GpxTrackPoint(p.Position, p.ElevationMeters)).ToList(),
+            time,
+            description,
+            GpxCopyright.OpenStreetMap);
+    }
 }

@@ -180,13 +180,56 @@ public class LoopGeneratorTests
     }
 
     [Fact]
-    public async Task Lets_engine_failures_other_than_unreachable_waypoints_through()
+    public async Task Keeps_what_it_had_when_the_engine_stops_answering()
     {
-        var engine = new FakeRouteEngine(_ => throw new RouteException(RouteFailure.Service, "HTTP 503"));
+        // The first loop is a third too long; then the server refuses (as brouter.de does over its usage limit).
+        var calls = 0;
+        var engine = new FakeRouteEngine(w => ++calls == 1
+            ? FakeRouteEngine.Straight(w, roadFactor: 2)
+            : throw new RouteException(RouteFailure.Service, "HTTP 403: Please, retry later!"));
 
-        var ex = await Assert.ThrowsAsync<RouteException>(() => new LoopGenerator(engine).GenerateAsync(Leon, 0, 60));
+        var result = await new LoopGenerator(engine).GenerateAsync(Leon, 0, 60);
 
-        Assert.Equal(RouteFailure.Service, ex.Failure);
+        Assert.Equal(2, result.Requests);
+        Assert.Contains("403", result.EngineFailure);
+        Assert.Same(result.Attempts[0], result.Best);
+        Assert.False(result.Found);
+    }
+
+    [Fact]
+    public async Task Stops_trying_bearings_once_the_engine_stops_answering_and_keeps_the_loops_found()
+    {
+        var engine = new FakeRouteEngine(w => Compass.AngleBetween(FakeRouteEngine.FanBearing(w), 0) < 1
+            ? Exact(w)
+            : throw new RouteException(RouteFailure.Service, "HTTP 503"));
+        var reported = new List<LoopResult>();
+
+        var results = await new LoopGenerator(engine).GenerateManyAsync(
+            Leon, LoopGenerator.SpreadBearings(3), 60, new SynchronousProgress<LoopResult>(reported.Add));
+
+        // 0° found its loop; 120° failed at its first request; 240° was not tried.
+        Assert.Equal(2, engine.Requests.Count);
+        Assert.Equal([0.0, 120], results.Select(r => r.BearingDegrees));
+        Assert.True(results[0].Found);
+        Assert.Null(results[1].Best);
+        Assert.Equal("HTTP 503", results[1].EngineFailure);
+        Assert.Equal([0.0, 120], reported.Select(r => r.BearingDegrees));
+    }
+
+    [Fact]
+    public async Task Reports_each_bearing_as_soon_as_it_is_done_in_the_order_tried()
+    {
+        var engine = new FakeRouteEngine(Exact);
+        var reported = new List<LoopResult>();
+
+        await new LoopGenerator(engine).GenerateManyAsync(
+            Leon, [240, 0, 120], 60, new SynchronousProgress<LoopResult>(r =>
+            {
+                reported.Add(r);
+                Assert.Equal(reported.Count, engine.Requests.Count); // before the next bearing is tried
+            }));
+
+        Assert.Equal([240.0, 0, 120], reported.Select(r => r.BearingDegrees));
     }
 
     [Theory]
