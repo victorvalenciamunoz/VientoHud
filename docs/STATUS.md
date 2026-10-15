@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 a 3 de 7 hechos)
+**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 a 3 de 7 hechos; del 4, el 4a)
 
 Fase 1 — Viento en consola: terminada el 2026-10-14 (los 6 pasos hechos y el juez ejecutado).
 Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
@@ -22,6 +22,9 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   una vez y pide rutas en GeoJSON con el id que devuelve el servidor. Si el servidor responde 500 sin texto (perfil
   perdido) lo sube de nuevo y repite una vez. Como mucho una petición por segundo (configurable). También admite un
   perfil del servidor (`ServerProfile`, p. ej. `fastbike`) sin subir nada.
+- **Análisis de una ruta, sin red** (`RouteAnalyzer`, `RoadRules`; `DECISIONS.md` 014): km por tipo de vía y firme con
+  su categoría (carretera, camino asfaltado, prohibido, desconocido), distancia de cada punto de paso pedido a la línea
+  del track y fracción del recorrido repetido (ida y vuelta por la misma carretera).
 
 ### Qué falta (fase 2)
 
@@ -31,9 +34,17 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
 - [x] 3. Cliente de BRouter detrás de una interfaz: perfil estricto en el repositorio (prohíbe también carreteras en
   obras; `trunk` prohibido en todo el mundo, `DECISIONS.md` 013), subida del perfil, ruta entre puntos de paso,
   lectura de las etiquetas de cada tramo, errores ("target island", 400, 500) y fixtures grabadas.
-- [ ] 4. Generador de vueltas: puntos de paso según rumbo y distancia, ajuste de la distancia (±10 %), medida de la
-  repetición y del desvío de cada punto, reintentos, descarte de candidatas con tramos prohibidos y varias candidatas.
-  Probado con un motor falso.
+- [ ] 4. Generador de vueltas. Dividido en:
+  - [x] 4a. Análisis de una ruta, sin red: desvío de cada punto pedido, % repetido y km por tramos prohibidos
+    (`DECISIONS.md` 014). Probado con rutas reales grabadas.
+  - [ ] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
+    distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
+    objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3.
+  - [ ] 4c. Generador: ajuste de R hasta ±10 % del objetivo con pocas llamadas, reintentos ante "target island", girar
+    el rumbo ±15-30° si repite mucho, descarte de candidatas malas y varias candidatas con rumbos distintos. El rumbo es
+    un parámetro (la fase 3 lo elegirá según el viento). Probado con un motor falso y luego en vivo en Madrid y León.
+    **Decisiones del autor pendientes:** % de repetición máximo, desvío máximo de un punto, llamadas o segundos de
+    espera aceptables y número de candidatas.
 - [ ] 5. Comando de consola `route --km 60` o `--hours 2` (con velocidad media configurable),
   `[--lat --lon] [--count 3]`: escribe los GPX y un resumen.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
@@ -62,12 +73,26 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   Tres Cantos hacia el oeste 113,6 km, León hacia el este 80,2 km, **0 km prohibidos** en las tres (sin `trunk`,
   pistas, obras ni firmes sin asfaltar). León hacia el oeste con radio 11 km da `Unreachable` ("target island").
   Las distancias siguen muy lejos de lo pedido: eso es el paso 4.
+- Paso 4a (2026-10-15): 43 tests nuevos (193 en total). Casos calculados a mano (ida y vuelta, vuelta cuadrada,
+  "piruleta" que sale y vuelve por la misma carretera, punto a 2 km de una recta de 10 km sin puntos intermedios,
+  meridiano de 180°) y tres rutas reales nuevas grabadas en `Fixtures/BRouter/` (ver su README):
+
+  | Ruta grabada | Km | Repetido | Prohibido | Desvío máx. de un punto |
+  |---|---|---|---|---|
+  | León norte, R = 3 km, estricto | 17,4 | 7 % | 0 | 0,14 km |
+  | León este, R = 6 km, estricto | 79,7 | 84 % | 0 | 1,07 km |
+  | León sur, R = 3 km, `fastbike` | 21,3 | 5 % | 2,53 km (pistas, una senda y 85 m de `trunk`) | 0,25 km |
+  | Tres Cantos suroeste, R = 5 km, estricto | 48,1 | 74 % | 0 | 2,69 km (punto en el Monte de El Pardo) |
+
+  Las rutas del perfil estricto dan 0 km prohibidos también con la lista ampliada de firmes. La repetición cambia menos
+  de 1 punto al revisar cada 50 m o al recorrer la ruta al revés. Los GPX de León este y Tres Cantos se escribieron en
+  el scratchpad para mirarlos en gpx.studio (pendiente de que el autor los vea).
 
 ### Riesgos y pendientes (fase 2)
 
 - **BRouter lleva cada punto de paso a la vía permitida más cercana, aunque esté lejos:** un punto en el mar a 50 km
-  de Galicia dio HTTP 200 y una ruta de 446 km hasta la costa. El generador (paso 4) tiene que medir a qué distancia
-  pasa la ruta de cada punto pedido. La opción de BRouter para devolver los puntos (`exportWaypoints`) no sirve:
+  de Galicia dio HTTP 200 y una ruta de 446 km hasta la costa. `RouteAnalyzer` ya mide a qué distancia pasa la ruta
+  de cada punto pedido (4a); el generador (4c) tiene que descartar o mover los que se alejen demasiado. La opción de BRouter para devolver los puntos (`exportWaypoints`) no sirve:
   devuelve los pedidos, no los corregidos, y con JSON mal formado.
 - **HTTP 500 sin texto es ambiguo:** BRouter lo devuelve por perfil inexistente, por un solo punto y por coordenadas
   inválidas. El cliente valida los puntos antes de llamar y lo trata como perfil perdido (vuelve a subirlo una vez).

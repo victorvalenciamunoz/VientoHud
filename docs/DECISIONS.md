@@ -237,3 +237,35 @@ Formato: contexto → decisión → alternativas descartadas.
   - Ningún perfil detecta una pista que OpenStreetMap no tenga etiquetada como tal.
 - Para la fase 6 (se decidirá entonces): BRouter en el propio móvil (la app BRouter como servicio, sin conexión y
   sin depender de un servidor ajeno) u OsmAnd, revisando su licencia (GPL).
+
+## 014 — Análisis de una ruta: tramos prohibidos, caminos asfaltados, repetición y desvío de los puntos
+- Contexto: el generador de vueltas (fase 2, paso 4) tiene que descartar candidatas sin pedir nada más a la red, y el
+  juez del paso 6 tiene que contar los km por tipo de vía y firme. Con las etiquetas OSM que BRouter da en cada tramo
+  basta; no hace falta Overpass (que además estaba saturado).
+- Decisión (`RoadRules`, `RouteAnalyzer` en `VientoHud.Core.Routing`):
+  - **Cuatro categorías por tramo:** carretera; **camino asfaltado** (`track`, `path`, `footway` o `road` con firme
+    asfaltado, hormigón, adoquín o `smoothness` buena); **prohibido**; **desconocido** (el motor no dio tipo de vía).
+  - **Prohibido:** `motorway`, `trunk` y sus enlaces, obras (`construction`, `proposed`, `abandoned`), escaleras,
+    `bridleway`, ferris; cualquier vía con firme sin asfaltar; pistas y sendas sin firme asfaltado declarado. Sigue las
+    reglas del perfil estricto, pero con una lista más larga de firmes sin asfaltar (p. ej. `earth`, `mud`, `rock`):
+    es una comprobación independiente que puede pillar huecos del perfil.
+  - **Caminos asfaltados permitidos, contados aparte** (decisión del autor, 2026-10-15). Muchos caminos de concentración
+    parcelaria de León están asfaltados; unos están bien y otros rotos. Se permiten, como hace el perfil, y el juez
+    enseña sus km. Si resultan malos, se prohibirán en el perfil y aquí.
+  - **Desvío de cada punto de paso:** distancia más corta del punto pedido a la línea del track (a los segmentos entre
+    puntos consecutivos, no solo a los puntos, que en una recta pueden estar a cientos de metros).
+  - **Repetición:** se revisa un punto cada 100 m; está repetido si otra parte del track pasa a menos de 30 m y está a
+    más de 1 km por el recorrido. Cuentan las dos pasadas (ida y vuelta por la misma carretera = 100 %). La distancia se
+    mide a la línea del track, no a otros puntos revisados: con muestras cada 100 m, dos pasadas por la misma carretera
+    tienen las muestras desfasadas hasta 50 m y con 30 m de umbral se escaparía cerca del 40 % de lo repetido. En una
+    vuelta cerrada, la separación por el recorrido se mide en círculo: llegar a casa no es repetir la salida, pero salir y
+    volver por la misma carretera sí cuenta (salvo los 500 m más cercanos a casa).
+  - Geometría en un plano local (proyección equirrectangular centrada en la salida): error de ~1,5 % a 100 km en latitud
+    a 42°, irrelevante para umbrales de decenas de metros. Funciona al cruzar el meridiano de 180°.
+- Resultado con rutas reales grabadas: León hacia el este (79,7 km) 84 % repetido; Tres Cantos hacia el suroeste
+  (48,1 km) 74 %; León hacia el norte (17,4 km, ciudad) 7 %. Cambiar el espaciado (50 m) o el umbral (20-50 m) lo mueve
+  2 puntos como mucho.
+- Limitaciones: dos carriles de una autovía desdoblada o una carretera de curvas cerradas muy pegadas (menos de 30 m)
+  cuentan como repetidas. El tiempo crece con el cuadrado de la longitud (~0,1 s para 80 km en Debug).
+- Alternativas: muestras contra muestras (lo usado en el paso 1; subestima); comparar tramos por identificador de vía
+  OSM (BRouter no lo devuelve); Overpass para las etiquetas (saturado y una dependencia más).
