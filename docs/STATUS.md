@@ -144,7 +144,7 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
         las tres de La Bañeza en gpx.studio.
 - [ ] 6. Juez: km por tipo de vía y firme a lo largo del track, distancia dentro de ±10 %, GPX válido; pasada en Madrid
   y León con varias distancias; abrir en gpx.studio y cargar en el GPS de la bici.
-  - [x] Cargar en el GPS de la bici (2026-10-15): el autor cargó en su Hammerhead Karoo un GPX de La Bañeza generado
+  - [x] Cargar en el GPS de la bici (2026-10-15): el autor cargó en su Hammerhead Karoo la vuelta de La Bañeza hacia el OSO (60,4 km) generada
     por `vientohud route`.
 - [ ] 7. Probablemente: mejores puntos de paso (pueblos, cruces) si el juez muestra mucha repetición o mucho tramo
   urbano (la salida de Madrid).
@@ -159,7 +159,7 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   TopoGrafix, guardado en `Fixtures/Gpx/`; un test comprueba que la validación detecta una coma decimal. Otro fuerza la
   configuración española (`es-ES`) para comprobar que los decimales salen con punto. Se escribieron con `GpxWriter` dos
   vueltas reales de BRouter del paso 1 (León 103 km, Madrid 54 km): ~2.000 puntos y ~175 KB cada una.
-  Se abren bien en gpx.studio (comprobado por el autor). Cargado en el Hammerhead Karoo del autor el 2026-10-15 (un GPX
+  Se abren bien en gpx.studio (comprobado por el autor). Cargado en el Hammerhead Karoo del autor el 2026-10-15 (la vuelta hacia el OSO
   de La Bañeza generado por `vientohud route`; dashboard de Hammerhead → Routes → New Route → Import, y sincronizar).
 - Paso 3 (2026-10-14): 20 tests nuevos (150 en total) con respuestas reales grabadas en `Fixtures/BRouter/` (vuelta de
   17,4 km en León, "target island", subida de perfil bien y con error). Comprueban la URL y el orden lon,lat de los
