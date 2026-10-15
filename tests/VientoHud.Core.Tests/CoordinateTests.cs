@@ -44,4 +44,64 @@ public class CoordinateTests
 
         Assert.InRange(distance, 285, 295);
     }
+
+    [Theory]
+    [InlineData(0, 1, 90)]
+    [InlineData(1, 0, 0)]
+    [InlineData(0, -1, 270)]
+    [InlineData(-1, 0, 180)]
+    public void Bearing_is_towards_the_other_point_clockwise_from_north(double latitude, double longitude, double expected) =>
+        Assert.Equal(expected, new Coordinate(0, 0).BearingTo(new Coordinate(latitude, longitude)), precision: 9);
+
+    [Fact]
+    public void Bearing_from_Madrid_to_Leon_is_north_north_west()
+    {
+        // 2.18° of latitude north and 1.86° of longitude west (1.39° at cos 41.5°): atan2(−1.39, 2.18) ≈ −32.5°, so ~327°.
+        var bearing = new Coordinate(40.4169, -3.7035).BearingTo(new Coordinate(42.5995, -5.5669));
+
+        Assert.InRange(bearing, 326, 329);
+        Assert.Equal(CompassPoint.NNW, Compass.ToCompassPoint(bearing));
+    }
+
+    [Fact]
+    public void Destination_100_km_north_is_100_km_of_latitude_away()
+    {
+        var destination = new Coordinate(40, -3.7).Destination(0, 100);
+
+        Assert.Equal(40 + 100 / (6371.0088 * Math.PI / 180), destination.Latitude, precision: 9);
+        Assert.Equal(-3.7, destination.Longitude, precision: 9);
+    }
+
+    [Fact]
+    public void Destination_wraps_longitude_across_the_180_degree_meridian()
+    {
+        var destination = new Coordinate(0, 179.5).Destination(90, 6371.0088 * Math.PI / 180);
+
+        Assert.Equal(0, destination.Latitude, precision: 9);
+        Assert.Equal(-179.5, destination.Longitude, precision: 9);
+    }
+
+    [Theory]
+    [InlineData(0, 25)]
+    [InlineData(37, 3)]
+    [InlineData(200, 80)]
+    [InlineData(-90, 12)]
+    public void Destination_is_at_that_distance_and_initial_bearing(double bearing, double km)
+    {
+        var start = new Coordinate(42.5987, -5.5671);
+
+        var destination = start.Destination(bearing, km);
+
+        Assert.Equal(km, start.DistanceKmTo(destination), precision: 9);
+        Assert.Equal(0, Compass.AngleBetween((bearing + 360) % 360, start.BearingTo(destination)), precision: 9);
+    }
+
+    [Fact]
+    public void Destination_rejects_negative_distances_and_non_finite_bearings()
+    {
+        var start = new Coordinate(0, 0);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => start.Destination(0, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => start.Destination(double.NaN, 1));
+    }
 }

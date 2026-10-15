@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 a 3 de 7 hechos; del 4, el 4a)
+**Fase actual: 2 — Rutas circulares + GPX** (pasos 1 a 3 de 7 hechos; del 4, el 4a y el 4b)
 
 Fase 1 — Viento en consola: terminada el 2026-10-14 (los 6 pasos hechos y el juez ejecutado).
 Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
@@ -28,6 +28,10 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   del track y fracción del recorrido repetido. Devuelve cada tramo repetido (dónde está y dónde su otra pasada) y si es
   un **ramal**: entrar y salir por la misma carretera sin salida en mitad de la ruta, lo que hace una estrella. Las
   cuerdas de un globo, los cuellos de un lazo y las idas y vueltas desde casa no son ramales (`DECISIONS.md` 015).
+- **Puntos de paso de una vuelta** (`LoopWaypoints`): abanico desde la salida (la salida, n − 1 puntos a R km
+  repartidos en 180° alrededor del rumbo, y la salida otra vez; n = 5 por defecto), con sentido horario en el mapa;
+  radio inicial = objetivo / (polígono recto 3,85 R × factor de carretera 1,5) ≈ objetivo / 5,8. `Coordinate` sabe
+  ya el rumbo hacia otro punto (`BearingTo`) y el punto a X km en un rumbo (`Destination`), en el círculo máximo.
 
 ### Qué falta (fase 2)
 
@@ -66,9 +70,9 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
     - **Coste 3**, decidido por el autor y aplicado (2026-10-15): `road-strict.brf` y `RoadRules` (categoría `Trunk`,
       `RouteAnalysis.TrunkKm`). 2 tests nuevos y 4 adaptados (210 en total). Es el mismo perfil que usó la tanda en vivo
       de coste 3, así que brouter.de lo acepta.
-  - [ ] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
+  - [x] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
-    objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3.
+    objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3. (`LoopWaypoints`)
   - [ ] 4c. Generador: ajuste de R hasta ±10 % del objetivo con pocas llamadas, reintentos ante "target island", girar
     el rumbo ±15-30° si repite mucho, descarte de candidatas malas y varias candidatas con rumbos distintos. El rumbo es
     un parámetro (la fase 3 lo elegirá según el viento). Probado con un motor falso y luego en vivo en Madrid y León.
@@ -143,6 +147,12 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
   vale el punto más lejano exacto. Resultado: seis salidas del autor 0 % en ramales; estrellas generadas 24-60 %.
   Casos a mano nuevos: globo en el centro y estrella de dos brazos (solo se perdona el que llega más lejos).
   208 tests en total.
+- Paso 4b (2026-10-15): 24 tests nuevos (234 en total). `Coordinate.BearingTo` con los cuatro puntos cardinales y
+  Madrid → León (~327°, NNO); `Coordinate.Destination` a 100 km al norte (100 km de latitud), cruzando el meridiano de
+  180° y comprobando distancia y rumbo inicial de vuelta. El abanico: salida al principio y al final, puntos a R km, los
+  rumbos esperados (también con rumbo 0°, −90° y 270°), cualquier n desde 3, meridiano de 180°, polígono recto de
+  3,85 R medido sobre un abanico pequeño, y que reproduce al décimo de metro los puntos con los que se grabaron las
+  fixtures de León este y Tres Cantos.
 
 ### Riesgos y pendientes (fase 2)
 
