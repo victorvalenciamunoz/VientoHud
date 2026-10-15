@@ -47,4 +47,18 @@ public sealed record Route(
     public IReadOnlyList<RoutePoint> Points { get; } = Points is { Count: >= 2 }
         ? Points
         : throw new ArgumentException("A route needs at least two points.", nameof(Points));
+
+    /// <summary>
+    /// The same route ridden the other way round: points and stretches in reverse order. The climb stays for a loop
+    /// (it climbs as much as it drops); for a route that ends elsewhere it is unknown.
+    /// </summary>
+    public Route Reversed() => new(
+        Points.Reverse().ToList(),
+        Segments
+            .Reverse()
+            .Select(s => new RouteSegment(Math.Max(0, DistanceKm - s.StartKm - s.LengthKm), s.LengthKm, s.WayTags))
+            .ToList(),
+        DistanceKm,
+        Points[0].Position.DistanceKmTo(Points[^1].Position) < 0.5 ? AscentMeters : null,
+        Attribution);
 }

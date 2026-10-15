@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a, 3b y 3c-1 hechos)
+**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a a 3c-2 hechos; 3c-2 pendiente del ojo del autor)
 
 ## Fase 3
 
@@ -17,6 +17,10 @@
   `best_match`), y da a cada tramo el viento de su punto medio a la hora de paso, mezclando los dos puntos más cercanos
   y las dos horas que lo rodean. De ese viento saca cuánto viene de cara (negativo: a favor), cuánto de lado (positivo:
   por la derecha) y la racha de lado. `IWindForecastProvider` admite ya varios puntos por llamada.
+- **Puntuación y orden** (`RideRanking`, `RideScore`, `RideOption`; `DECISIONS.md` 022): ventaja = viento de cara
+  medio en la primera mitad − en la segunda; tramos con racha de lado > 40 km/h (límite del autor). Ordena primero
+  por km con racha peligrosa y después por ventaja. `RankAsync` puntúa varias vueltas en los dos sentidos
+  (`Route.Reversed`) con una sola llamada de previsión.
 
 ### Qué falta (fase 3)
 
@@ -28,8 +32,9 @@ División aceptada por el autor el 2026-10-15:
   ruta y en una sola llamada, a la hora de paso; componente de cara/a favor y de lado (viento DESDE frente a rumbo HACIA).
 - [x] 3c-1. Hora de paso: calibrada con 8 salidas reales del autor. **Decisión del autor:** el viento no ajusta la
   velocidad (efecto pequeño e incierto); la pendiente sí reparte el tiempo (`DECISIONS.md` 021).
-- [ ] 3c-2. Puntuación: viento de cara en la primera mitad, a favor en la segunda, penalizar rachas fuertes de lado;
-  cada vuelta en los dos sentidos. **Decisión del autor:** los pesos de la puntuación (se le plantearán con ejemplos).
+- [x] 3c-2. Puntuación: viento de cara en la primera mitad, a favor en la segunda, penalizar rachas fuertes de lado;
+  cada vuelta en los dos sentidos. Sin pesos: ventaja de viento por mitades y límite de racha de lado de 40 km/h
+  (**decisión del autor**). Falta que el autor mire los ejemplos (abajo).
 - [ ] 3d. Consola: `route` elige los rumbos alrededor del viento (no cada 120°) y el sentido, ordena por puntuación con
   explicación por tramos ("km 0-18: de cara 12 km/h…") y admite la hora de salida (por defecto, ahora).
 - [ ] 3e. Juez: días pasados, recalcular la puntuación con el viento observado (METAR, fase 1) y ver si la ruta
@@ -65,6 +70,16 @@ Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018):
   Las salidas grabadas de los tests leen ahora su altitud. **Calibración** con 8 salidas del autor (Garmin, con hora y
   altitud, 575 tramos; los ficheros no entran en el repositorio) y **comprobación** de la hora de paso: error medio
   2,9 → 1,6 min y máximo 13,4 → 4,8 min al repartir por pendiente (`DECISIONS.md` 021, `calibrate.cs`, `timing.cs`).
+- Paso 3c-2 (2026-10-15): 13 tests nuevos (340 en total): de cara a la ida y a favor a la vuelta da ventaja +40 con
+  20 km/h, al revés −40; tramos con racha de lado sobre el límite (estrictamente mayor) unidos en tramos seguidos; la
+  racha de cara no cuenta; límite configurable; aviso si falta la racha; una salida sin rachas peligrosas va antes
+  que otra con más ventaja; `Route.Reversed`; con viento constante los dos sentidos de un rectángulo puntúan igual;
+  con un viento que sube de 5 a 45 km/h gana el sentido que lo pilla más tarde; una sola llamada para dos rutas y sus
+  dos sentidos, ordenadas. **Ejemplos** (`tools/investigacion/rank.cs`, BRouter local): La Bañeza, 60 km, 6 rumbos,
+  salida el 30 sept. 2026 a las 8:00 UTC con el viento archivado de AROME (13 km/h del SSO, rachas de 28): 5 vueltas
+  válidas (hacia el sur ninguna). Primera la de 240° (contra el viento, ventaja +12,1 y +11,5 en el otro sentido),
+  luego 120° (+4,2), 300° (+0,9) y últimas 0° y 60° (−13 a −16). Rachas de lado de 31-38 km/h: ninguna sobre 40.
+  **Pendiente:** que el autor mire los GPX (`Descargas/vientohud-ejemplos-3c2`) y diga si elegiría la primera.
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 

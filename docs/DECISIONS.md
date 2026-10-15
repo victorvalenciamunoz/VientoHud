@@ -443,3 +443,23 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: ajuste por viento medido (0,3 km/h por km/h) o físico (potencia constante): descartados por el autor;
   pendiente sin mantener la media (la velocidad elegida sería la de llano: una ruta con puertos duraría más que lo
   pedido con `--hours`).
+
+## 022 — Puntuación de una salida para el viento
+- Contexto: la fase 3 (paso 3c-2) tiene que ordenar las vueltas candidatas, en los dos sentidos. El plan pide viento
+  de cara en la primera mitad, a favor en la segunda y penalizar las rachas fuertes de lado. Preguntar pesos
+  abstractos ("¿cuánto vale el viento de cara al principio?") no tiene buena respuesta (lo dijo el autor), así que se
+  busca un criterio sin pesos y solo se le pregunta lo que sabe por experiencia.
+- Decisión (2026-10-15; `RideRanking`, `RideScore`):
+  - **Criterio principal, sin pesos: ventaja = viento de cara medio en la primera mitad − en la segunda** (por
+    distancia; la media de cada mitad pondera por la rectitud de los tramos, DECISIONS 019). Mayor es mejor.
+  - **Seguridad: racha de lado de más de 40 km/h** (límite elegido por el autor; configurable). Va primero la salida
+    con menos km por encima del límite (cero, si se puede) y, entre iguales, la de más ventaja. Se dice dónde están
+    esos tramos. Si alguna hora no tiene racha prevista, se avisa (`GustsKnown`).
+  - Cada vuelta se puntúa en los dos sentidos, con una sola llamada de previsión para todas las candidatas.
+- **Consecuencia comprobada (test):** con el mismo viento en todas partes y todo el rato, los dos sentidos de una
+  vuelta puntúan igual: el punto de la mitad es el mismo en los dos, y la media del viento de cara de cada mitad solo
+  depende de dónde queda ese punto. Lo que decide es **qué vuelta** (que su mitad quede contra el viento: el rumbo,
+  paso 3d); el sentido solo cambia algo cuando el viento cambia durante la salida (sube, rola) o de un sitio a otro.
+- Alternativas: pesos para cara/favor/lado/rachas (no hay forma de fijarlos con criterio); penalizar el viento por
+  posición con pesos lineales a lo largo de la ruta (con viento constante también da lo mismo en los dos sentidos y
+  añade un peso más); que las rachas resten puntos en vez de ordenar primero (mezcla seguridad y comodidad).
