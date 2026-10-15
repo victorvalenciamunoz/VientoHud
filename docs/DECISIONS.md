@@ -308,3 +308,22 @@ Formato: contexto → decisión → alternativas descartadas.
   (rechaza lazos; fue la primera versión de este mismo día); contar puntos de giro (no distingue un ramal corto de una
   media vuelta en una rotonda).
 
+## 016 — `trunk` permitido con penalización (cambia DECISIONS 013)
+- Contexto: DECISIONS 013 prohibía `trunk` en todo el mundo. En España muchas carreteras nacionales de un carril por
+  sentido están etiquetadas `trunk` en OpenStreetMap, también las antiguas nacionales que quedaron tranquilas al construir
+  una autovía paralela. Datos del 2026-10-15:
+  - Prueba en vivo (8 vueltas en Madrid y León): perfil estricto 3 de 8 válidas y 18 "target island" en 92 peticiones;
+    con `trunk` permitido (coste 1,5) 6 de 8 y 6 "target island" en 96, pero hasta 17,5 km por `trunk`.
+  - Salidas reales del autor, emparejadas con BRouter (`tools/investigacion/matchrides.cs`; 98-100 % de la ruta
+    emparejada sobre el track): una vuelta por Soto de la Vega lleva 21 km por `trunk` (parece la antigua N-VI entre
+    La Bañeza y Astorga), otra 2,8 km y una salida de Humanes 12 km. Casi todo de un carril por sentido; los trozos de
+    sentido único son glorietas y cruces. Con la prohibición, el generador nunca propondría esas rutas.
+- Decisión (del autor, 2026-10-15): **permitir `trunk` con una penalización fuerte** en el perfil, para que BRouter solo
+  lo use cuando la alternativa sea mucho más larga o no exista. Autopistas y autovías (`motorway`) siguen prohibidas.
+  El análisis contará los km por `trunk` aparte (no como prohibidos) y el resumen de la ruta los dirá. Sin tope de km
+  por ruta de momento; entre candidatas, mejor la de menos `trunk`.
+  - **Coste pendiente:** se elegirá con una prueba en vivo con costes 2, 3 y 5 (vueltas válidas frente a km por `trunk`).
+- Alternativas: mantener la prohibición (rechaza carreteras que el autor usa y deja 3 de 8 vueltas); prohibir solo los
+  `trunk` desdoblados (los tramos de sentido único en glorietas y cruces cortarían carreteras de un carril; se podrá
+  cobrar más a los desdoblados sin prohibirlos).
+

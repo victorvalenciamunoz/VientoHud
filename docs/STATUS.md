@@ -51,8 +51,11 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
       `trunk` en las válidas (León S 14-17,5 km). 6 "target island" en 96 peticiones. Tres Cantos N y E fallan igual.
     - Sin bloqueos de brouter.de: peticiones cada 3 s, 67 + 92 con 8 minutos entre tandas.
     - Fallo del script: en León E (estricto) repitió las mismas peticiones en bucle (salían de la caché, sin red).
-    - **Pendiente del autor:** qué hacer con `trunk` (prohibido, permitido con penalización fuerte o solo los de un
-      carril por sentido).
+    - Salidas del autor emparejadas con BRouter (`tools/investigacion/matchrides.cs`): 21 km por `trunk` en una vuelta
+      por Soto de la Vega (antigua N-VI), 2,8 km en otra y 12 km en una de Humanes. El lazo de Boadilla no se pudo
+      emparejar ("target island" en un punto).
+    - Decisión del autor: `trunk` permitido con penalización fuerte (`DECISIONS.md` 016). **Falta** elegir el coste con
+      una prueba en vivo con costes 2, 3 y 5.
   - [ ] 4b. Colocar los puntos de paso a partir de la salida, el rumbo (hacia la parte más lejana de la vuelta) y la
     distancia objetivo: abanico de n = 5 (la salida y 4 puntos a R km en `rumbo - (90 - 180·i/n)`), R inicial ≈
     objetivo / 5,8. Sentido de giro fijo (horario en el mapa); invertirlo es cosa de la fase 3.

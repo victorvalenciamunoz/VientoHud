@@ -6,7 +6,9 @@
 //  - turn the bearing ±20°, ±40° on "target island" or after rounds without a valid loop.
 // Valid: ≤ 10 % of the route on spurs, distance within ±10 %, 0 forbidden km, centre of the route within 45° of the
 // requested bearing (DECISIONS 015). Responses are cached on disk, so a rerun does not ask brouter.de again.
-// dotnet run tools/investigacion/livetest.cs -- <outDir> <strict|trunk> <name>:<lat>:<lon>:<bearing>:<km> ...
+// Profile: "strict" (trunk forbidden) or "trunk:<cost>" (trunk allowed with that cost per km; "trunk" alone is 1.5).
+// With trunk allowed, trunk km are reported apart and do not make a route invalid (DECISIONS 016).
+// dotnet run tools/investigacion/livetest.cs -- <outDir> <strict|trunk[:cost]> <name>:<lat>:<lon>:<bearing>:<km> ...
 using System.Globalization;
 using System.Net;
 using System.Security.Cryptography;
@@ -23,10 +25,12 @@ var inv = CultureInfo.InvariantCulture;
 var outDir = args[0];
 var cacheDir = Path.Combine(outDir, "cache");
 Directory.CreateDirectory(cacheDir);
-var allowTrunk = args[1] == "trunk";
+var allowTrunk = args[1].StartsWith("trunk");
+var trunkCost = args[1].Split(':') is [_, var cost] ? cost : "1.5";
+var variant = allowTrunk ? $"trunk{trunkCost}" : "strict";
 var profileText = allowTrunk
     ? BRouterRouteEngine.StrictRoadProfile.Replace(
-        "switch or highway=trunk highway=trunk_link          10000", "switch or highway=trunk highway=trunk_link          1.5")
+        "switch or highway=trunk highway=trunk_link          10000", $"switch or highway=trunk highway=trunk_link          {trunkCost}")
     : BRouterRouteEngine.StrictRoadProfile;
 if (allowTrunk && profileText == BRouterRouteEngine.StrictRoadProfile) throw new InvalidOperationException("trunk rule not found");
 
@@ -54,7 +58,8 @@ string F(double d) => d.ToString("0.######", inv);
 async Task<Route?> RouteAsync(IReadOnlyList<Coordinate> waypoints)
 {
     var lonLats = string.Join('|', waypoints.Select(w => $"{F(w.Longitude)},{F(w.Latitude)}"));
-    var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(args[1] + lonLats)))[..16];
+    // "trunk" without a cost keeps the cache keys of the first run (cost 1.5).
+    var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes((variant == "trunk1.5" ? "trunk" : variant) + lonLats)))[..16];
     var file = Path.Combine(cacheDir, key + ".txt");
     string status, body;
     if (File.Exists(file))
@@ -101,7 +106,7 @@ catch (BlockedException ex)
     Console.WriteLine($"!! brouter.de blocked us (HTTP 403: {ex.Message.Trim()}). Stopping.");
 }
 Console.WriteLine();
-Console.WriteLine($"profile {(allowTrunk ? "strict + trunk allowed" : "strict")}, network calls {networkCalls}");
+Console.WriteLine($"profile {(allowTrunk ? $"strict + trunk allowed at cost {trunkCost}" : "strict")}, network calls {networkCalls}");
 results.ForEach(Console.WriteLine);
 
 async Task<string> RunCase(string name, Coordinate start, double bearing, double targetKm)
@@ -114,10 +119,20 @@ async Task<string> RunCase(string name, Coordinate start, double bearing, double
     var roundsOnBearing = 0;
     (Route Route, RouteAnalysis Analysis, double Bearing, string Notes)? best = null;
     var waypoints = Fan(start, bearing, radius);
+    var tried = new HashSet<string>();
 
     while (calls < MaxCalls)
     {
         var heading = bearing + turns[turn];
+        // The same waypoints again would give the same route: try the next bearing instead.
+        if (!tried.Add(string.Join('|', waypoints.Select(w => $"{w.Latitude:0.######},{w.Longitude:0.######}"))))
+        {
+            if (++turn >= turns.Length) break;
+            roundsOnBearing = 0;
+            radius = targetKm / 5.8;
+            waypoints = Fan(start, bearing + turns[turn], radius);
+            continue;
+        }
         calls++;
         var route = await RouteAsync(waypoints);
         if (route is null)
@@ -160,9 +175,9 @@ async Task<string> RunCase(string name, Coordinate start, double bearing, double
 
     if (best is not { } b) return $"{name,-14} {targetKm,4} km {bearing,3}°: no route ({calls} calls)";
     var final = Judge(b.Route, b.Analysis, start, bearing, targetKm);
-    using (var f = File.Create(Path.Combine(outDir, $"{name}-{(allowTrunk ? "trunk" : "strict")}.gpx")))
+    using (var f = File.Create(Path.Combine(outDir, $"{name}-{variant}.gpx")))
     {
-        GpxWriter.Write(new GpxTrack($"{name} {(allowTrunk ? "trunk" : "estricto")}",
+        GpxWriter.Write(new GpxTrack($"{name} {variant}",
             b.Route.Points.Select(q => new GpxTrackPoint(q.Position, q.ElevationMeters)).ToList(),
             DateTimeOffset.UtcNow, Copyright: GpxCopyright.OpenStreetMap), f);
     }
@@ -178,23 +193,29 @@ static List<Coordinate> Fan(Coordinate start, double bearing, double radius)
     return waypoints;
 }
 
+static double TrunkKm(RouteAnalysis a) => a.Roads.Where(r => r.Highway is "trunk" or "trunk_link").Sum(r => r.Km);
+
+// Forbidden km, not counting trunk roads when the profile allows them.
+double ForbiddenKm(RouteAnalysis a) => a.ForbiddenKm - (allowTrunk ? TrunkKm(a) : 0);
+
 // Null if valid; otherwise why not.
-static string? Judge(Route route, RouteAnalysis a, Coordinate start, double bearing, double targetKm)
+string? Judge(Route route, RouteAnalysis a, Coordinate start, double bearing, double targetKm)
 {
     var why = new List<string>();
     if (a.SpurFraction > 0.1) why.Add("spurs");
     if (Math.Abs(route.DistanceKm / targetKm - 1) > 0.1) why.Add("distance");
-    if (a.ForbiddenKm > 0) why.Add("forbidden");
+    if (ForbiddenKm(a) > 0.01) why.Add("forbidden");
     if (Deviation(route, start, bearing) > 45) why.Add("bearing");
     return why.Count == 0 ? null : string.Join(", ", why);
 }
 
-static double Score(Route route, RouteAnalysis a, Coordinate start, double bearing, double targetKm) =>
-    (a.SpurFraction > 0.1 ? 10 + a.SpurFraction : 0) + (a.ForbiddenKm > 0 ? 10 : 0)
-    + (Deviation(route, start, bearing) > 45 ? 5 : 0) + Math.Abs(route.DistanceKm / targetKm - 1);
+// Lower is better: valid first, then closest to the distance, then least trunk.
+double Score(Route route, RouteAnalysis a, Coordinate start, double bearing, double targetKm) =>
+    (a.SpurFraction > 0.1 ? 10 + a.SpurFraction : 0) + (ForbiddenKm(a) > 0.01 ? 10 : 0)
+    + (Deviation(route, start, bearing) > 45 ? 5 : 0) + Math.Abs(route.DistanceKm / targetKm - 1) + TrunkKm(a) / 1000;
 
-static string Describe(Route route, RouteAnalysis a, Coordinate start, double bearing, double targetKm) =>
-    $"{route.DistanceKm,5:0.0} km ({route.DistanceKm / targetKm - 1,4:+0%;-0%}) spurs {a.SpurFraction,3:P0} repeated {a.RepeatedFraction,3:P0} forbidden {a.ForbiddenKm:0.0} km (trunk {a.Roads.Where(r => r.Highway is "trunk" or "trunk_link").Sum(r => r.Km):0.0}) off bearing {Deviation(route, start, bearing),3:0}°";
+string Describe(Route route, RouteAnalysis a, Coordinate start, double bearing, double targetKm) =>
+    $"{route.DistanceKm,5:0.0} km ({route.DistanceKm / targetKm - 1,4:+0%;-0%}) spurs {a.SpurFraction,3:P0} repeated {a.RepeatedFraction,3:P0} forbidden {ForbiddenKm(a):0.0} km trunk {TrunkKm(a):0.0} km off bearing {Deviation(route, start, bearing),3:0}°";
 
 // Angle between the requested bearing and the bearing from the start to the route's centre.
 static double Deviation(Route route, Coordinate start, double bearing)
