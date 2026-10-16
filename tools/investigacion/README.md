@@ -30,3 +30,4 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `timing.cs` | Fase 3: compara la hora de paso prevista por `RouteLegs` (fija y por pendiente) con la real de salidas de Garmin. |
 | `rank.cs` | Fase 3: ejemplos de la puntuación: vueltas en varios rumbos (BRouter local) puntuadas en los dos sentidos con el viento archivado de un día pasado, con la explicación por tramos de las dos primeras; un GPX por opción con su puesto. |
 | `judge3.cs` | Juez de la fase 3 (`DECISIONS.md` 024): días pasados con viento en varios sitios; elige y ordena las vueltas con la previsión archivada ("salgo ahora" y "el día antes") y las repuntúa con el METAR; tabla y CSV. Pensado para el BRouter local (~1,5 h). |
+| `radarlive.cs` | Fase 4: prueba en vivo de `OperaRadarSource`: la última imagen de OPERA (o la de una hora dada), recortada alrededor de un punto; lluvia en el punto, zona con datos y mojada, tiempos. |

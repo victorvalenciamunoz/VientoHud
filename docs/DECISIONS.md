@@ -564,3 +564,34 @@ Formato: contexto → decisión → alternativas descartadas.
   histórico, sin previsión desde 2026); Météo-France (solo Francia, clave, ~20 h sin archivo); DWD (solo Alemania);
   satélite H SAF (más grueso, registro, 60 días); servicios con "lluvia en el próximo minuto" (OpenWeatherMap,
   Tomorrow.io…): no dan radar, solo su previsión, y piden clave.
+
+## 026 — Leer OPERA: PureHDF, reflectividad cada 5 min y solo la zona de la salida
+- Contexto: el paso 4b tiene que leer las imágenes de OPERA (`DECISIONS.md` 025). Comprobado el 2026-10-16: en el
+  histórico de 2026 solo hay ficheros HDF5 (los GeoTIFF solo están en las últimas 24 h y en el histórico hasta 2025),
+  y el juez usará días de lluvia de los últimos meses.
+- Decisión (del autor, 2026-10-16):
+  - **Paquete NuGet PureHDF 2.2.0** en `VientoHud.Core`, el primero de Core. Licencia MIT, sin dependencias (ni nativas
+    ni de otros paquetes), para .NET 8 y posteriores (vale para MAUI), activo (versiones en marzo, julio y agosto de
+    2026; ~590.000 descargas). Riesgo: lo mantiene una sola persona.
+  - **Producto: reflectividad (DBZH)**, 1 km, cada 5 min, publicada ~4-8 min después; la lluvia en mm/h (RATE) llega
+    cada 15 min con ~12 min de retraso, y el "ahora" puede ser de hace casi media hora. El lector admite los dos y el
+    juez (4e) podrá compararlos.
+- Decisiones técnicas:
+  - **Solo la zona:** se lee un cuadrado alrededor de la salida (un trozo del HDF5, sin leer el resto). La imagen entera
+    de 1 km tiene 16,7 millones de celdas y tarda ~40 s; un cuadrado de 300 km, 1-4 s.
+  - **La rejilla se queda en la proyección de OPERA** (Lambert azimutal equivalente, celdas de 1 km), para que imágenes
+    seguidas encajen celda a celda al calcular el movimiento (4c). Proyección propia (fórmulas de Snyder), comprobada
+    con las cuatro esquinas que trae el fichero (calculadas por EUMETNET con PROJ): cuadran al metro.
+  - **"Seco" ≠ "sin datos":** `undetect` (el radar miró y no vio nada) es 0 mm/h; `nodata` (fuera de alcance, radar
+    parado o fuera del compuesto) es NaN.
+  - **Reflectividad a lluvia con Marshall-Palmer** (Z = 200·R^1,6), la relación estándar; tope en 55 dBZ (~100 mm/h)
+    porque por encima suele ser granizo.
+  - **Hora de la imagen:** la de su nombre, que es el final de la ventana de 10 min en que se juntan los barridos.
+  - **Dónde buscar:** las de menos de 23 h en el bucket de 24 h y luego en el histórico; las más viejas al revés. La
+    última se busca listando el bucket desde hace dos horas. Caché opcional de los ficheros descargados en disco.
+- Primera observación (3 oct. 2026, 6:00 UTC, chubasco en Barajas): la reflectividad da 1,0 mm/h en Barajas y lluvia
+  en el 26 % del cuadrado de 300 km; RATE da 0,24 mm/h y el 12 %. RATE sale más seco; lo dirá el juez.
+- Alternativas: leer GeoTIFF con un lector propio sin paquete (no hay GeoTIFF en el histórico de 2026; quizá en la
+  fase 6 para descargar solo un trozo en el móvil); envoltorios de la librería nativa de HDF5 (HDF.PInvoke: nativos por
+  plataforma, mal en Android); lector de HDF5 propio (formato muy complejo); pasar la rejilla a latitud/longitud
+  (deforma las celdas y complica el movimiento).

@@ -4,4 +4,8 @@
     <EmbeddedResource Include="Routing\BRouter\road-strict.brf" LogicalName="VientoHud.Core.Routing.BRouter.road-strict.brf" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="PureHDF" Version="2.2.0" />
+  </ItemGroup>
+
 </Project>

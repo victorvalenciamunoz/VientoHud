@@ -1,23 +1,35 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (paso 4a hecho)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a y 4b-1 hechos)
 
 ## Fase 4
 
 ### Qué funciona (fase 4)
 
-- Todavía no hay código. Fuente de radar elegida: **OPERA** de EUMETNET (`DECISIONS.md` 025): sin clave, CC BY 4.0,
-  reflectividad cada 5 min a 1 km y lluvia en mm/h cada 15 min a 2 km, con histórico desde 2012 y Madrid y León
-  cubiertos.
+- Fuente de radar elegida: **OPERA** de EUMETNET (`DECISIONS.md` 025): sin clave, CC BY 4.0, reflectividad cada
+  5 min a 1 km y lluvia en mm/h cada 15 min a 2 km, con histórico desde 2012 y Madrid y León cubiertos.
+- **Rejilla de lluvia** (`RainGrid`; `DECISIONS.md` 026): un cuadrado de celdas alrededor de un punto, en la
+  proyección del radar (fila 0 al norte, columna 0 al oeste), con la lluvia en mm/h de cada celda: 0 si está seco,
+  NaN si no hay datos. Sabe en qué celda cae un sitio, dónde está el centro de cada celda y la lluvia en un sitio.
+  `LambertAzimuthalEqualArea`: la proyección de OPERA, ida y vuelta. `Reflectivity`: de dBZ a mm/h (Marshall-Palmer,
+  tope en 55 dBZ).
+- **Lector de OPERA** (`OdimComposite`): lee de un fichero HDF5 de OPERA solo el cuadrado alrededor del punto
+  (reflectividad DBZH o lluvia RATE), con PureHDF. Un cuadrado de 300 km a 1 km tarda 1-4 s.
+- **Fuente de OPERA** (`IRadarSource`, `OperaRadarSource`): la hora de la última imagen publicada y la imagen de una
+  hora dada, recortada (bucket de 24 h o histórico según la edad, y el otro si no está; null si falta la imagen).
+  Caché opcional en disco. Sin clave. Atribución "Radar: EUMETNET OPERA (CC BY 4.0)".
 
 ### Qué falta (fase 4)
 
 División aceptada por el autor el 2026-10-16:
 
 - [x] 4a. Investigar el radar de AEMET y las alternativas; decidir la fuente (`DECISIONS.md` 025).
-- [ ] 4b. Una imagen: descargar un fichero de OPERA y recortar la zona alrededor de la salida (~150 km) como rejilla
-  de lluvia en mm/h, distinguiendo "seco" de "sin datos". Comando de consola `radar` con la lluvia de ahora alrededor.
-  Comprobación: a ojo frente al mapa de radar de la web de AEMET y frente a la lluvia de los METAR.
+- [ ] 4b. Una imagen (**decisiones del autor**: PureHDF, reflectividad cada 5 min, texto + PNG; `DECISIONS.md` 026):
+  - [x] 4b-1. Core: descargar una imagen de OPERA (la última o la de una hora pasada) y recortar la zona alrededor de
+    la salida (~150 km) como rejilla de lluvia en mm/h, distinguiendo "seco" de "sin datos".
+  - [ ] 4b-2. Consola `radar`: si llueve en el punto, dónde está la lluvia más cercana (km y hacia dónde) y cuánta
+    zona tiene datos, y un PNG de la zona con una cruz en la salida. Comprobación en 3-4 momentos de lluvia en Madrid
+    y León: a ojo frente al mapa de radar de la web de AEMET y frente a la lluvia de los METAR.
 - [ ] 4c. Movimiento: con varias imágenes seguidas, hacia dónde y a qué velocidad va la lluvia (un desplazamiento
   único para toda la zona, por correlación). Tests con rejillas inventadas desplazadas y un día real de lluvia.
 - [ ] 4d. Proyección: mover la última imagen hacia delante y responder si lloverá en un punto a t+30 / t+60 / t+90.
@@ -39,6 +51,19 @@ División aceptada por el autor el 2026-10-16:
   de 480×530 px (10 KB) con las fronteras provinciales, el logo, la leyenda de colores y la fecha dibujados encima; sus
   metadatos dicen "image/gif, cada 10 minutos". La composición nacional respondió 404 en ese momento. Confirma que no
   sirve como datos.
+- Paso 4b-1 (2026-10-16): 49 tests nuevos (430 en total). Proyección: las cuatro esquinas de la rejilla de OPERA
+  (calculadas por EUMETNET con PROJ) forman un rectángulo de 3.800 × 4.400 km al metro; ida y vuelta al centímetro en
+  Madrid, León, Canarias, Reikiavik, Moscú y Ciudad del Cabo; conserva el área; rechaza otras proyecciones.
+  Marshall-Palmer: 20, 30, 40 y 50 dBZ dan 0,65, 2,7, 11,5 y 48,6 mm/h; tope en 55 dBZ. Rejilla: celda de un sitio,
+  norte arriba y oeste a la izquierda, centros a 1 km, fuera de la rejilla nada. Con los ficheros reales del 3 oct. a
+  las 6:00 UTC (chubasco en Barajas según el METAR; fixtures): cuadrado de 301 × 301 celdas de 1 km con Madrid en el
+  centro, lluvia en Barajas (1,0 mm/h), sin huecos y con el 26 % mojado; el producto RATE en 151 × 151 celdas de
+  2 km; en la esquina del compuesto y en Nueva York, sin datos; un fichero que no es HDF5 da error de radar. Fuente:
+  con listados reales, la última imagen (11:00 DBZH y 10:45 RATE a las 11:07), también pasada la medianoche y con
+  listados en varias páginas; imagen vieja del histórico, reciente del bucket de 24 h y luego del histórico, falta en
+  los dos (null), fichero de otra hora (error), fallos de red y servidor, horas que no son de imagen, caché.
+  **En vivo** (`tools/investigacion/radarlive.cs`): Madrid a las 11:13 UTC, última imagen de las 11:05 (8 min de
+  retraso), seco, 3 s; León el 3 oct. a las 10:35 (METAR: chubasco fuerte), 1,8 mm/h en el punto y el 39 % mojado.
 
 ### Riesgos y pendientes (fase 4)
 
@@ -46,6 +71,12 @@ División aceptada por el autor el 2026-10-16:
 - **Huecos en la red de AEMET:** en renovación; hoy faltan varios radares en OPERA (no Madrid ni Palencia).
 - **Tamaño:** cada fichero de OPERA es Europa entera (~2 MB). Para el móvil (fase 6) convendrá leer solo la zona
   (el GeoTIFF optimizado lo permite por rangos); en la consola no es problema.
+- **Lectura lenta de la reflectividad:** 1-4 s por imagen aunque solo se lea la zona (la de RATE, 0,02 s). Para el
+  juez (cientos de imágenes) habrá que contar con ello o guardar los recortes.
+- **La caché no se limpia sola:** ~2 MB por imagen; hará falta antes del juez.
+- **RATE sale más seco que la reflectividad** (0,24 frente a 1,0 mm/h en Barajas el 3 oct.): no se sabe aún cuál
+  acierta más.
+- **Paquete de una sola persona** (PureHDF): si se abandona, el lector queda aislado en `OdimComposite`.
 
 Fase 3 — Viento en la ruta: terminada el 2026-10-16 (pasos 3a a 3e hechos y el juez ejecutado; el autor la da por buena).
 
