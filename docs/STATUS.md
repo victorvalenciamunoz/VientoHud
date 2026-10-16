@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a y 4b hechos)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a, 4b y 4c-1 hechos)
 
 ## Fase 4
 
@@ -27,6 +27,10 @@
 - **Comando `radar`**: `radar [--lat --lon] [--at "aaaa-mm-dd hh:mm"] [--radius 20-300] [--out carpeta]`. Sin `--at`,
   la última imagen. Dice la hora (local) y la antigüedad de la imagen, la lluvia en el punto, la más cercana y la más
   fuerte, y escribe `radar-aaaammdd-hhmm.png`. Caché en `%LOCALAPPDATA%\VientoHud\radar`.
+- **Movimiento entre dos imágenes** (`RainMotions`, `RainMotion`; `DECISIONS.md` 028): un desplazamiento para toda la
+  zona, el que más parecidas hace las dos imágenes (forma de la lluvia, no cantidad), de grueso a fino y afinado por
+  debajo de la celda. Da la velocidad hacia el este y el norte, la velocidad y el rumbo HACIA donde va, y el parecido
+  con y sin moverla. "No sé" con poca lluvia, poco parecido o al borde de la búsqueda (150 km/h).
 
 ### Qué falta (fase 4)
 
