@@ -674,3 +674,24 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: más imágenes (una hora: más lento y mezcla movimientos que cambian); la media en vez de la mediana
   (una pareja rara la arrastra); usar el viento a 700 hPa como movimiento (es otra previsión, de un punto y por horas;
   sirve de contraste, no de sustituto).
+
+## 030 — Previsión de lluvia en un punto: mover la última imagen y mirar una zona que crece
+- Contexto: el paso 4d tiene que decir si lloverá en un punto a 30, 60 y 90 min. División aceptada por el autor
+  (2026-10-16): 4d-1 en Core; 4d-2 en la consola, con la comprobación en momentos pasados. El juez completo es el 4e.
+- Decisión del autor (2026-10-16): **palabra y porcentaje**, con sus cortes: por debajo del 20 % "no", del 20 al 50 %
+  "puede", por encima del 50 % "probable" (`RainLikelihoods`).
+- Decisiones técnicas (2026-10-16; `Nowcast`, `PointNowcast`, `RainChance`):
+  - **La lluvia que habrá en un punto dentro de Δt es la que ahora está Δt·velocidad viento arriba** (hacia atrás por
+    el movimiento de `DECISIONS.md` 029). Se supone que la lluvia ni crece ni se deshace.
+  - **Probabilidad = parte de las celdas con lluvia en un círculo** alrededor de ese sitio, de 2 km más 5 km por hora
+    desde la imagen (~5 km a 30 min, ~10 km a 90 min): la lluvia cambia y el movimiento tiene error. Desconocida si
+    menos de la mitad del círculo tiene datos. El tamaño lo ajustará el juez (4e).
+  - **Se cuenta desde ahora, no desde la imagen:** la imagen tiene 5-10 min, y "dentro de 30 min" es 30 min más esa
+    antigüedad desde ella.
+  - **Cada 5 min hasta 90.** Llega la lluvia en el primer paso "probable" si ahora no lo es; se va en el primer paso
+    "no" si ahora es "probable" (entre medias, "puede", no cambia el estado).
+  - **Sin movimiento conocido, la lluvia se queda donde está** (es el rival "nada se mueve" del juez).
+  - **La imagen entera movida** (`Nowcast.Advect`), para dibujarla; lo que llega de fuera del recorte, sin datos.
+- Alternativas: mirar solo la celda del punto (una celda de 1 km acierta o falla por un kilómetro de error); un radio
+  fijo (a 90 min el error del movimiento ya es de varios km); crecimiento y desaparición de la lluvia (mucho más
+  complejo; solo si el juez lo pide); probabilidades de varios movimientos posibles (lo mismo).

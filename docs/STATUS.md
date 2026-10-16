@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a, 4b y 4c hechos)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a, 4b, 4c y 4d-1 hechos)
 
 ## Fase 4
 
@@ -36,6 +36,10 @@
   `RainMotions.Similarity`: el parecido para un desplazamiento dado (para comprobar). `radar` dice "La lluvia va hacia
   el ENE (57°) a 39 km/h (6 de 6 parejas…)" o por qué no se sabe, y el PNG lleva una flecha hasta donde llega la lluvia
   en una hora.
+- **Previsión en un punto** (`Nowcast`, `PointNowcast`, `RainLikelihoods`; `DECISIONS.md` 030): cada 5 min hasta
+  90 desde ahora, la probabilidad de lluvia (parte del círculo con lluvia viento arriba, de 2 km más 5 km por hora),
+  en palabras (no, puede, probable: cortes del autor en 20 % y 50 %), y la hora a la que llega o se va la lluvia. Sin
+  movimiento, la lluvia se queda quieta. `Nowcast.Advect`: la imagen entera movida hacia delante.
 
 ### Qué falta (fase 4)
 
@@ -53,7 +57,10 @@ División aceptada por el autor el 2026-10-16:
   - [x] 4c-2. Varias imágenes de la última media hora y su acuerdo; `radar` dice hacia dónde va la lluvia y pinta una
     flecha. Comprobación en los días de lluvia ya vistos: serie de PNG para el ojo del autor, mover la imagen de hace
     30 min y ver que se parece más a la de ahora que dejarla quieta, y frente al viento a 700 hPa de Open-Meteo.
-- [ ] 4d. Proyección: mover la última imagen hacia delante y responder si lloverá en un punto a t+30 / t+60 / t+90.
+- [ ] 4d. Proyección (división aceptada por el autor el 2026-10-16; palabra y porcentaje, **decisión del autor**):
+  - [x] 4d-1. Core: probabilidad de lluvia en un punto cada 5 min hasta 90, hora de llegada y de fin, imagen movida.
+  - [ ] 4d-2. `radar` dice la lluvia prevista a +30, +60 y +90 y cuándo llega o se va, y guarda las imágenes previstas.
+    Comprobación en momentos pasados en Barajas y León frente a lo que vio el radar después y frente al METAR.
 - [ ] 4e. Juez (backtest): días de lluvia de los últimos meses en Madrid y León (elegidos con los METAR); predecir solo
   con las imágenes anteriores, comparar con la real y sacar la tabla de acierto por horizonte frente a los dos rivales:
   "nada se mueve" y AROME HD cada 15 min de Open-Meteo (**decisión del autor**).
@@ -123,6 +130,11 @@ División aceptada por el autor el 2026-10-16:
   mover la imagen se parece más a la real que dejarla quieta en **los 55** (0,64 frente a 0,40 de media); frente al
   viento a 700 hPa, diferencia de dirección mediana de 16° (49 de 55 dentro de 45°) y misma velocidad (relación 1,07).
   Serie de imágenes con flecha para el autor en la carpeta temporal de la sesión: **le cuadra** (2026-10-16).
+- Paso 4d-1 (2026-10-16): 16 tests nuevos (505 en total). Una tormenta de 30 km con su borde a 20 km al oeste, hacia
+  el este a 30 km/h, llega en 35-45 min; lluvia encima alejándose a 40 km/h se va en 15-30 min; la que pasa por el
+  norte no llega; el borde de una zona de lluvia da un 30-70 %; sin movimiento, la lluvia se queda; con la imagen de
+  hace 10 min, los pasos cuentan desde ahora y dan lo mismo para la misma hora; lluvia que viene de donde no hay datos,
+  desconocida; el círculo crece (un chubasco a 10 km entra a los 90 min); la imagen movida; los cortes del autor.
 
 ### Riesgos y pendientes (fase 4)
 
