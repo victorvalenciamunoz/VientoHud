@@ -26,9 +26,6 @@ División aceptada por el autor el 2026-10-16:
   "nada se mueve" y AROME HD cada 15 min de Open-Meteo (**decisión del autor**).
 - [ ] 4f. Movimiento por zonas, solo si el juez dice que el desplazamiento único se queda corto.
 
-Pendiente aparte: comprobar con la clave del autor que el radar de AEMET OpenData da solo imágenes GIF (lo dice su
-FAQ; sin clave no se pudo ver). No cambia la decisión.
-
 ### Cómo se ha validado (fase 4)
 
 - Paso 4a (2026-10-16): documentación oficial (EUMETNET Open Radar Data, especificación de AEMET OpenData y su FAQ,
@@ -38,6 +35,10 @@ FAQ; sin clave no se pudo ver). No cambia la decisión.
   responde 200 con cuerpo vacío; descarga GeoTIFF de la web de AEMET (composición de 692×497 px, últimas 4 h); RainViewer
   (13 imágenes de pasado, sin previsión); Open-Meteo AROME HD cada 15 min con datos en Madrid y León y sin datos en
   Sevilla. Comparación completa en `DECISIONS.md` 025.
+- Paso 4a, comprobación con la clave del autor (2026-10-16): el radar regional de Madrid de AEMET OpenData es un GIF
+  de 480×530 px (10 KB) con las fronteras provinciales, el logo, la leyenda de colores y la fecha dibujados encima; sus
+  metadatos dicen "image/gif, cada 10 minutos". La composición nacional respondió 404 en ese momento. Confirma que no
+  sirve como datos.
 
 ### Riesgos y pendientes (fase 4)
 

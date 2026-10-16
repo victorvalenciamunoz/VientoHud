@@ -528,7 +528,7 @@ Formato: contexto → decisión → alternativas descartadas.
   | | OPERA (EUMETNET, Open Radar Data) | Web de AEMET (descarga GeoTIFF) | AEMET OpenData | RainViewer |
   |---|---|---|---|---|
   | Clave | No | No | Sí; desde jul. 2026 caduca a los 3 meses | No |
-  | Contenido | Valores: reflectividad (DBZH) y lluvia en mm/h (RATE) | Clases de color de 6 dBZ (11 niveles) | Imagen GIF sin georreferencia (según su FAQ) | Teselas PNG; el color se traduce a dBZ |
+  | Contenido | Valores: reflectividad (DBZH) y lluvia en mm/h (RATE) | Clases de color de 6 dBZ (11 niveles) | Imagen GIF de 480×530 px con fronteras, logo y leyenda dibujados (comprobado) | Teselas PNG; el color se traduce a dBZ |
   | Frecuencia / retraso | DBZH 5 min / ~4 min; RATE 15 min / ~12 min | 10 min / ~11 min | 10 min (regional), 30 min (nacional) | 10 min |
   | Resolución | DBZH 1 km; RATE 2 km | ~2,5 km (composición) | Sin publicar | Zoom 7 como máximo (~0,9 km) |
   | Cobertura | Europa, con los radares de AEMET; Madrid y León comprobados píxel a píxel | Península y Baleares | España | Mundial |
@@ -559,7 +559,7 @@ Formato: contexto → decisión → alternativas descartadas.
   - Leer HDF5 o GeoTIFF pedirá un paquete NuGet; se valora en el paso 4b (candidato: PureHDF, MIT, sin dependencias
     nativas, probado con un fichero real de OPERA).
   - Fuera de Europa no hay fuente; RainViewer sería la candidata si algún día hace falta (uso no comercial).
-- Alternativas descartadas: AEMET OpenData (clave que caduca, imágenes GIF, sin histórico); web de AEMET como principal
+- Alternativas descartadas: AEMET OpenData (clave que caduca, dibujos GIF en vez de datos, sin histórico); web de AEMET como principal
   (colores en escalones de 6 dBZ, direcciones sin documentar, 2-3 días de histórico); RainViewer (uso personal, 2 h de
   histórico, sin previsión desde 2026); Météo-France (solo Francia, clave, ~20 h sin archivo); DWD (solo Alemania);
   satélite H SAF (más grueso, registro, 60 días); servicios con "lluvia en el próximo minuto" (OpenWeatherMap,
