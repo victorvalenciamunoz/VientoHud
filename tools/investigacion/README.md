@@ -33,3 +33,4 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `radarlive.cs` | Fase 4: prueba en vivo de `OperaRadarSource`: la última imagen de OPERA (o la de una hora dada), recortada alrededor de un punto; lluvia en el punto, zona con datos y mojada, tiempos. |
 | `motioncheck.cs` | Fase 4: ¿sirve el movimiento para lo que viene? En momentos de días de lluvia, calcula el movimiento con las imágenes hasta T−30, mueve la de T−30 y la compara con la real de T frente a dejarla quieta. CSV y resumen. |
 | `motionwind.cs` | Fase 4: compara la salida de `motioncheck.cs` con el viento a 700 hPa del archivo de Open-Meteo (dirección y velocidad). |
+| `nowcastcheck.cs` | Fase 4: previsión de lluvia en un aeropuerto a +30/+60/+90 min en momentos pasados (como `radar`), frente a lo que vio el radar en esa celda y el METAR, con el rival "nada se mueve". CSV y recuento por plazo. |

@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a, 4b, 4c y 4d-1 hechos)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a a 4d hechos)
 
 ## Fase 4
 
@@ -40,6 +40,9 @@
   90 desde ahora, la probabilidad de lluvia (parte del círculo con lluvia viento arriba, de 2 km más 5 km por hora),
   en palabras (no, puede, probable: cortes del autor en 20 % y 50 %), y la hora a la que llega o se va la lluvia. Sin
   movimiento, la lluvia se queda quieta. `Nowcast.Advect`: la imagen entera movida hacia delante.
+- **`radar` con previsión**: "Previsión aquí, desde las 15:30: ahora no (0 %); +30 min …; +60; +90" y "La lluvia llega
+  hacia las …", "Deja de llover hacia las …" o que no se espera; con movimiento conocido, guarda además las imágenes
+  previstas a +30 y +60 min (`radar-aaaammdd-hhmm-mas30.png`).
 
 ### Qué falta (fase 4)
 
@@ -57,9 +60,9 @@ División aceptada por el autor el 2026-10-16:
   - [x] 4c-2. Varias imágenes de la última media hora y su acuerdo; `radar` dice hacia dónde va la lluvia y pinta una
     flecha. Comprobación en los días de lluvia ya vistos: serie de PNG para el ojo del autor, mover la imagen de hace
     30 min y ver que se parece más a la de ahora que dejarla quieta, y frente al viento a 700 hPa de Open-Meteo.
-- [ ] 4d. Proyección (división aceptada por el autor el 2026-10-16; palabra y porcentaje, **decisión del autor**):
+- [x] 4d. Proyección (división aceptada por el autor el 2026-10-16; palabra y porcentaje, **decisión del autor**):
   - [x] 4d-1. Core: probabilidad de lluvia en un punto cada 5 min hasta 90, hora de llegada y de fin, imagen movida.
-  - [ ] 4d-2. `radar` dice la lluvia prevista a +30, +60 y +90 y cuándo llega o se va, y guarda las imágenes previstas.
+  - [x] 4d-2. `radar` dice la lluvia prevista a +30, +60 y +90 y cuándo llega o se va, y guarda las imágenes previstas.
     Comprobación en momentos pasados en Barajas y León frente a lo que vio el radar después y frente al METAR.
 - [ ] 4e. Juez (backtest): días de lluvia de los últimos meses en Madrid y León (elegidos con los METAR); predecir solo
   con las imágenes anteriores, comparar con la real y sacar la tabla de acierto por horizonte frente a los dos rivales:
@@ -135,10 +138,17 @@ División aceptada por el autor el 2026-10-16:
   norte no llega; el borde de una zona de lluvia da un 30-70 %; sin movimiento, la lluvia se queda; con la imagen de
   hace 10 min, los pasos cuentan desde ahora y dan lo mismo para la misma hora; lluvia que viene de donde no hay datos,
   desconocida; el círculo crece (un chubasco a 10 km entra a los 90 min); la imagen movida; los cortes del autor.
+- Paso 4d-2 (2026-10-16): la consola no tiene tests; probada en vivo. **Comprobación** (`nowcastcheck.cs`;
+  `docs/verificacion/2026-10-16-fase4-prevision-aeropuertos.csv`): 61 momentos en Barajas y León a +30, +60 y +90 min.
+  Según el radar en el aeropuerto, cuando dijo "probable" llovió el 90 % / 83 % / 73 % de las veces y cuando dijo "no",
+  el 12-14 %; dejando la lluvia quieta, 73 % / 59 % / 48 % y 28-30 %. Frente al METAR sale peor porque el radar no ve
+  parte de la lluvia: en León marca seco con lluvia en el METAR en el 32 % de los casos (Barajas, 18 %). Tabla en
+  `DECISIONS.md` 030.
 
 ### Riesgos y pendientes (fase 4)
 
-- **León, lejos del radar:** lo cubre Palencia a ~100-120 km; la lluvia débil puede quedarse corta.
+- **León, lejos del radar:** lo cubre Palencia a ~100-120 km. **Confirmado** (4d-2): en la celda del aeropuerto el radar
+  marca seco cuando el METAR dice lluvia en el 32 % de los casos (Barajas, 18 %): lluvia débil que no ve.
 - **Huecos en la red de AEMET:** en renovación; hoy faltan varios radares en OPERA (no Madrid ni Palencia). Visto el
   16 oct.: AEMET pinta lluvia frente a Galicia y OPERA no tiene datos allí (sin el radar de A Coruña).
 - **Tormentas con poca intensidad:** Marshall-Palmer da 5-7 mm/h donde el METAR dice "fuerte"; para tormentas se usan
@@ -152,6 +162,7 @@ División aceptada por el autor el 2026-10-16:
   acierta más.
 - **Paquete de una sola persona** (PureHDF): si se abandona, el lector queda aislado en `OdimComposite`.
 - **`radar` tarda ~20 s** con el movimiento (cuatro imágenes de reflectividad de 1-4 s cada una, más la descarga).
+- **Lluvia que nace en el sitio:** mover la lluvia no ve las tormentas que se forman encima (Barajas, 6 oct. 14:06 UTC).
 - **Falsos ecos:** en León el 30 sept. a las 11:00 UTC sale una raya recta de eco débil (interferencias en el radar,
   no lluvia). Cuenta como lluvia en el texto y en el movimiento; si estorba, habrá que filtrarlos.
 - **Viento flojo, movimiento dudoso:** con lluvia lenta (León 3 oct., ~17 km/h) el viento en altura no confirma la

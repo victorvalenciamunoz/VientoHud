@@ -695,3 +695,21 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: mirar solo la celda del punto (una celda de 1 km acierta o falla por un kilómetro de error); un radio
   fijo (a 90 min el error del movimiento ya es de varios km); crecimiento y desaparición de la lluvia (mucho más
   complejo; solo si el juez lo pide); probabilidades de varios movimientos posibles (lo mismo).
+- Comprobación (paso 4d-2, 2026-10-16; `tools/investigacion/nowcastcheck.cs`; resultados en
+  `docs/verificacion/2026-10-16-fase4-prevision-aeropuertos.csv`): 61 momentos cada 30 min en cinco días de lluvia, en
+  Barajas y León aeropuerto, a +30, +60 y +90 min. Veces que llovió de verdad, según el radar en la celda del aeropuerto,
+  cuando la previsión dijo cada palabra (llovió / casos):
+
+  | Plazo | Movida: "no" | Movida: "probable" | Quieta: "no" | Quieta: "probable" |
+  |---|---|---|---|---|
+  | +30 min | 4/29 (14 %) | 26/29 (90 %) | 7/25 (28 %) | 19/26 (73 %) |
+  | +60 min | 3/26 (12 %) | 24/29 (83 %) | 7/23 (30 %) | 16/27 (59 %) |
+  | +90 min | 3/22 (14 %) | 24/33 (73 %) | 7/23 (30 %) | 13/27 (48 %) |
+
+  Mover la lluvia gana claramente a dejarla quieta, y más cuanto más lejos. "Puede" salió poco (3-6 casos). Fallo
+  típico: la tormenta del 6 oct. en Barajas a las 14:06 UTC nació allí mismo y la previsión de las 13:30 dijo "no":
+  mover la lluvia no ve la que aún no existe.
+  **Frente al METAR** sale peor ("no" con lluvia en el METAR: 10-14 de 22-29), pero casi siempre porque el propio radar
+  no ve esa lluvia: en León el radar marca seco en la celda del aeropuerto cuando el METAR dice lluvia en 38 de 117
+  casos (32 %); en Barajas, 12 de 66 (18 %). Es la lluvia débil que el radar de Palencia, a ~120 km, no alcanza (riesgo
+  anotado en `DECISIONS.md` 025). El juez (4e) tendrá que medir contra los dos.

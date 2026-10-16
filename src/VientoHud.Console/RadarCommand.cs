@@ -54,6 +54,27 @@ internal sealed class RadarCommand(IRadarSource radar, ILocationProvider device,
         var motion = frames.Count >= 2 ? RainMotions.Combine(frames) : null;
         output.WriteLine(Describe(motion, frames));
 
+        // "Now" for the forecast: the time asked for, or the real now (the frame is a few minutes older).
+        var issuedAt = options.At is not null ? wanted : now;
+        if (issuedAt < grid.Time)
+        {
+            issuedAt = grid.Time;
+        }
+        var nowcast = Nowcast.AtPoint(grid, motion?.Motion, location, issuedAt);
+        output.WriteLine();
+        output.WriteLine($"Previsión aquí, desde las {LocalTime(issuedAt)}" +
+            (motion?.Motion is null ? " (sin movimiento conocido: supone que la lluvia se queda donde está):" : ":"));
+        foreach (var minutes in new[] { 0, 30, 60, 90 })
+        {
+            var label = minutes == 0 ? "ahora" : $"+{minutes} min";
+            output.WriteLine($"  {label,-8} {Chance(nowcast.At(issuedAt.AddMinutes(minutes)))}");
+        }
+        output.WriteLine(nowcast.RainArrives is { } arrives ? $"La lluvia llega hacia las {LocalTime(arrives)}."
+            : nowcast.RainStops is { } stops ? $"Deja de llover hacia las {LocalTime(stops)}."
+            : nowcast.Steps[0].Likelihood == RainLikelihood.Likely ? "Sigue lloviendo durante la hora y media."
+            : nowcast.Steps.Any(s => s.Likelihood == RainLikelihood.Possible) ? "Puede llover en la próxima hora y media, sin llegar a probable."
+            : "No se espera lluvia en la próxima hora y media.");
+
         Directory.CreateDirectory(options.OutputDirectory);
         var file = Path.GetFullPath(Path.Combine(
             options.OutputDirectory, $"radar-{TimeZoneInfo.ConvertTime(rain.Time, TimeZoneInfo.Local):yyyyMMdd-HHmm}.png"));
@@ -62,7 +83,24 @@ internal sealed class RadarCommand(IRadarSource radar, ILocationProvider device,
             PngWriter.Write(stream, RainImage.Render(grid, location, motion: motion?.Motion));
         }
         output.WriteLine();
+        var stamp = TimeZoneInfo.ConvertTime(issuedAt, TimeZoneInfo.Local).ToString("yyyyMMdd-HHmm");
+        var forecastFiles = new List<string>();
+        if (motion?.Motion is { } moving)
+        {
+            foreach (var minutes in new[] { 30, 60 })
+            {
+                var ahead = Nowcast.Advect(grid, moving, issuedAt.AddMinutes(minutes));
+                var path = Path.GetFullPath(Path.Combine(options.OutputDirectory, $"radar-{stamp}-mas{minutes}.png"));
+                await using var forecastStream = File.Create(path);
+                PngWriter.Write(forecastStream, RainImage.Render(ahead, location, motion: moving));
+                forecastFiles.Add(path);
+            }
+        }
         output.WriteLine($"Imagen: {file}");
+        foreach (var forecastFile in forecastFiles)
+        {
+            output.WriteLine($"Prevista: {forecastFile}");
+        }
         output.WriteLine(
             $"  Colores de la leyenda de AEMET; negro: seco; gris: sin datos; cruz: tu posición; " +
             $"círculos cada {RainImage.RingSpacingKm.ToString("0", Spanish)} km. Norte arriba.");
@@ -102,6 +140,21 @@ internal sealed class RadarCommand(IRadarSource radar, ILocationProvider device,
             : $"La lluvia va hacia el {Point(motion.TowardsDegrees)} ({motion.TowardsDegrees.ToString("0", Spanish)}°) a " +
               $"{Kmh(motion.SpeedKmh)} ({pairs}).";
     }
+
+    private static string Chance(RainChance chance) => chance.Probability is not { } p
+        ? "sin datos del radar"
+        : $"{Likelihood(chance.Likelihood!.Value)} ({Percent(p)})";
+
+    private static string Likelihood(RainLikelihood likelihood) => likelihood switch
+    {
+        RainLikelihood.No => "no",
+        RainLikelihood.Possible => "puede",
+        RainLikelihood.Likely => "probable",
+        _ => likelihood.ToString(),
+    };
+
+    private static string LocalTime(DateTimeOffset utc) =>
+        TimeZoneInfo.ConvertTime(utc, TimeZoneInfo.Local).ToString("HH:mm", Spanish);
 
     private static string Local(DateTimeOffset utc) =>
         TimeZoneInfo.ConvertTime(utc, TimeZoneInfo.Local).ToString("ddd dd/MM HH:mm", Spanish);
