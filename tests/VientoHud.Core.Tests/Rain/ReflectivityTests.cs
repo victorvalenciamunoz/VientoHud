@@ -28,6 +28,22 @@ public class ReflectivityTests
         Assert.Equal(Reflectivity.ToRainRate(55), Reflectivity.ToRainRate(67));
     }
 
+    [Theory]
+    [InlineData(0.648, 20)]
+    [InlineData(11.53, 40)]
+    public void Turns_a_rain_rate_back_into_reflectivity(double mmPerHour, double dbz)
+    {
+        Assert.Equal(dbz, Reflectivity.FromRainRate(mmPerHour), tolerance: 0.02);
+        Assert.Equal(17.3, Reflectivity.FromRainRate(Reflectivity.ToRainRate(17.3)), tolerance: 1e-9);
+    }
+
+    [Fact]
+    public void The_cap_is_the_most_rain_a_frame_can_show()
+    {
+        Assert.Equal(Reflectivity.ToRainRate(80), Reflectivity.MaxRainRate);
+        Assert.Throws<ArgumentOutOfRangeException>(() => Reflectivity.FromRainRate(0));
+    }
+
     [Fact]
     public void Rejects_non_finite_values()
     {

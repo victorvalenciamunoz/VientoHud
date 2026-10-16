@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a y 4b-1 hechos)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a y 4b hechos; 4b-2 pendiente del visto bueno del autor)
 
 ## Fase 4
 
@@ -18,6 +18,15 @@
 - **Fuente de OPERA** (`IRadarSource`, `OperaRadarSource`): la hora de la última imagen publicada y la imagen de una
   hora dada, recortada (bucket de 24 h o histórico según la edad, y el otro si no está; null si falta la imagen).
   Caché opcional en disco. Sin clave. Atribución "Radar: EUMETNET OPERA (CC BY 4.0)".
+- **Lluvia alrededor** (`RainNearby`, `RainIntensities`; `DECISIONS.md` 027): de una imagen, la lluvia en el punto, la
+  más cercana y la más fuerte (km y rumbo HACIA ella), y cuánta zona tiene datos y moja; cuenta como lluvia desde
+  12 dBZ (≈ 0,2 mm/h). Intensidad con los umbrales de AEMET. `RadarFrames`: la imagen de una hora (redondeada hacia
+  atrás) o hasta tres anteriores si falta.
+- **Imagen PNG** (`RainImage`, `PngWriter`): la rejilla con los colores de la leyenda de AEMET, negro seco, gris sin
+  datos, círculos cada 50 km y una cruz en la salida; PNG escrito sin paquetes.
+- **Comando `radar`**: `radar [--lat --lon] [--at "aaaa-mm-dd hh:mm"] [--radius 20-300] [--out carpeta]`. Sin `--at`,
+  la última imagen. Dice la hora (local) y la antigüedad de la imagen, la lluvia en el punto, la más cercana y la más
+  fuerte, y escribe `radar-aaaammdd-hhmm.png`. Caché en `%LOCALAPPDATA%\VientoHud\radar`.
 
 ### Qué falta (fase 4)
 
@@ -27,7 +36,7 @@ División aceptada por el autor el 2026-10-16:
 - [ ] 4b. Una imagen (**decisiones del autor**: PureHDF, reflectividad cada 5 min, texto + PNG; `DECISIONS.md` 026):
   - [x] 4b-1. Core: descargar una imagen de OPERA (la última o la de una hora pasada) y recortar la zona alrededor de
     la salida (~150 km) como rejilla de lluvia en mm/h, distinguiendo "seco" de "sin datos".
-  - [ ] 4b-2. Consola `radar`: si llueve en el punto, dónde está la lluvia más cercana (km y hacia dónde) y cuánta
+  - [ ] 4b-2 (hecho; **falta que el autor mire las imágenes**). Consola `radar`: si llueve en el punto, dónde está la lluvia más cercana (km y hacia dónde) y cuánta
     zona tiene datos, y un PNG de la zona con una cruz en la salida. Comprobación en 3-4 momentos de lluvia en Madrid
     y León: a ojo frente al mapa de radar de la web de AEMET y frente a la lluvia de los METAR.
 - [ ] 4c. Movimiento: con varias imágenes seguidas, hacia dónde y a qué velocidad va la lluvia (un desplazamiento
@@ -64,11 +73,35 @@ División aceptada por el autor el 2026-10-16:
   los dos (null), fichero de otra hora (error), fallos de red y servidor, horas que no son de imagen, caché.
   **En vivo** (`tools/investigacion/radarlive.cs`): Madrid a las 11:13 UTC, última imagen de las 11:05 (8 min de
   retraso), seco, 3 s; León el 3 oct. a las 10:35 (METAR: chubasco fuerte), 1,8 mm/h en el punto y el 39 % mojado.
+- Paso 4b-2 (2026-10-16): 36 tests nuevos (466 en total): lluvia más cercana y más fuerte con su distancia y rumbo, la
+  del punto a distancia 0, ecos por debajo de 12 dBZ no cuentan, celdas sin datos fuera de la cuenta; umbrales de
+  intensidad de AEMET; de mm/h a dBZ y vuelta; colores de cada escalón de la leyenda, tamaño de la imagen (2 píxeles por
+  km), norte arriba, cruz y círculo de 50 km; el PNG se vuelve a leer (firma, CRC de cada trozo con otro cálculo, píxeles
+  iguales); imagen redondeada hacia atrás y hasta tres anteriores si falta. La consola no tiene tests: probada en vivo.
+  **Frente a los METAR** (`radar` en el aeropuerto; hora UTC):
+
+  | Momento | METAR | `radar` en el aeropuerto |
+  |---|---|---|
+  | Barajas, 3 oct. 06:00 | SHRA (chubasco) | llueve, débil (1,0 mm/h); lo más fuerte, 39 mm/h a 105 km al SSO |
+  | León, 3 oct. 10:35 | +SHRA (chubasco fuerte) | llueve, moderada (5,2 mm/h); 31 % de la zona mojada |
+  | León, 30 sept. 08:00 | RA BR (lluvia y neblina) | llueve, débil (0,9 mm/h) |
+  | Barajas, 6 oct. 16:45 | +TSRA (tormenta fuerte) | llueve, moderada (6,5 mm/h); granizo probable a 14 km al SSO |
+  | Barajas, 6 oct. 15:30 | VCSH (chubascos cerca, no en el aeropuerto) | no llueve; lluvia débil a 2,1 km al ONO |
+
+  Cuadra en los cinco. Las intensidades del radar parecen bajas para un "chubasco fuerte" o una "tormenta fuerte":
+  Marshall-Palmer es para lluvia continua y se queda corto con las tormentas; anotado para el juez.
+  **Frente a AEMET** (composición GeoTIFF de su web, 16 oct. 10:30 UTC): toda la Península, mismas zonas de lluvia
+  (suroeste de Francia, núcleo al sur de León, células del sureste); alrededor de León, el mismo grupo de células a
+  ~75 km al S con la misma forma. AEMET pinta además una banda de lluvia frente a Galicia que en OPERA no tiene datos
+  (falta el radar de A Coruña). Imágenes para el autor en la carpeta temporal de la sesión.
 
 ### Riesgos y pendientes (fase 4)
 
 - **León, lejos del radar:** lo cubre Palencia a ~100-120 km; la lluvia débil puede quedarse corta.
-- **Huecos en la red de AEMET:** en renovación; hoy faltan varios radares en OPERA (no Madrid ni Palencia).
+- **Huecos en la red de AEMET:** en renovación; hoy faltan varios radares en OPERA (no Madrid ni Palencia). Visto el
+  16 oct.: AEMET pinta lluvia frente a Galicia y OPERA no tiene datos allí (sin el radar de A Coruña).
+- **Tormentas con poca intensidad:** Marshall-Palmer da 5-7 mm/h donde el METAR dice "fuerte"; para tormentas se usan
+  otras relaciones. El juez dirá si importa.
 - **Tamaño:** cada fichero de OPERA es Europa entera (~2 MB). Para el móvil (fase 6) convendrá leer solo la zona
   (el GeoTIFF optimizado lo permite por rangos); en la consola no es problema.
 - **Lectura lenta de la reflectividad:** 1-4 s por imagen aunque solo se lea la zona (la de RATE, 0,02 s). Para el

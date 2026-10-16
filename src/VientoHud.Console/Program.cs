@@ -1,5 +1,7 @@
 using VientoHud.ConsoleApp;
 using VientoHud.Core.Location;
+using VientoHud.Core.Rain;
+using VientoHud.Core.Rain.Opera;
 using VientoHud.Core.Routing;
 using VientoHud.Core.Routing.BRouter;
 using VientoHud.Core.Wind;
@@ -10,7 +12,8 @@ using VientoHud.Core.Wind.Verification;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-const string Usage = "Uso:\n  " + WindOptions.Usage + "\n  " + VerifyOptions.Usage + "\n  " + RouteOptions.Usage;
+const string Usage = "Uso:\n  " + WindOptions.Usage + "\n  " + VerifyOptions.Usage + "\n  " + RouteOptions.Usage
+                     + "\n  " + RadarOptions.Usage;
 
 if (args.Length == 0 || args[0] is "-h" or "--help")
 {
@@ -68,6 +71,17 @@ switch (args[0])
         }
         break;
 
+    case "radar":
+        if (RadarOptions.Parse(args[1..], out error) is { } radarOptions)
+        {
+            // Downloaded frames are kept (~2 MB each) so that looking again at the same time does not download again.
+            var cache = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VientoHud", "radar");
+            var opera = new OperaRadarSource(http, new OperaOptions { CacheDirectory = cache });
+            run = () => new RadarCommand(opera, device, Console.Out).RunAsync(radarOptions, cancellation.Token);
+        }
+        break;
+
     default:
         error = $"Comando desconocido: {args[0]}";
         break;
@@ -84,7 +98,8 @@ try
 {
     return await run();
 }
-catch (Exception ex) when (ex is WindForecastException or WindObservationException or LocationUnavailableException)
+catch (Exception ex) when (ex is WindForecastException or WindObservationException or LocationUnavailableException
+                               or RadarException)
 {
     Console.Error.WriteLine($"Error: {ex.Message}");
     return 1;

@@ -595,3 +595,24 @@ Formato: contexto → decisión → alternativas descartadas.
   fase 6 para descargar solo un trozo en el móvil); envoltorios de la librería nativa de HDF5 (HDF.PInvoke: nativos por
   plataforma, mal en Android); lector de HDF5 propio (formato muy complejo); pasar la rejilla a latitud/longitud
   (deforma las celdas y complica el movimiento).
+
+## 027 — Comando `radar`: qué cuenta como lluvia y cómo se dibuja
+- Contexto: el paso 4b-2 enseña la lluvia de una imagen de radar alrededor de la salida, en texto y en un PNG que el
+  autor compara a ojo con el mapa de radar de AEMET (decisión del autor, 2026-10-16).
+- Decisiones técnicas (2026-10-16; `RainNearby`, `RainImage`, `PngWriter`, `RadarFrames`):
+  - **Cuenta como lluvia desde 12 dBZ (≈ 0,2 mm/h)**, lo más débil que pinta AEMET, para que el texto diga lo mismo que
+    los mapas. Es un valor para mirar, no para decidir: el umbral del juez (4e) lo decidirá el autor.
+  - **Intensidad con los umbrales de AEMET:** débil hasta 2 mm/h, moderada hasta 15, fuerte hasta 30, muy fuerte hasta
+    60 y torrencial por encima. Una celda en el tope de la reflectividad (55 dBZ) se dice "torrencial o granizo".
+  - **Texto:** lluvia en el punto, la lluvia más cercana (km y hacia dónde) y la más fuerte, cuánta zona tiene datos y
+    cuánta moja.
+  - **PNG:** la rejilla tal cual (norte arriba, 2 píxeles por km), con los 11 colores de la leyenda de AEMET (sacados de
+    su imagen de radar: un color cada 6 dBZ desde 12), negro donde está seco, gris donde no hay datos, círculos cada
+    50 km y una cruz en la salida. Por el tope de 55 dBZ no aparecen los tres colores más altos. Escrito sin paquetes
+    (zlib del propio .NET).
+  - **Imagen pedida:** la de la hora dada redondeada hacia atrás (múltiplo de 5 min) y, si falta, hasta tres anteriores.
+  - **Caché de la consola** en `%LOCALAPPDATA%\VientoHud\radar` (sin limpieza todavía).
+- Alternativas: umbral de 0,1 mm/h (la mayor parte es ruido que AEMET no pinta) o de 0,5 mm/h (no diría "llueve" en
+  lluvias débiles que AEMET sí pinta); colores propios (no se podría comparar con AEMET de un vistazo); paquete de
+  imágenes (no hace falta para un PNG sencillo); dibujar fronteras o carreteras (más datos y trabajo; los círculos y la
+  cruz bastan para comparar).
