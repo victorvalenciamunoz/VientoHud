@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a, 4b y 4c hechos; falta el visto bueno del autor a las imágenes del 4c-2)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a, 4b y 4c hechos)
 
 ## Fase 4
 
@@ -48,7 +48,7 @@ División aceptada por el autor el 2026-10-16:
   - [x] 4b-2. Consola `radar`: si llueve en el punto, dónde está la lluvia más cercana (km y hacia dónde) y cuánta
     zona tiene datos, y un PNG de la zona con una cruz en la salida. Comprobación en 3-4 momentos de lluvia en Madrid
     y León: a ojo frente al mapa de radar de la web de AEMET y frente a la lluvia de los METAR.
-- [ ] 4c. Movimiento (división aceptada por el autor el 2026-10-16):
+- [x] 4c. Movimiento (división aceptada por el autor el 2026-10-16):
   - [x] 4c-1. Core: el movimiento entre dos imágenes (un desplazamiento para toda la zona, por correlación).
   - [x] 4c-2. Varias imágenes de la última media hora y su acuerdo; `radar` dice hacia dónde va la lluvia y pinta una
     flecha. Comprobación en los días de lluvia ya vistos: serie de PNG para el ojo del autor, mover la imagen de hace
@@ -122,7 +122,7 @@ División aceptada por el autor el 2026-10-16:
   movimiento*.csv`): 55 momentos de cinco días de lluvia en Madrid y León, con el movimiento calculado 30 min antes:
   mover la imagen se parece más a la real que dejarla quieta en **los 55** (0,64 frente a 0,40 de media); frente al
   viento a 700 hPa, diferencia de dirección mediana de 16° (49 de 55 dentro de 45°) y misma velocidad (relación 1,07).
-  Serie de imágenes con flecha para el autor en la carpeta temporal de la sesión.
+  Serie de imágenes con flecha para el autor en la carpeta temporal de la sesión: **le cuadra** (2026-10-16).
 
 ### Riesgos y pendientes (fase 4)
 
