@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a a 3d hechos; falta el juez, 3e)
+**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a a 3e-1 hechos; falta pasar el juez, 3e-2)
 
 ## Fase 3
 
@@ -32,6 +32,9 @@
   de la salida y los rumbos buscados, escribe un GPX por vuelta válida en su mejor sentido, numerado por puesto
   (`1-vuelta-60km-SO-20261016-1000.gpx`), y explica cada una: ventaja, tramos ("km 0-15: de cara 11 km/h · …"),
   rachas de lado peligrosas, resumen de la vuelta y hora de llegada. Las descartadas siguen saliendo como en la fase 2.
+- **Piezas del juez** (`ObservedWind`, `RideJudge`; `DECISIONS.md` 024): el METAR de las estaciones pasado a un campo de
+  viento por horas; repuntuar las vueltas de un día con el viento real: acierto, pérdida y ganancia frente a no mirar
+  el viento.
 
 ### Qué falta (fase 3)
 
@@ -50,8 +53,9 @@ División aceptada por el autor el 2026-10-15:
 - [x] 3d-2. Consola: `route` usa los rumbos según el viento, ordena por puntuación con la explicación por tramos
   ("km 0-18: de cara 12 km/h…"), admite la hora de salida (`--at`, por defecto ahora) y escribe un GPX por vuelta en su
   mejor sentido (**decisión del autor**). Si no hay vuelta contra el viento, abanico más ancho (**decisión del autor**).
-- [ ] 3e. Juez: días pasados, recalcular la puntuación con el viento observado (METAR, fase 1) y ver si la ruta
-  elegida con la previsión seguía siendo buena.
+- [x] 3e-1. Core del juez: viento observado (METAR) por horas y repuntuación de las vueltas (`DECISIONS.md` 024).
+- [ ] 3e-2. Pasar el juez: León, Fuenlabrada, Tres Cantos y La Bañeza (aparte), ~15 días con viento de los últimos 3
+  meses, previsión "salgo ahora" y "el día antes" (**decisión del autor**); tabla aquí.
 
 Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018): no cargar brouter.de.
 
@@ -110,6 +114,12 @@ Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018):
   mañana a las 10:00: viento flojo (3,5 km/h), rumbos cada 120°, 3 vueltas y el aviso de que el orden apenas importa.
   Fuenlabrada, 50 km, a las 8:00: viento del E a 7 km/h; las tres del sector E fallan (distancia), se amplía al S
   (falla) y al N (válida, 52,4 km); 52 peticiones.
+- Paso 3e-1 (2026-10-16): 11 tests nuevos (381 en total). Con el METAR real de LELN (1 oct.): una muestra por hora
+  con el informe de la hora en punto, pasando nudos a km/h; el VRB02KT de las 8:00 toma la dirección del informe de
+  las 8:30 (20°); sin informes, nada. Informe más cercano a ±15 min y el anterior en empate; calma sin dirección →
+  norte; el campo deja fuera la estación sin datos. Juez: con el viento previsto, acierta y no pierde nada; con el
+  viento dado la vuelta, falla y pierde más de 20 km/h; frente a la vuelta elegida sin viento gana más de 20 km/h;
+  repuntuar con el mismo viento da lo mismo y con el contrario, lo contrario.
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 

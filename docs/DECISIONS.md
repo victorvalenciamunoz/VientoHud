@@ -491,3 +491,25 @@ Formato: contexto → decisión → alternativas descartadas.
   llevan mucho viento de lado); sin ampliar (puede quedarse sin ruta) o siempre una de reserva en otra dirección (casi
   nunca buena para el viento); escribir los dos sentidos (6 ficheros) o solo la ganadora; tramos fijos de 10 km en la
   explicación (cortan por la mitad los cambios de viento).
+
+## 024 — Juez de la fase 3: la elección con la previsión, repuntuada con el viento observado
+- Contexto: el plan pide recalcular la puntuación de rutas de días pasados con el viento observado y ver si la elegida
+  seguía siendo buena.
+- Decisión (2026-10-16; sitios y previsiones elegidos por el autor):
+  - **Casos:** León (LELN a 7 km), Fuenlabrada (Getafe, Cuatro Vientos), Tres Cantos (Barajas, Cuatro Vientos) y La
+    Bañeza (LELN a ~35 km: el viento "real" es menos fiable, va en fila aparte); los ~15 días con más viento de los
+    últimos 3 meses en cada sitio; salida a las 10:00 hora local, 60 km a 25 km/h, 3 vueltas.
+  - **Dos previsiones** (como la fase 1): "salgo ahora" (archivo a corto plazo) y "el día antes" (24 h antes).
+  - **Viento observado** (`ObservedWind`): METAR de las estaciones cercanas (las de la fase 1), una muestra por hora
+    con el informe más cercano a ±15 min; un viento variable o en calma toma la dirección del informe más cercano que la
+    tenga; si a una estación le falta alguna hora, no cuenta. Con una sola estación el viento es igual en toda la ruta:
+    sirve para juzgar qué vuelta se elige, no los detalles de un pueblo a otro.
+  - **Medidas** (`RideJudge`), sobre las mismas vueltas y las mismas horas de paso: si la elegida fue también la mejor
+    con el viento real (acierto); cuánta ventaja se perdió frente a la mejor (pérdida); su ventaja real frente a una
+    vuelta elegida sin mirar el viento (rumbos cada 120° desde el norte, la mejor del generador, como en la fase 2);
+    cuántas veces tuvo de verdad viento de cara en la primera mitad; rachas de lado de más de 40 km/h observadas sin
+    aviso.
+  - **Para darlo por bueno:** sin umbral fijado de antemano; como mínimo, la elegida tiene que ganar claramente a no
+    mirar el viento. Se decide con los resultados delante.
+- Alternativas: el archivo a corto plazo de Open-Meteo como "viento real" (es otra previsión, no una medida); solo
+  estaciones dentro de la ruta (casi nunca hay).
