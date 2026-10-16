@@ -1,6 +1,8 @@
 # Estado
 
-**Fase actual: 3 — Viento en la ruta** (en curso: pasos 3a a 3e-1 hechos; falta pasar el juez, 3e-2)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (sin empezar)
+
+Fase 3 — Viento en la ruta: terminada el 2026-10-16 (pasos 3a a 3e hechos y el juez ejecutado; el autor la da por buena).
 
 ## Fase 3
 
@@ -54,8 +56,8 @@ División aceptada por el autor el 2026-10-15:
   ("km 0-18: de cara 12 km/h…"), admite la hora de salida (`--at`, por defecto ahora) y escribe un GPX por vuelta en su
   mejor sentido (**decisión del autor**). Si no hay vuelta contra el viento, abanico más ancho (**decisión del autor**).
 - [x] 3e-1. Core del juez: viento observado (METAR) por horas y repuntuación de las vueltas (`DECISIONS.md` 024).
-- [ ] 3e-2. Pasar el juez: León, Fuenlabrada, Tres Cantos y La Bañeza (aparte), ~15 días con viento de los últimos 3
-  meses, previsión "salgo ahora" y "el día antes" (**decisión del autor**); tabla aquí.
+- [x] 3e-2. Pasar el juez: León, Fuenlabrada, Tres Cantos y La Bañeza (aparte), ~15 días con viento de los últimos 3
+  meses, previsión "salgo ahora" y "el día antes" (**decisión del autor**); tabla abajo.
 
 Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018): no cargar brouter.de.
 
@@ -120,6 +122,41 @@ Para desarrollar, BRouter en local (`tools/brouter-local/`, `DECISIONS.md` 018):
   norte; el campo deja fuera la estación sin datos. Juez: con el viento previsto, acierta y no pierde nada; con el
   viento dado la vuelta, falla y pierde más de 20 km/h; frente a la vuelta elegida sin viento gana más de 20 km/h;
   repuntuar con el mismo viento da lo mismo y con el contrario, lo contrario.
+- Paso 3e-2 (2026-10-16), **juez de la fase 3** (`tools/investigacion/judge3.cs`, BRouter local; resultados en
+  `docs/verificacion/2026-10-16-fase3-juez.*`): 20 jul. a 14 oct. 2026, los 15 días con más viento observado (de 10:00
+  a 12:24) en cada sitio, 60 km a 25 km/h. 129 casos (9 perdidos: Open-Meteo cortó por el límite por minuto o devolvió
+  algo que no era JSON). La "ventaja" es viento de cara medio en la 1.ª mitad − en la 2.ª, con el viento observado.
+
+  | Sitio (estación) | Previsión | Casos | Acierto | Pérdida | Ventaja real elegida | Sin mirar el viento | Ganancia | Ventaja > 0 |
+  |---|---|---|---|---|---|---|---|---|
+  | León (LELN 7 km) | salgo ahora | 15 | 87 % | 0,9 | +9,8 | −0,9 | +10,7 | 93 % |
+  | León | el día antes | 15 | 73 % | 0,6 | +7,8 | −0,9 | +8,7 | 93 % |
+  | Fuenlabrada (LEGT, LEVS) | salgo ahora | 13 | 85 % | 0,9 | +9,8 | −1,8 | +11,6 | 92 % |
+  | Fuenlabrada | el día antes | 15 | 73 % | 0,9 | +6,6 | −2,5 | +9,1 | 93 % |
+  | Tres Cantos (LECV, LEMD) | salgo ahora | 12 | 100 % * | 0,0 | +3,8 | +1,4 | +2,4 | 92 % |
+  | Tres Cantos | el día antes | 12 | 100 % * | 0,0 | +3,3 | +0,7 | +2,6 | 75 % |
+  | **Los tres** | **salgo ahora** | **40** | **90 %** | **0,6** | **+8,0** | **−0,5** | **+8,5** | **93 %** |
+  | **Los tres** | **el día antes** | **42** | **81 %** | **0,6** | **+6,1** | **−1,0** | **+7,1** | **88 %** |
+  | La Bañeza (LELN 38 km) | salgo ahora | 12 | 42 % | 5,4 | +8,4 | +2,4 | +6,0 | 83 % |
+  | La Bañeza | el día antes | 13 | 54 % | 4,2 | +8,0 | +1,3 | +6,7 | 85 % |
+
+  Km/h; viento medio observado 13-20 km/h. \* En Tres Cantos siempre hubo una sola vuelta válida (9 veces ampliando el
+  abanico): su acierto no dice nada. **Conclusión:** elegir por el viento da unos 8 km/h de ventaja real frente a casi
+  cero sin mirarlo; decidirlo la víspera empeora poco. El autor la da por buena (2026-10-16).
+
+### Riesgos y pendientes (fase 3)
+
+- **Pocas vueltas entre las que elegir:** en el juez, Tres Cantos tuvo siempre una sola válida y Fuenlabrada 1 o 2 en
+  26 de 28 casos; solo León suele tener las 3. Es el generador de la fase 2 (una de cada cuatro vueltas inválida en su
+  juez), no el viento. Con más candidatas la elección por el viento ganaría más.
+- **Ventaja prevista pequeña = elección frágil:** los dos fallos más caros (León 8 sept., Fuenlabrada 24 ago., ~11 km/h
+  perdidos) fueron días con +2 km/h de ventaja prevista. Idea: decir cuándo la diferencia entre vueltas es pequeña.
+- **Rachas de lado sin aviso:** 7 casos, en tramos de 1 a 3 km. El METAR solo da rachas significativas.
+- **Límite por minuto de Open-Meteo** (600): el juez lo tocó al pedir muchos puntos seguidos; para un usuario no es
+  riesgo, pero un reintento tras un minuto evitaría perder la consulta.
+- **El viento "real" es el de un aeropuerto:** igual en toda la ruta. En La Bañeza (estación a 38 km) el acierto baja
+  a la mitad.
+- La consola `route` no tiene tests propios (solo Core); probada a mano y en vivo.
 
 Fase 2 — Rutas circulares + GPX: terminada el 2026-10-15 (pasos 1 a 6 hechos y el juez ejecutado; el 7 queda como mejora).
 

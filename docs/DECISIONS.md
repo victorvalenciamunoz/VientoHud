@@ -511,5 +511,10 @@ Formato: contexto → decisión → alternativas descartadas.
     aviso.
   - **Para darlo por bueno:** sin umbral fijado de antemano; como mínimo, la elegida tiene que ganar claramente a no
     mirar el viento. Se decide con los resultados delante.
+- Resultado (2026-10-16, 129 casos; tabla en `STATUS.md` y `docs/verificacion/2026-10-16-fase3-juez.*`): sin La
+  Bañeza, la elegida acierta el 90 % ("salgo ahora") y el 81 % ("el día antes"), pierde 0,6 km/h de media frente a la
+  mejor y tiene +8,0 / +6,1 km/h de ventaja real frente a −0,5 / −1,0 sin mirar el viento. **El autor da la fase 3 por
+  buena.** Pendientes: pocas candidatas (generador de la fase 2) y elecciones frágiles cuando la ventaja prevista es
+  pequeña.
 - Alternativas: el archivo a corto plazo de Open-Meteo como "viento real" (es otra previsión, no una medida); solo
   estaciones dentro de la ruta (casi nunca hay).

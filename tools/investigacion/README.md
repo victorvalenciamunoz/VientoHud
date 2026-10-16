@@ -29,3 +29,4 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `calibrate.cs` | Fase 3: cuánto frenan al autor el viento y la pendiente, con sus salidas de Garmin (hora y altitud) y la previsión archivada de AROME en cada tramo. Llevó a DECISIONS 021. |
 | `timing.cs` | Fase 3: compara la hora de paso prevista por `RouteLegs` (fija y por pendiente) con la real de salidas de Garmin. |
 | `rank.cs` | Fase 3: ejemplos de la puntuación: vueltas en varios rumbos (BRouter local) puntuadas en los dos sentidos con el viento archivado de un día pasado, con la explicación por tramos de las dos primeras; un GPX por opción con su puesto. |
+| `judge3.cs` | Juez de la fase 3 (`DECISIONS.md` 024): días pasados con viento en varios sitios; elige y ordena las vueltas con la previsión archivada ("salgo ahora" y "el día antes") y las repuntúa con el METAR; tabla y CSV. Pensado para el BRouter local (~1,5 h). |
