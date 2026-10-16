@@ -616,3 +616,35 @@ Formato: contexto → decisión → alternativas descartadas.
   lluvias débiles que AEMET sí pinta); colores propios (no se podría comparar con AEMET de un vistazo); paquete de
   imágenes (no hace falta para un PNG sencillo); dibujar fronteras o carreteras (más datos y trabajo; los círculos y la
   cruz bastan para comparar).
+
+## 028 — Movimiento de la lluvia entre dos imágenes: un desplazamiento para toda la zona
+- Contexto: el paso 4c tiene que saber hacia dónde y a qué velocidad va la lluvia para moverla hacia delante. El plan
+  pide empezar simple: un desplazamiento global por correlación. División aceptada por el autor (2026-10-16): 4c-1 entre
+  dos imágenes; 4c-2 con varias imágenes, la consola y las comprobaciones.
+- Decisión (técnica, 2026-10-16; `RainMotions`, `RainMotion`):
+  - **Se mueve la imagen anterior hasta que más se parece a la posterior** (correlación de Pearson sobre las celdas con
+    datos en las dos). El desplazamiento entre el tiempo que las separa es la velocidad. Rumbo en grados HACIA donde va la
+    lluvia (como los rumbos de la ruta), no el "desde" del viento.
+  - **Se compara la forma, no la cantidad:** cada celda vale su reflectividad por encima de 12 dBZ, con un tope de 18 dB
+    más (30 dBZ, ≈ 2,7 mm/h); lo seco vale 0 y cuenta. Así un núcleo fuerte, o un eco fuerte que no se mueve (montañas,
+    parques eólicos), no manda sobre una zona amplia de lluvia.
+  - **Búsqueda de grueso a fino:** bloques de ~4 km para todos los desplazamientos hasta 150 km/h; luego celda a celda
+    alrededor del mejor bloque; al final, una parábola por el máximo para afinar por debajo de la celda. 30-170 ms con
+    300 km a 1 km.
+  - **"No sé" en tres casos:** menos de 200 km² con lluvia en alguna de las dos; parecido por debajo de 0,4; mejor
+    desplazamiento en el borde de la búsqueda (más rápido que el límite o falso).
+- Medido con imágenes reales de OPERA (parejas a 15, 30 y 45 min):
+
+  | Caso (UTC) | Producto | Hacia | Velocidad | Parecido (quieta → movida) |
+  |---|---|---|---|---|
+  | Madrid, 3 oct. 05:30-06:15 (chubascos) | lluvia (2 km) | 23-30° (NNE) | 14-24 km/h | 0,11-0,55 → 0,43-0,67 |
+  | Madrid, 3 oct. 05:30-06:00 | reflectividad (1 km) | 22-30° | 14-24 km/h | 0,53-0,80 → 0,75-0,89 |
+  | Barajas, 6 oct. 16:15-16:45 (tormenta) | reflectividad | 56-58° (ENE) | 29-52 km/h | 0,46-0,71 → 0,69-0,88 |
+  | León, 30 sept. 07:30-08:00 (frente) | reflectividad | 57-61° (ENE) | 64-73 km/h | 0,03-0,17 → 0,46-0,61 |
+
+  La dirección sale muy estable entre parejas; la velocidad varía más (la tormenta del 6 oct. de 29 a 52 km/h).
+- Cautela: con una sola pareja, el umbral de 0,4 deja poco margen (imágenes sin relación llegan a ~0,38 por azar con
+  pocas manchas de lluvia). En 4c-2, varias parejas de la última media hora y su acuerdo darán la confianza.
+- Alternativas: comparar los mm/h tal cual (manda el núcleo más fuerte); lluvia sí/no (pierde la forma interior);
+  flujo óptico por zonas (es el paso 4f, solo si el juez lo pide); búsqueda completa celda a celda (con 30 min y
+  150 km/h son ~22.800 desplazamientos sobre la rejilla entera, frente a ~1.500 sobre bloques y 81 finos).

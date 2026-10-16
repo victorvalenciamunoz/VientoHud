@@ -39,8 +39,11 @@ División aceptada por el autor el 2026-10-16:
   - [x] 4b-2. Consola `radar`: si llueve en el punto, dónde está la lluvia más cercana (km y hacia dónde) y cuánta
     zona tiene datos, y un PNG de la zona con una cruz en la salida. Comprobación en 3-4 momentos de lluvia en Madrid
     y León: a ojo frente al mapa de radar de la web de AEMET y frente a la lluvia de los METAR.
-- [ ] 4c. Movimiento: con varias imágenes seguidas, hacia dónde y a qué velocidad va la lluvia (un desplazamiento
-  único para toda la zona, por correlación). Tests con rejillas inventadas desplazadas y un día real de lluvia.
+- [ ] 4c. Movimiento (división aceptada por el autor el 2026-10-16):
+  - [x] 4c-1. Core: el movimiento entre dos imágenes (un desplazamiento para toda la zona, por correlación).
+  - [ ] 4c-2. Varias imágenes de la última media hora y su acuerdo; `radar` dice hacia dónde va la lluvia y pinta una
+    flecha. Comprobación en los días de lluvia ya vistos: serie de PNG para el ojo del autor, mover la imagen de hace
+    30 min y ver que se parece más a la de ahora que dejarla quieta, y frente al viento a 700 hPa de Open-Meteo.
 - [ ] 4d. Proyección: mover la última imagen hacia delante y responder si lloverá en un punto a t+30 / t+60 / t+90.
 - [ ] 4e. Juez (backtest): días de lluvia de los últimos meses en Madrid y León (elegidos con los METAR); predecir solo
   con las imágenes anteriores, comparar con la real y sacar la tabla de acierto por horizonte frente a los dos rivales:
@@ -95,6 +98,13 @@ División aceptada por el autor el 2026-10-16:
   ~75 km al S con la misma forma. AEMET pinta además una banda de lluvia frente a Galicia que en OPERA no tiene datos
   (falta el radar de A Coruña). Imágenes para el autor en la carpeta temporal de la sesión. **El autor las da por
   buenas** (2026-10-16).
+- Paso 4c-1 (2026-10-16): 14 tests nuevos (480 en total). Manchas de lluvia inventadas desplazadas: 6 km al E y 4 al N
+  en 30 min dan 12 y 8 km/h (rumbo 56°); medias celdas y cuartos dentro de 0,25 celdas; 35 km al SO en 30 min
+  (búsqueda gruesa); lluvia quieta, 0 km/h; mismo desplazamiento en 15 min, el doble de velocidad; con huecos sin datos;
+  la misma lluvia tres veces más fuerte se sigue igual. "No sé": una sola tormenta pequeña (poca lluvia), imágenes sin
+  relación y lluvia más rápida que el límite. Real (fixture RATE del 3 oct. 05:30 y 06:00): hacia el NNE a ~19 km/h,
+  mucho más parecida movida que quieta. **Medido** en Madrid (3 y 6 oct.) y León (30 sept.) con parejas a 15-45 min:
+  la dirección sale estable (tabla en `DECISIONS.md` 028).
 
 ### Riesgos y pendientes (fase 4)
 
