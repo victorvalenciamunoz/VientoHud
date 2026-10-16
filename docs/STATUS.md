@@ -1,6 +1,50 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (sin empezar)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (paso 4a hecho)
+
+## Fase 4
+
+### Qué funciona (fase 4)
+
+- Todavía no hay código. Fuente de radar elegida: **OPERA** de EUMETNET (`DECISIONS.md` 025): sin clave, CC BY 4.0,
+  reflectividad cada 5 min a 1 km y lluvia en mm/h cada 15 min a 2 km, con histórico desde 2012 y Madrid y León
+  cubiertos.
+
+### Qué falta (fase 4)
+
+División aceptada por el autor el 2026-10-16:
+
+- [x] 4a. Investigar el radar de AEMET y las alternativas; decidir la fuente (`DECISIONS.md` 025).
+- [ ] 4b. Una imagen: descargar un fichero de OPERA y recortar la zona alrededor de la salida (~150 km) como rejilla
+  de lluvia en mm/h, distinguiendo "seco" de "sin datos". Comando de consola `radar` con la lluvia de ahora alrededor.
+  Comprobación: a ojo frente al mapa de radar de la web de AEMET y frente a la lluvia de los METAR.
+- [ ] 4c. Movimiento: con varias imágenes seguidas, hacia dónde y a qué velocidad va la lluvia (un desplazamiento
+  único para toda la zona, por correlación). Tests con rejillas inventadas desplazadas y un día real de lluvia.
+- [ ] 4d. Proyección: mover la última imagen hacia delante y responder si lloverá en un punto a t+30 / t+60 / t+90.
+- [ ] 4e. Juez (backtest): días de lluvia de los últimos meses en Madrid y León (elegidos con los METAR); predecir solo
+  con las imágenes anteriores, comparar con la real y sacar la tabla de acierto por horizonte frente a los dos rivales:
+  "nada se mueve" y AROME HD cada 15 min de Open-Meteo (**decisión del autor**).
+- [ ] 4f. Movimiento por zonas, solo si el juez dice que el desplazamiento único se queda corto.
+
+Pendiente aparte: comprobar con la clave del autor que el radar de AEMET OpenData da solo imágenes GIF (lo dice su
+FAQ; sin clave no se pudo ver). No cambia la decisión.
+
+### Cómo se ha validado (fase 4)
+
+- Paso 4a (2026-10-16): documentación oficial (EUMETNET Open Radar Data, especificación de AEMET OpenData y su FAQ,
+  nota legal de AEMET, catálogos de datos.gob.es y MITECO, API de RainViewer, Open-Meteo) y llamadas reales: listado
+  y descarga anónimos de OPERA (hoy y un día de enero de 2025 en el histórico), lectura de un fichero RATE desde un
+  script de .NET 10 con PureHDF (0,4 s; Madrid y León con datos válidos, A Coruña sin datos); AEMET OpenData sin clave
+  responde 200 con cuerpo vacío; descarga GeoTIFF de la web de AEMET (composición de 692×497 px, últimas 4 h); RainViewer
+  (13 imágenes de pasado, sin previsión); Open-Meteo AROME HD cada 15 min con datos en Madrid y León y sin datos en
+  Sevilla. Comparación completa en `DECISIONS.md` 025.
+
+### Riesgos y pendientes (fase 4)
+
+- **León, lejos del radar:** lo cubre Palencia a ~100-120 km; la lluvia débil puede quedarse corta.
+- **Huecos en la red de AEMET:** en renovación; hoy faltan varios radares en OPERA (no Madrid ni Palencia).
+- **Tamaño:** cada fichero de OPERA es Europa entera (~2 MB). Para el móvil (fase 6) convendrá leer solo la zona
+  (el GeoTIFF optimizado lo permite por rangos); en la consola no es problema.
 
 Fase 3 — Viento en la ruta: terminada el 2026-10-16 (pasos 3a a 3e hechos y el juez ejecutado; el autor la da por buena).
 
@@ -537,10 +581,9 @@ Lo hecho en la fase 1 está más abajo, a partir de "Qué funciona".
 
 - **Juez con AEMET (complemento):** su observación horaria solo cubre las últimas 12 horas; habrá que ir
   guardándola durante días. Útil sobre todo donde no hay aeródromos (montaña de León).
-- **Clave de AEMET:** pedida el 2026-10-14; el enlace de confirmación respondió 204 (éxito, sin contenido).
-  Falta el correo con la clave. Solo hace falta para el complemento de AEMET.
-  Es dudoso que llegue. **Riesgo para la fase 4:** el plan parte del radar de AEMET, que también pide clave;
-  si no llega, habrá que buscar otra fuente de radar en esa fase (licencia, cobertura, clave).
+- **Clave de AEMET:** pedida el 2026-10-14, llegó el 2026-10-16 y caduca a los 3 meses (hacia mediados de enero
+  de 2027; norma de AEMET desde julio de 2026). Solo sirve para el complemento de AEMET como herramienta del autor;
+  no entra en el producto (`DECISIONS.md` 025). El radar de la fase 4 sale de OPERA, sin clave.
 - **Elegir el modelo por zona:** el juez muestra que el mejor modelo cambia según la zona (León, Navarra y
   A Coruña frente al centro y el este). La app podría ejecutar el juez en las estaciones cercanas al usuario
   y elegir el modelo allí. No es de la fase 1; anotado como mejora posible.

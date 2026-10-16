@@ -518,3 +518,49 @@ Formato: contexto → decisión → alternativas descartadas.
   pequeña.
 - Alternativas: el archivo a corto plazo de Open-Meteo como "viento real" (es otra previsión, no una medida); solo
   estaciones dentro de la ruta (casi nunca hay).
+
+## 025 — Fuente de radar: OPERA (EUMETNET); AEMET OpenData fuera del producto
+- Contexto: la fase 4 (paso 4a) necesita imágenes de radar que se puedan descargar, pasar a una rejilla de intensidad
+  de lluvia, comparar entre sí para sacar el movimiento y, para el juez, recuperar de días pasados. El plan partía del
+  radar de AEMET. Comprobado el 2026-10-16 en la documentación oficial y con llamadas reales.
+- Comparación:
+
+  | | OPERA (EUMETNET, Open Radar Data) | Web de AEMET (descarga GeoTIFF) | AEMET OpenData | RainViewer |
+  |---|---|---|---|---|
+  | Clave | No | No | Sí; desde jul. 2026 caduca a los 3 meses | No |
+  | Contenido | Valores: reflectividad (DBZH) y lluvia en mm/h (RATE) | Clases de color de 6 dBZ (11 niveles) | Imagen GIF sin georreferencia (según su FAQ) | Teselas PNG; el color se traduce a dBZ |
+  | Frecuencia / retraso | DBZH 5 min / ~4 min; RATE 15 min / ~12 min | 10 min / ~11 min | 10 min (regional), 30 min (nacional) | 10 min |
+  | Resolución | DBZH 1 km; RATE 2 km | ~2,5 km (composición) | Sin publicar | Zoom 7 como máximo (~0,9 km) |
+  | Cobertura | Europa, con los radares de AEMET; Madrid y León comprobados píxel a píxel | Península y Baleares | España | Mundial |
+  | Histórico | Desde sept. 2012, descarga anónima | 2-3 días | Solo la última imagen | 2 horas |
+  | Licencia | CC BY 4.0 | CC BY 4.0 ("Fuente: AEMET") | CC BY 4.0 | Solo uso personal o educativo |
+  | Formato | ODIM HDF5 y GeoTIFF optimizado (COG), proyección LAEA | GeoTIFF EPSG:4326 en tar.gz | GIF | PNG |
+  | Estabilidad | Servicio oficial y documentado (MeteoGate) | Direcciones internas de la web, sin documentar | Oficial | Recortado mucho en 2025-2026 |
+
+  Acceso a OPERA: `https://s3.waw3-1.cloudferro.com/openradar-24h/` (últimas 24 h) y `.../openradar-archive/` (histórico),
+  ruta `AAAA/MM/DD/OPERA/COMP/OPERA@AAAAMMDDTHHMM@0@{DBZH|RATE|ACRR}.{h5|tiff}`, ~1,3-2,4 MB por fichero (Europa
+  entera). También hay una API (OGC EDR, `api.meteogate.eu`) limitada a 200 peticiones/h sin clave.
+- Decisión (del autor, 2026-10-16):
+  - **OPERA como fuente principal**, detrás de una interfaz.
+  - **La web de AEMET, solo como reserva** si OPERA falla; no se programa ahora.
+  - **AEMET OpenData no entra en el producto:** su clave caduca cada 3 meses, se pide a mano y no puede ir dentro de la
+    app (ni en el repo ni en cada móvil); pedir una a cada usuario va contra "cero entrada de datos manual". Como mucho,
+    herramienta del autor para el juez (estaciones sin aeropuerto, pendiente de la fase 1). La clave del autor llegó el
+    2026-10-16 y caduca hacia mediados de enero de 2027; va en `VIENTOHUD_AEMET_KEY` o en user-secrets, nunca en el repo.
+  - **El juez de la fase 4 compara con dos rivales:** "nada se mueve" (la lluvia de ahora se queda donde está) y la
+    previsión de AROME HD cada 15 min de Open-Meteo (`meteofrance_arome_france_hd_15min`: 1,5 km, cubre Madrid y León,
+    no el sur de España). La predicción propia solo vale si gana a los dos.
+- Cautelas:
+  - León lo cubre el radar de Palencia (Autilla del Pino), a ~100-120 km: a esa distancia el haz va alto y puede
+    quedarse corto con la lluvia débil. El juez lo medirá.
+  - La red de AEMET está en renovación (Valladolid se apagó el 2026-06-15) y hoy faltan en OPERA Valencia, Murcia,
+    A Coruña, Asturias y Palma. OPERA distingue "sin eco" (`undetect`) de "sin datos" (`nodata`): la app tiene que
+    distinguirlos también.
+  - Leer HDF5 o GeoTIFF pedirá un paquete NuGet; se valora en el paso 4b (candidato: PureHDF, MIT, sin dependencias
+    nativas, probado con un fichero real de OPERA).
+  - Fuera de Europa no hay fuente; RainViewer sería la candidata si algún día hace falta (uso no comercial).
+- Alternativas descartadas: AEMET OpenData (clave que caduca, imágenes GIF, sin histórico); web de AEMET como principal
+  (colores en escalones de 6 dBZ, direcciones sin documentar, 2-3 días de histórico); RainViewer (uso personal, 2 h de
+  histórico, sin previsión desde 2026); Météo-France (solo Francia, clave, ~20 h sin archivo); DWD (solo Alemania);
+  satélite H SAF (más grueso, registro, 60 días); servicios con "lluvia en el próximo minuto" (OpenWeatherMap,
+  Tomorrow.io…): no dan radar, solo su previsión, y piden clave.
