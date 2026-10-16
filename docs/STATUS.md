@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a a 4d hechos)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a a 4d y 4e-1 hechos)
 
 ## Fase 4
 
@@ -43,6 +43,10 @@
 - **`radar` con previsión**: "Previsión aquí, desde las 15:30: ahora no (0 %); +30 min …; +60; +90" y "La lluvia llega
   hacia las …", "Deja de llover hacia las …" o que no se espera; con movimiento conocido, guarda además las imágenes
   previstas a +30 y +60 min (`radar-aaaammdd-hhmm-mas30.png`).
+- **Piezas del juez** (`DECISIONS.md` 031): lluvia de los METAR (`IemPrecipitationObservationSource`,
+  `MetarWeather.HasPrecipitation`: en el aeropuerto, no "en las cercanías" ni "reciente"); previsión pasada de AROME HD
+  cada 15 min (`OpenMeteoPastRainForecastSource`, varios sitios en una llamada, en mm/h); medidas (`RainScores`: cuánta
+  lluvia anunció, cuántas veces llovió con "probable" y con "no", fiabilidad de los porcentajes y Brier).
 
 ### Qué falta (fase 4)
 
@@ -64,9 +68,10 @@ División aceptada por el autor el 2026-10-16:
   - [x] 4d-1. Core: probabilidad de lluvia en un punto cada 5 min hasta 90, hora de llegada y de fin, imagen movida.
   - [x] 4d-2. `radar` dice la lluvia prevista a +30, +60 y +90 y cuándo llega o se va, y guarda las imágenes previstas.
     Comprobación en momentos pasados en Barajas y León frente a lo que vio el radar después y frente al METAR.
-- [ ] 4e. Juez (backtest): días de lluvia de los últimos meses en Madrid y León (elegidos con los METAR); predecir solo
-  con las imágenes anteriores, comparar con la real y sacar la tabla de acierto por horizonte frente a los dos rivales:
-  "nada se mueve" y AROME HD cada 15 min de Open-Meteo (**decisión del autor**).
+- [ ] 4e. Juez (backtest; `DECISIONS.md` 031, **decisiones del autor**: contra el radar y contra el METAR, lluvia desde
+  0,2 mm/h, días de lluvia de los últimos 3 meses en Madrid y León, rivales "nada se mueve" y AROME HD 15 min):
+  - [x] 4e-1. Core: lluvia de los METAR (IEM), previsión pasada de AROME HD cada 15 min (Open-Meteo) y las medidas.
+  - [ ] 4e-2. Pasar el juez y sacar las tablas.
 - [ ] 4f. Movimiento por zonas, solo si el juez dice que el desplazamiento único se queda corto.
 
 ### Cómo se ha validado (fase 4)
@@ -144,6 +149,13 @@ División aceptada por el autor el 2026-10-16:
   el 12-14 %; dejando la lluvia quieta, 73 % / 59 % / 48 % y 28-30 %. Frente al METAR sale peor porque el radar no ve
   parte de la lluvia: en León marca seco con lluvia en el METAR en el 32 % de los casos (Barajas, 18 %). Tabla en
   `DECISIONS.md` 030.
+- Paso 4e-1 (2026-10-16): 33 tests nuevos (538 en total). METAR: 18 grupos de tiempo presente (lluvia, llovizna, chubasco,
+  tormenta con lluvia, granizo, nieve; no cuentan neblina, niebla, trueno sin lluvia, "en las cercanías", "reciente" ni
+  nieve levantada); con la respuesta real de IEM del 6 oct. (Barajas y León, 12-15 UTC): 16 informes, la tormenta de
+  Barajas desde las 14:06, León sin tiempo presente; rango, errores. AROME HD 15 min con respuestas reales del 6 oct.:
+  Barajas y León en una llamada, 3,1 mm de 16:00 a 16:15 son 12,4 mm/h; el cuarto de hora que contiene cada hora;
+  Sevilla fuera del modelo, con el motivo; errores. Medidas: cada palabra y cuánto llovió; Brier 0, 0,25 y 1;
+  fiabilidad por bandas; sin casos.
 
 ### Riesgos y pendientes (fase 4)
 

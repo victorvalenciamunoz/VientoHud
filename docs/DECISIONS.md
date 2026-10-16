@@ -713,3 +713,30 @@ Formato: contexto → decisión → alternativas descartadas.
   no ve esa lluvia: en León el radar marca seco en la celda del aeropuerto cuando el METAR dice lluvia en 38 de 117
   casos (32 %); en Barajas, 12 de 66 (18 %). Es la lluvia débil que el radar de Palencia, a ~120 km, no alcanza (riesgo
   anotado en `DECISIONS.md` 025). El juez (4e) tendrá que medir contra los dos.
+
+## 031 — Juez de la fase 4: la previsión de lluvia contra el radar y contra el METAR
+- Contexto: el plan pide un backtest: con imágenes históricas, predecir t+30 / t+60 usando solo las anteriores y
+  comparar con la real; tabla de acierto por plazo. División (como la fase 3): 4e-1 piezas en Core; 4e-2 pasar el juez.
+- Decisión (del autor, 2026-10-16; aceptó las cuatro recomendaciones):
+  - **Contra qué, dos tablas:** el radar después en el punto (justo para juzgar el movimiento) y el METAR (independiente,
+    pero en León el radar no ve parte de la lluvia: `DECISIONS.md` 030).
+  - **Qué es lluvia:** 0,2 mm/h en el radar (12 dBZ, lo que pinta AEMET); en el METAR, cualquier precipitación en el
+    aeropuerto (lluvia, llovizna, chubasco, nieve, granizo), no la de "en las cercanías" (VC) ni la "reciente" (RE).
+  - **Qué días:** los de lluvia de los últimos 3 meses en Madrid (Barajas, Getafe, Cuatro Vientos, Colmenar) y León,
+    cada 30 min desde 2 h antes de la lluvia hasta 2 h después, para que haya también casos secos (falsas alarmas).
+  - **Medidas** (`RainScores`): de la lluvia que hubo, cuánta anunció ("probable"); cuando dijo "probable", cuántas
+    veces llovió; cuando dijo "no", cuántas veces llovió; si los porcentajes son de fiar (en bandas de 20 %: cuando dice
+    40 %, ¿llueve ~4 de cada 10?) y un número para ellos (Brier: 0 perfecto, 0,25 decir siempre 50 %).
+  - **Rivales:** "nada se mueve" (la misma previsión sin movimiento) y AROME HD cada 15 min (Open-Meteo,
+    `meteofrance_arome_france_hd_15min`: 0 % o 100 % según su lluvia en el aeropuerto). Además, tres tamaños del círculo
+    de la previsión para ajustarlo.
+- Piezas (técnicas, 2026-10-16):
+  - `IPrecipitationObservationSource` / `IemPrecipitationObservationSource`: el tiempo presente de los METAR del archivo
+    de IEM (`data=wxcodes`), con `MetarWeather.HasPrecipitation` para leerlo por trozos de dos letras.
+  - `IPastRainForecastSource` / `OpenMeteoPastRainForecastSource`: la lluvia de cada cuarto de hora del archivo de
+    previsiones, de varios sitios en una llamada, en mm/h; `RainForecastSeries.RateAt` toma el cuarto de hora que acaba
+    en la hora pedida o justo después (como el radar, que junta los minutos anteriores).
+- Cautela: el archivo de Open-Meteo guarda las primeras horas de cada pasada del modelo, así que a cada hora tiene lo
+  que AROME dijo poco antes: un rival generoso. Que la previsión propia le gane vale más por eso.
+- Alternativas: solo el radar (se juzga a sí mismo); solo el METAR (castiga al radar por la lluvia que no ve en León);
+  0,5 mm/h (solo lo que moja de verdad; se puede sacar después con los mismos datos).
