@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a y 4b hechos; 4b-2 pendiente del visto bueno del autor)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a y 4b hechos)
 
 ## Fase 4
 
@@ -33,10 +33,10 @@
 División aceptada por el autor el 2026-10-16:
 
 - [x] 4a. Investigar el radar de AEMET y las alternativas; decidir la fuente (`DECISIONS.md` 025).
-- [ ] 4b. Una imagen (**decisiones del autor**: PureHDF, reflectividad cada 5 min, texto + PNG; `DECISIONS.md` 026):
+- [x] 4b. Una imagen (**decisiones del autor**: PureHDF, reflectividad cada 5 min, texto + PNG; `DECISIONS.md` 026):
   - [x] 4b-1. Core: descargar una imagen de OPERA (la última o la de una hora pasada) y recortar la zona alrededor de
     la salida (~150 km) como rejilla de lluvia en mm/h, distinguiendo "seco" de "sin datos".
-  - [ ] 4b-2 (hecho; **falta que el autor mire las imágenes**). Consola `radar`: si llueve en el punto, dónde está la lluvia más cercana (km y hacia dónde) y cuánta
+  - [x] 4b-2. Consola `radar`: si llueve en el punto, dónde está la lluvia más cercana (km y hacia dónde) y cuánta
     zona tiene datos, y un PNG de la zona con una cruz en la salida. Comprobación en 3-4 momentos de lluvia en Madrid
     y León: a ojo frente al mapa de radar de la web de AEMET y frente a la lluvia de los METAR.
 - [ ] 4c. Movimiento: con varias imágenes seguidas, hacia dónde y a qué velocidad va la lluvia (un desplazamiento
@@ -93,7 +93,8 @@ División aceptada por el autor el 2026-10-16:
   **Frente a AEMET** (composición GeoTIFF de su web, 16 oct. 10:30 UTC): toda la Península, mismas zonas de lluvia
   (suroeste de Francia, núcleo al sur de León, células del sureste); alrededor de León, el mismo grupo de células a
   ~75 km al S con la misma forma. AEMET pinta además una banda de lluvia frente a Galicia que en OPERA no tiene datos
-  (falta el radar de A Coruña). Imágenes para el autor en la carpeta temporal de la sesión.
+  (falta el radar de A Coruña). Imágenes para el autor en la carpeta temporal de la sesión. **El autor las da por
+  buenas** (2026-10-16).
 
 ### Riesgos y pendientes (fase 4)
 
