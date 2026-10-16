@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a, 4b y 4c-1 hechos)
+**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a, 4b y 4c hechos; falta el visto bueno del autor a las imágenes del 4c-2)
 
 ## Fase 4
 
@@ -31,6 +31,11 @@
   zona, el que más parecidas hace las dos imágenes (forma de la lluvia, no cantidad), de grueso a fino y afinado por
   debajo de la celda. Da la velocidad hacia el este y el norte, la velocidad y el rumbo HACIA donde va, y el parecido
   con y sin moverla. "No sé" con poca lluvia, poco parecido o al borde de la búsqueda (150 km/h).
+- **Movimiento de la última media hora** (`RainMotions.Combine`, `RadarFrames.GetMotionFramesAsync`; `DECISIONS.md`
+  029): cuatro imágenes cada 10 min, la mediana de sus 6 parejas si al menos la mitad dan movimiento y coinciden.
+  `RainMotions.Similarity`: el parecido para un desplazamiento dado (para comprobar). `radar` dice "La lluvia va hacia
+  el ENE (57°) a 39 km/h (6 de 6 parejas…)" o por qué no se sabe, y el PNG lleva una flecha hasta donde llega la lluvia
+  en una hora.
 
 ### Qué falta (fase 4)
 
@@ -45,7 +50,7 @@ División aceptada por el autor el 2026-10-16:
     y León: a ojo frente al mapa de radar de la web de AEMET y frente a la lluvia de los METAR.
 - [ ] 4c. Movimiento (división aceptada por el autor el 2026-10-16):
   - [x] 4c-1. Core: el movimiento entre dos imágenes (un desplazamiento para toda la zona, por correlación).
-  - [ ] 4c-2. Varias imágenes de la última media hora y su acuerdo; `radar` dice hacia dónde va la lluvia y pinta una
+  - [x] 4c-2. Varias imágenes de la última media hora y su acuerdo; `radar` dice hacia dónde va la lluvia y pinta una
     flecha. Comprobación en los días de lluvia ya vistos: serie de PNG para el ojo del autor, mover la imagen de hace
     30 min y ver que se parece más a la de ahora que dejarla quieta, y frente al viento a 700 hPa de Open-Meteo.
 - [ ] 4d. Proyección: mover la última imagen hacia delante y responder si lloverá en un punto a t+30 / t+60 / t+90.
@@ -109,6 +114,15 @@ División aceptada por el autor el 2026-10-16:
   relación y lluvia más rápida que el límite. Real (fixture RATE del 3 oct. 05:30 y 06:00): hacia el NNE a ~19 km/h,
   mucho más parecida movida que quieta. **Medido** en Madrid (3 y 6 oct.) y León (30 sept.) con parejas a 15-45 min:
   la dirección sale estable (tabla en `DECISIONS.md` 028).
+- Paso 4c-2 (2026-10-16): 9 tests nuevos (489 en total): cuatro imágenes cada 10 min dan 6 parejas y su mediana; una
+  imagen rara no arrastra la mediana; parejas que no coinciden, "movimientos distintos"; sin parejas suficientes, la
+  razón más repetida; imágenes a menos de 10 min no se emparejan; el parecido es mayor en el desplazamiento verdadero;
+  "apenas se mueve" por debajo de 3 km/h; las imágenes del movimiento (falta una: se deja fuera); la flecha llega a
+  30 km al E con 30 km/h. **Comprobación** (`motioncheck.cs`, `motionwind.cs`; `docs/verificacion/2026-10-16-fase4-
+  movimiento*.csv`): 55 momentos de cinco días de lluvia en Madrid y León, con el movimiento calculado 30 min antes:
+  mover la imagen se parece más a la real que dejarla quieta en **los 55** (0,64 frente a 0,40 de media); frente al
+  viento a 700 hPa, diferencia de dirección mediana de 16° (49 de 55 dentro de 45°) y misma velocidad (relación 1,07).
+  Serie de imágenes con flecha para el autor en la carpeta temporal de la sesión.
 
 ### Riesgos y pendientes (fase 4)
 
@@ -125,6 +139,11 @@ División aceptada por el autor el 2026-10-16:
 - **RATE sale más seco que la reflectividad** (0,24 frente a 1,0 mm/h en Barajas el 3 oct.): no se sabe aún cuál
   acierta más.
 - **Paquete de una sola persona** (PureHDF): si se abandona, el lector queda aislado en `OdimComposite`.
+- **`radar` tarda ~20 s** con el movimiento (cuatro imágenes de reflectividad de 1-4 s cada una, más la descarga).
+- **Falsos ecos:** en León el 30 sept. a las 11:00 UTC sale una raya recta de eco débil (interferencias en el radar,
+  no lluvia). Cuenta como lluvia en el texto y en el movimiento; si estorba, habrá que filtrarlos.
+- **Viento flojo, movimiento dudoso:** con lluvia lenta (León 3 oct., ~17 km/h) el viento en altura no confirma la
+  dirección; el juez dirá si el movimiento sirve igual.
 
 Fase 3 — Viento en la ruta: terminada el 2026-10-16 (pasos 3a a 3e hechos y el juez ejecutado; el autor la da por buena).
 

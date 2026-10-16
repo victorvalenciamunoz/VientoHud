@@ -50,23 +50,57 @@ internal sealed class RadarCommand(IRadarSource radar, ILocationProvider device,
             output.WriteLine("No llueve en ningún sitio de la zona.");
         }
 
+        var frames = await radar.GetMotionFramesAsync(grid, location, options.RadiusKm, cancellationToken);
+        var motion = frames.Count >= 2 ? RainMotions.Combine(frames) : null;
+        output.WriteLine(Describe(motion, frames));
+
         Directory.CreateDirectory(options.OutputDirectory);
         var file = Path.GetFullPath(Path.Combine(
             options.OutputDirectory, $"radar-{TimeZoneInfo.ConvertTime(rain.Time, TimeZoneInfo.Local):yyyyMMdd-HHmm}.png"));
         await using (var stream = File.Create(file))
         {
-            PngWriter.Write(stream, RainImage.Render(grid, location));
+            PngWriter.Write(stream, RainImage.Render(grid, location, motion: motion?.Motion));
         }
         output.WriteLine();
         output.WriteLine($"Imagen: {file}");
         output.WriteLine(
             $"  Colores de la leyenda de AEMET; negro: seco; gris: sin datos; cruz: tu posición; " +
             $"círculos cada {RainImage.RingSpacingKm.ToString("0", Spanish)} km. Norte arriba.");
+        if (motion?.Motion is not null)
+        {
+            output.WriteLine("  Flecha: hacia dónde va la lluvia y hasta dónde llega en una hora.");
+        }
         output.WriteLine();
         output.WriteLine(
             $"Cuenta como lluvia desde {rain.ThresholdMmPerHour.ToString("0.0", Spanish)} mm/h (lo más débil que pinta AEMET).");
         output.WriteLine(radar.Attribution);
         return 0;
+    }
+
+    private static string Describe(CombinedRainMotion? combined, IReadOnlyList<RainGrid> frames)
+    {
+        var minutes = (frames[^1].Time - frames[0].Time).TotalMinutes.ToString("0", Spanish);
+        if (combined is null)
+        {
+            return "Movimiento: no se puede saber (faltan las imágenes anteriores).";
+        }
+        if (combined.Motion is not { } motion)
+        {
+            var reason = combined.Failure switch
+            {
+                RainMotionFailure.TooLittleRain => "llueve poco en la zona",
+                RainMotionFailure.NoClearMatch => "las imágenes no se parecen lo bastante",
+                RainMotionFailure.TooFast => "no se encuentra un desplazamiento claro",
+                RainMotionFailure.PairsDisagree => "las imágenes dan movimientos distintos",
+                _ => "",
+            };
+            return $"Movimiento: no se puede saber ({reason}).";
+        }
+        var pairs = $"{combined.PairsWithMotion} de {combined.PairsTried} parejas de imágenes de los últimos {minutes} min";
+        return motion.IsAlmostStill
+            ? $"La lluvia apenas se mueve ({pairs})."
+            : $"La lluvia va hacia el {Point(motion.TowardsDegrees)} ({motion.TowardsDegrees.ToString("0", Spanish)}°) a " +
+              $"{Kmh(motion.SpeedKmh)} ({pairs}).";
     }
 
     private static string Local(DateTimeOffset utc) =>

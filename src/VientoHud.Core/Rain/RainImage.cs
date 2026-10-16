@@ -40,7 +40,8 @@ public sealed class RgbaImage
 
 /// <summary>
 /// Draws a rain grid with the colours of AEMET's radar maps, so the two can be compared by eye: north up, black where
-/// it is dry, grey where there is no data, rings every 50 km around the mark and a white cross on it.
+/// it is dry, grey where there is no data, rings every 50 km around the mark and a white cross on it. With a motion, an
+/// arrow from the mark to where the rain over it will be in an hour (<see cref="ArrowHours"/>).
 /// </summary>
 public static class RainImage
 {
@@ -56,13 +57,16 @@ public static class RainImage
 
     public const double RingSpacingKm = 50;
 
+    /// <summary>The arrow is as long as the way the rain travels in this many hours.</summary>
+    public const double ArrowHours = 1;
+
     private static readonly (byte R, byte G, byte B) Dry = (0, 0, 0);
     private static readonly (byte R, byte G, byte B) NoData = (127, 127, 127);
     private static readonly (byte R, byte G, byte B) Ring = (90, 90, 90);
     private static readonly (byte R, byte G, byte B) Mark = (255, 255, 255);
 
     /// <param name="pixelsPerKm">Size of the picture: pixels per km (cells of 1 km at 2 pixels per km are 2 × 2).</param>
-    public static RgbaImage Render(RainGrid grid, Coordinate mark, double pixelsPerKm = 2)
+    public static RgbaImage Render(RainGrid grid, Coordinate mark, double pixelsPerKm = 2, RainMotion? motion = null)
     {
         if (!double.IsFinite(pixelsPerKm) || pixelsPerKm <= 0)
         {
@@ -109,6 +113,29 @@ public static class RainImage
             }
         }
 
+        if (motion is not null)
+        {
+            // Pixels per km/h: x towards the east, y towards the south.
+            var pixelsPerKmh = ArrowHours * 1000 / metresPerPixel;
+            double tipX = cx + motion.EastKmh * pixelsPerKmh, tipY = cy - motion.NorthKmh * pixelsPerKmh;
+            var angle = Math.Atan2(tipY - cy, tipX - cx);
+            var head = Math.Min(10, Math.Sqrt((tipX - cx) * (tipX - cx) + (tipY - cy) * (tipY - cy)) / 2);
+            (double X, double Y)[] wings =
+            [
+                (tipX - head * Math.Cos(angle - 0.5), tipY - head * Math.Sin(angle - 0.5)),
+                (tipX - head * Math.Cos(angle + 0.5), tipY - head * Math.Sin(angle + 0.5)),
+            ];
+            // Black under white, one pixel wider, so the arrow shows over any colour.
+            foreach (var (thickness, color) in new[] { (1, Dry), (0, Mark) })
+            {
+                Line(pixels, width, height, cx, cy, tipX, tipY, thickness, color);
+                foreach (var (wx, wy) in wings)
+                {
+                    Line(pixels, width, height, tipX, tipY, wx, wy, thickness, color);
+                }
+            }
+        }
+
         return new RgbaImage(width, height, pixels);
     }
 
@@ -134,6 +161,25 @@ public static class RainImage
             }
         }
         return color;
+    }
+
+    private static void Line(
+        byte[] pixels, int width, int height, double x0, double y0, double x1, double y1, int thickness,
+        (byte R, byte G, byte B) color)
+    {
+        var steps = (int)Math.Ceiling(Math.Max(Math.Abs(x1 - x0), Math.Abs(y1 - y0))) + 1;
+        for (var i = 0; i <= steps; i++)
+        {
+            var x = (int)Math.Round(x0 + (x1 - x0) * i / steps);
+            var y = (int)Math.Round(y0 + (y1 - y0) * i / steps);
+            for (var dy = -thickness; dy <= thickness; dy++)
+            {
+                for (var dx = -thickness; dx <= thickness; dx++)
+                {
+                    PutIfInside(pixels, width, height, x + dx, y + dy, color);
+                }
+            }
+        }
     }
 
     private static void PutIfInside(byte[] pixels, int width, int height, int x, int y, (byte R, byte G, byte B) color)

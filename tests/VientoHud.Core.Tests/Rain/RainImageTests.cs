@@ -79,6 +79,25 @@ public class RainImageTests
     }
 
     [Fact]
+    public void Draws_an_arrow_to_where_the_rain_will_be_in_an_hour()
+    {
+        // 30 km/h towards the east: the tip is 30 km (60 pixels) east of the mark.
+        var grid = Grid();
+        var motion = new RainMotion(Time, Time, 30, 0, 0.9, 0.5);
+
+        var plain = RainImage.Render(grid, Madrid);
+        var withArrow = RainImage.Render(grid, Madrid, motion: motion);
+
+        var white = ((byte)255, (byte)255, (byte)255, (byte)255);
+        var row = 120 + (int)Math.Floor((1000 - Opera.Forward(Madrid).Y % 1000) % 1000 / 500);
+        var column = 120 + (int)Math.Floor(Opera.Forward(Madrid).X % 1000 / 500);
+        Assert.Equal(white, withArrow[column + 40, row]);
+        Assert.Equal(white, withArrow[column + 60, row]);
+        Assert.NotEqual(white, withArrow[column + 66, row]);
+        Assert.NotEqual(white, plain[column + 40, row]);
+    }
+
+    [Fact]
     public void Two_km_cells_are_four_pixels()
     {
         var grid = new RainGrid(Time, Opera, 0, 0, 2000, 3, 5, new float[15]);

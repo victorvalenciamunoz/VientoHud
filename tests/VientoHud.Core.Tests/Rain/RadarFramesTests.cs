@@ -61,6 +61,19 @@ public class RadarFramesTests
     }
 
     [Fact]
+    public async Task Motion_frames_are_the_three_every_ten_minutes_before_the_latest()
+    {
+        var latest = Frame(At6.AddMinutes(30));
+        var source = new FakeRadarSource(FiveMinutes, Frame(At6), Frame(At6.AddMinutes(10)), latest);
+
+        var frames = await source.GetMotionFramesAsync(latest, Madrid, 50);
+
+        // 6:20 is missing: left out.
+        Assert.Equal([At6, At6.AddMinutes(10), At6.AddMinutes(30)], frames.Select(f => f.Time));
+        Assert.Equal([At6, At6.AddMinutes(10), At6.AddMinutes(20)], source.Requested);
+    }
+
+    [Fact]
     public async Task Gives_up_after_the_last_step_back()
     {
         var source = new FakeRadarSource(FiveMinutes, Frame(At6));

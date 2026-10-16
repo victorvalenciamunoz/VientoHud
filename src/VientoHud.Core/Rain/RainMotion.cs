@@ -21,6 +21,9 @@ public sealed record RainMotion(
 {
     public double SpeedKmh => Math.Sqrt(EastKmh * EastKmh + NorthKmh * NorthKmh);
 
+    /// <summary>Below 3 km/h the rain hardly moves: within the hour it stays within 3 km, under the size of a shower.</summary>
+    public bool IsAlmostStill => SpeedKmh < 3;
+
     /// <summary>Degrees TOWARDS where the rain goes, clockwise from north, in [0, 360). 0 when it does not move.</summary>
     public double TowardsDegrees => (Math.Atan2(EastKmh, NorthKmh) * 180 / Math.PI + 360) % 360;
 }
@@ -36,10 +39,28 @@ public enum RainMotionFailure
 
     /// <summary>The best match is at the edge of the search: faster than allowed, or not real.</summary>
     TooFast,
+
+    /// <summary>Several pairs of frames give clearly different motions.</summary>
+    PairsDisagree,
 }
 
 /// <summary>A motion, or why there is none.</summary>
 public sealed record RainMotionEstimate(RainMotion? Motion, RainMotionFailure? Failure);
+
+/// <summary>The motion of several frames: the median of their pairs, or why there is none.</summary>
+/// <param name="Motion">
+/// Median velocity of the pairs that gave one; its correlations are the medians of theirs, and it spans from the first
+/// to the last frame.
+/// </param>
+/// <param name="PairsTried">Pairs of frames compared.</param>
+/// <param name="PairsWithMotion">Pairs that gave a motion.</param>
+/// <param name="SpreadKmh">Median distance, in km/h, from each pair's velocity to the median one; null without motions.</param>
+public sealed record CombinedRainMotion(
+    RainMotion? Motion,
+    RainMotionFailure? Failure,
+    int PairsTried,
+    int PairsWithMotion,
+    double? SpreadKmh);
 
 /// <summary>Settings for <see cref="RainMotions"/>.</summary>
 public sealed record RainMotionOptions
@@ -78,12 +99,101 @@ public sealed record RainMotionOptions
 public static class RainMotions
 {
     private const double CoarseCellMeters = 4000;
+
     // Cells weigh at most as much as moderate rain (30 dBZ, ≈ 2.7 mm/h): a strong core, or a strong echo that does not
     // move (mountains, wind farms), must not outweigh a wide area of rain.
     private const double MaxDbzAboveThreshold = 18;
 
     // At least this share of the grid must have data in both frames at a shift for its correlation to count.
     private const double MinOverlapFraction = 0.25;
+
+    /// <summary>Pairs of frames closer in time than this are not compared: the rain moves too little between them.</summary>
+    public static readonly TimeSpan MinPairInterval = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// The pairs agree when each is, in the median, within this many km/h of the median velocity, or within
+    /// <see cref="MaxRelativeSpread"/> of its speed if that is more.
+    /// </summary>
+    public const double MaxSpreadKmh = 10;
+
+    public const double MaxRelativeSpread = 0.4;
+
+    /// <summary>
+    /// Motion of several frames of the same grid (in any order): every pair at least <see cref="MinPairInterval"/>
+    /// apart is compared, and the median velocity of those that give one is kept, if at least half of them do and
+    /// they agree. With frames every 10 min over 30 min (4 frames) that is 6 pairs.
+    /// </summary>
+    /// <exception cref="ArgumentException">Fewer than two frames, or not on the same grid.</exception>
+    public static CombinedRainMotion Combine(IReadOnlyList<RainGrid> frames, RainMotionOptions? options = null)
+    {
+        if (frames.Count < 2)
+        {
+            throw new ArgumentException("At least two frames are needed.", nameof(frames));
+        }
+        var ordered = frames.OrderBy(f => f.Time).ToList();
+
+        var estimates = new List<RainMotionEstimate>();
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            for (var j = i + 1; j < ordered.Count; j++)
+            {
+                if (ordered[j].Time - ordered[i].Time >= MinPairInterval)
+                {
+                    estimates.Add(Estimate(ordered[i], ordered[j], options));
+                }
+            }
+        }
+        if (estimates.Count == 0)
+        {
+            throw new ArgumentException($"No two frames are {MinPairInterval.TotalMinutes} min apart.", nameof(frames));
+        }
+
+        var motions = estimates.Where(e => e.Motion is not null).Select(e => e.Motion!).ToList();
+        if (motions.Count * 2 < estimates.Count || motions.Count == 0)
+        {
+            // The most common reason among the pairs that gave nothing.
+            var failure = estimates.Where(e => e.Failure is not null)
+                .GroupBy(e => e.Failure!.Value).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).First().Key;
+            return new CombinedRainMotion(null, failure, estimates.Count, motions.Count, null);
+        }
+
+        var east = Median(motions.Select(m => m.EastKmh));
+        var north = Median(motions.Select(m => m.NorthKmh));
+        var spread = Median(motions.Select(m => Math.Sqrt(
+            (m.EastKmh - east) * (m.EastKmh - east) + (m.NorthKmh - north) * (m.NorthKmh - north))));
+        var combined = new RainMotion(
+            ordered[0].Time, ordered[^1].Time, east, north,
+            Median(motions.Select(m => m.Correlation)), Median(motions.Select(m => m.StillCorrelation)));
+
+        return spread > Math.Max(MaxSpreadKmh, MaxRelativeSpread * combined.SpeedKmh)
+            ? new CombinedRainMotion(null, RainMotionFailure.PairsDisagree, estimates.Count, motions.Count, spread)
+            : new CombinedRainMotion(combined, null, estimates.Count, motions.Count, spread);
+    }
+
+    /// <summary>
+    /// How alike <paramref name="later"/> is to <paramref name="earlier"/> moved <paramref name="eastKm"/> to the east
+    /// and <paramref name="northKm"/> to the north (rounded to whole cells), with the same measure as the motion
+    /// search. Null when they overlap too little or one of them has no rain pattern. For checking a motion against
+    /// frames it was not estimated from.
+    /// </summary>
+    public static double? Similarity(
+        RainGrid earlier, RainGrid later, double eastKm, double northKm, RainMotionOptions? options = null)
+    {
+        options ??= new RainMotionOptions();
+        CheckSameGrid(earlier, later);
+        var a = Shape(earlier, options.ThresholdMmPerHour, out _);
+        var b = Shape(later, options.ThresholdMmPerHour, out _);
+        var cellKm = earlier.CellSizeMeters / 1000;
+        return Correlation(a, b, earlier.Rows, earlier.Columns,
+            (int)Math.Round(eastKm / cellKm), (int)Math.Round(-northKm / cellKm));
+    }
+
+    private static double Median(IEnumerable<double> values)
+    {
+        var sorted = values.Order().ToList();
+        var middle = sorted.Count / 2;
+        return sorted.Count % 2 == 1 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+    }
 
     /// <exception cref="ArgumentException">The frames are not on the same grid or not in time order.</exception>
     public static RainMotionEstimate Estimate(RainGrid earlier, RainGrid later, RainMotionOptions? options = null)

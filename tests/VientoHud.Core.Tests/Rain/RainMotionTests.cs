@@ -184,6 +184,110 @@ public class RainMotionTests
     }
 
     [Fact]
+    public void Four_frames_ten_minutes_apart_give_six_pairs_and_their_median()
+    {
+        // 2 cells east every 10 min: 12 km/h.
+        var frames = Enumerable.Range(0, 4)
+            .Select(i => Grid(At6.AddMinutes(-30 + 10 * i), Storm, moveEastCells: 2 * i))
+            .Reverse()
+            .ToList();
+
+        var combined = RainMotions.Combine(frames);
+
+        Assert.Null(combined.Failure);
+        Assert.Equal(6, combined.PairsTried);
+        Assert.Equal(6, combined.PairsWithMotion);
+        Assert.Equal(12, combined.Motion!.EastKmh, tolerance: 0.5);
+        Assert.Equal(0, combined.Motion.NorthKmh, tolerance: 0.5);
+        Assert.True(combined.SpreadKmh < 1);
+        Assert.Equal(At6.AddMinutes(-30), combined.Motion.From);
+        Assert.Equal(At6, combined.Motion.To);
+    }
+
+    [Fact]
+    public void One_odd_pair_does_not_move_the_median()
+    {
+        // The rain moves 2 cells east every 10 min, but the last frame jumps 6 cells south instead.
+        RainGrid[] frames =
+        [
+            Grid(At6.AddMinutes(-30), Storm),
+            Grid(At6.AddMinutes(-20), Storm, moveEastCells: 2),
+            Grid(At6.AddMinutes(-10), Storm, moveEastCells: 4),
+            Grid(At6, Storm, moveEastCells: 4, moveSouthCells: 6),
+        ];
+
+        var combined = RainMotions.Combine(frames);
+
+        // Three of the six pairs involve the odd frame; the median stays nearer the true motion than the odd one.
+        Assert.NotNull(combined.Motion);
+        Assert.Equal(12, combined.Motion!.EastKmh, tolerance: 4);
+        Assert.True(combined.Motion.NorthKmh > -12);
+    }
+
+    [Fact]
+    public void Pairs_that_disagree_give_no_motion()
+    {
+        // Back and forth: east, then west, then far north.
+        RainGrid[] frames =
+        [
+            Grid(At6.AddMinutes(-30), Storm),
+            Grid(At6.AddMinutes(-20), Storm, moveEastCells: 8),
+            Grid(At6.AddMinutes(-10), Storm, moveEastCells: -8),
+            Grid(At6, Storm, moveSouthCells: -12),
+        ];
+
+        var combined = RainMotions.Combine(frames);
+
+        Assert.Null(combined.Motion);
+        Assert.Equal(RainMotionFailure.PairsDisagree, combined.Failure);
+        Assert.True(combined.SpreadKmh > 10);
+    }
+
+    [Fact]
+    public void Without_enough_pairs_the_most_common_reason_is_given()
+    {
+        Blob[] shower = [new(100, 100, 3, 5)];
+        RainGrid[] frames = [Grid(At6.AddMinutes(-20), shower), Grid(At6.AddMinutes(-10), shower), Grid(At6, shower)];
+
+        var combined = RainMotions.Combine(frames);
+
+        Assert.Null(combined.Motion);
+        Assert.Equal(RainMotionFailure.TooLittleRain, combined.Failure);
+        Assert.Equal(3, combined.PairsTried);
+        Assert.Equal(0, combined.PairsWithMotion);
+    }
+
+    [Fact]
+    public void Frames_closer_than_ten_minutes_are_not_paired()
+    {
+        RainGrid[] close = [Grid(At6.AddMinutes(-5), Storm), Grid(At6, Storm)];
+
+        Assert.Throws<ArgumentException>(() => RainMotions.Combine(close));
+        Assert.Throws<ArgumentException>(() => RainMotions.Combine([Grid(At6, Storm)]));
+    }
+
+    [Fact]
+    public void Similarity_is_highest_at_the_true_shift()
+    {
+        var earlier = Grid(At6.AddMinutes(-30), Storm);
+        var later = Grid(At6, Storm, moveEastCells: 6, moveSouthCells: -4);
+
+        var right = RainMotions.Similarity(earlier, later, eastKm: 6, northKm: 4);
+        var still = RainMotions.Similarity(earlier, later, 0, 0);
+        var wrong = RainMotions.Similarity(earlier, later, eastKm: -6, northKm: -4);
+
+        Assert.True(right > 0.99);
+        Assert.True(still < right && wrong < still);
+    }
+
+    [Fact]
+    public void Almost_still_below_three_km_per_hour()
+    {
+        Assert.True(new RainMotion(At6, At6, 2, 2, 1, 1).IsAlmostStill);
+        Assert.False(new RainMotion(At6, At6, 3, 0, 1, 1).IsAlmostStill);
+    }
+
+    [Fact]
     public void Frames_must_share_the_grid_and_come_in_order()
     {
         var earlier = Grid(At6.AddMinutes(-30), Storm);

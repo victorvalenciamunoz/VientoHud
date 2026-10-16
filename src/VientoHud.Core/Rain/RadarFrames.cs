@@ -20,6 +20,36 @@ public static class RadarFrames
         return new DateTimeOffset(time.Ticks - time.Ticks % interval.Ticks, TimeSpan.Zero);
     }
 
+    /// <summary>Frames used for the motion: the latest and the ones 10, 20 and 30 min before it.</summary>
+    public static readonly TimeSpan MotionStep = TimeSpan.FromMinutes(10);
+
+    public const int MotionFramesBefore = 3;
+
+    /// <summary>
+    /// The frames before <paramref name="latest"/> that the motion needs (<see cref="MotionFramesBefore"/> of them,
+    /// every <see cref="MotionStep"/>, on the same grid), followed by <paramref name="latest"/> itself. Missing ones are
+    /// left out.
+    /// </summary>
+    public static async Task<IReadOnlyList<RainGrid>> GetMotionFramesAsync(
+        this IRadarSource source,
+        RainGrid latest,
+        Coordinate center,
+        double radiusKm,
+        CancellationToken cancellationToken = default)
+    {
+        var frames = new List<RainGrid>();
+        for (var step = MotionFramesBefore; step >= 1; step--)
+        {
+            var time = AtOrBefore(latest.Time - step * MotionStep, source.FrameInterval);
+            if (await source.GetFrameAsync(time, center, radiusKm, cancellationToken) is { } frame)
+            {
+                frames.Add(frame);
+            }
+        }
+        frames.Add(latest);
+        return frames;
+    }
+
     /// <summary>
     /// The frame of the time at or before <paramref name="time"/>; if it is missing, the one before, up to
     /// <paramref name="maxStepsBack"/> frames back. Null when all of them are missing.

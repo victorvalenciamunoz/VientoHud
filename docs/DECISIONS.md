@@ -648,3 +648,29 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: comparar los mm/h tal cual (manda el núcleo más fuerte); lluvia sí/no (pierde la forma interior);
   flujo óptico por zonas (es el paso 4f, solo si el juez lo pide); búsqueda completa celda a celda (con 30 min y
   150 km/h son ~22.800 desplazamientos sobre la rejilla entera, frente a ~1.500 sobre bloques y 81 finos).
+
+## 029 — Movimiento de la última media hora y cómo se comprueba
+- Contexto: con una sola pareja de imágenes el movimiento es frágil (`DECISIONS.md` 028). El paso 4c-2 lo calcula con
+  varias y lo enseña en `radar`; comprobaciones acordadas con el autor (2026-10-16): serie de imágenes para su ojo,
+  mover la imagen de hace 30 min frente a dejarla quieta, y el viento a 700 hPa.
+- Decisión (técnica, 2026-10-16; `RainMotions.Combine`, `RadarFrames.GetMotionFramesAsync`):
+  - **Cuatro imágenes cada 10 min** (la última y las de 10, 20 y 30 min antes): 6 parejas separadas al menos 10 min.
+    Las de 5 min no se emparejan (la lluvia se mueve muy poco entre ellas).
+  - **Mediana** de las velocidades este y norte de las parejas que dan movimiento; vale si lo dan al menos la mitad y
+    coinciden: cada una, en la mediana, a menos de 10 km/h de la mediana (o del 40 % de la velocidad, si es más). Si
+    no, "las imágenes dan movimientos distintos". Por debajo de 3 km/h, "apenas se mueve".
+  - **Flecha en el PNG**: desde la salida hasta donde llega en una hora la lluvia que está encima.
+  - `radar` tarda ~20 s (cuatro imágenes de reflectividad); con la caché, menos.
+- Comprobación (2026-10-16; `tools/investigacion/motioncheck.cs` y `motionwind.cs`; resultados en
+  `docs/verificacion/2026-10-16-fase4-movimiento*.csv`): 55 momentos cada 30 min en cinco días de lluvia (Madrid 3 y
+  6 oct.; León 30 sept., 3 oct. y 24 ago.). En cada momento T, el movimiento como lo calcularía la app a T−30 (imágenes de
+  T−60 a T−30), sin mirar la imagen de T:
+  - **Mover la imagen de T−30 lo que recorre en 30 min se parece más a la real de T que dejarla quieta en los 55**
+    (parecido medio 0,64 frente a 0,40). En los 55 hubo movimiento (6 de 6 parejas en 51; 5 de 6 en 4).
+  - **Frente al viento a 700 hPa** (~3.000 m, archivo de Open-Meteo, `best_match`): diferencia de dirección mediana de
+    16°, dentro de 45° en 49 de 55; la lluvia va a la velocidad del viento (relación mediana 1,07). Las diferencias
+    grandes son de León el 3 oct. al mediodía, con viento en altura flojo (8-15 km/h) y cambiante, donde su dirección
+    vale poco.
+- Alternativas: más imágenes (una hora: más lento y mezcla movimientos que cambian); la media en vez de la mediana
+  (una pareja rara la arrastra); usar el viento a 700 hPa como movimiento (es otra previsión, de un punto y por horas;
+  sirve de contraste, no de sustituto).
