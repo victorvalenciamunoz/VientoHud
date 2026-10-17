@@ -71,7 +71,7 @@ División aceptada por el autor el 2026-10-16:
 - [ ] 4e. Juez (backtest; `DECISIONS.md` 031, **decisiones del autor**: contra el radar y contra el METAR, lluvia desde
   0,2 mm/h, días de lluvia de los últimos 3 meses en Madrid y León, rivales "nada se mueve" y AROME HD 15 min):
   - [x] 4e-1. Core: lluvia de los METAR (IEM), previsión pasada de AROME HD cada 15 min (Open-Meteo) y las medidas.
-  - [ ] 4e-2. Pasar el juez y sacar las tablas.
+  - [ ] 4e-2. Pasar el juez y sacar las tablas (hecho el 2026-10-17; falta que el autor elija el tamaño del círculo).
 - [ ] 4f. Movimiento por zonas, solo si el juez dice que el desplazamiento único se queda corto.
 
 ### Cómo se ha validado (fase 4)
@@ -156,6 +156,28 @@ División aceptada por el autor el 2026-10-16:
   Barajas y León en una llamada, 3,1 mm de 16:00 a 16:15 son 12,4 mm/h; el cuarto de hora que contiene cada hora;
   Sevilla fuera del modelo, con el motivo; errores. Medidas: cada palabra y cuánto llovió; Brier 0, 0,25 y 1;
   fiabilidad por bandas; sin casos.
+- Paso 4e-2 (2026-10-17), **juez de la fase 4** (`tools/investigacion/judge4.cs`, ~70 min; resultados en
+  `docs/verificacion/2026-10-17-fase4-juez.*`): 16 jul. a 15 oct. 2026, los 35 días con lluvia en el METAR (Madrid con
+  Barajas, Getafe, Cuatro Vientos y Colmenar; León), cada 30 min de 2 h antes a 2 h después de la lluvia: 686 momentos,
+  ~1.650 casos por plazo. Se "sale" 5 min después de cada imagen (lo que tarda en publicarse). Brier (0 perfecto; más
+  bajo, mejor) y, entre paréntesis, la lluvia que anunció como "probable":
+
+  | Contra | Plazo | Movida (2+5) | Movida (3+10) | Movida (4+15) | Movida (5+20) | Quieta | AROME HD |
+  |---|---|---|---|---|---|---|---|
+  | Radar | +30 | 0,111 (64 %) | 0,103 (63 %) | 0,100 (60 %) | 0,098 (59 %) | 0,157 (50 %) | 0,236 (18 %) |
+  | Radar | +60 | 0,143 (52 %) | 0,129 (50 %) | 0,121 (49 %) | 0,118 (47 %) | 0,199 (37 %) | 0,230 (18 %) |
+  | Radar | +90 | 0,157 (44 %) | 0,139 (45 %) | 0,129 (43 %) | 0,126 (40 %) | 0,207 (31 %) | 0,222 (19 %) |
+  | METAR | +30 | 0,132 (60 %) | 0,121 (60 %) | 0,117 (56 %) | 0,115 (54 %) | 0,156 (53 %) | 0,180 (28 %) |
+  | METAR | +60 | 0,141 (56 %) | 0,132 (50 %) | 0,127 (46 %) | 0,125 (43 %) | 0,180 (42 %) | 0,180 (28 %) |
+  | METAR | +90 | 0,151 (48 %) | 0,139 (45 %) | 0,132 (41 %) | 0,128 (37 %) | 0,189 (35 %) | 0,180 (28 %) |
+
+  Círculo: km al principio + km por hora. Llovió en el 18-20 % de los casos según el radar y en el 15-16 % según el METAR.
+  **Conclusiones:** mover la lluvia gana a "nada se mueve" y a AROME en todos los plazos y contra los dos; AROME, como
+  previsión de un punto cada 15 min, acierta poco el sitio exacto ("probable": llovió el 32 % de las veces). Con el
+  círculo actual (2+5) los porcentajes se pasan de seguros (dice 96 %: llueve el 63 %); con círculos mayores mejoran
+  (5+20: dice 92 %, llueve el 73 %) a cambio de anunciar algo menos de lluvia. En Madrid el radar ve lluvia que el
+  METAR no da (llovió 18 % frente a 11 %: lluvia que no llega al suelo en verano); en León, al revés (25 % frente a
+  29 %). **Pendiente: el autor elige el tamaño del círculo.**
 
 ### Riesgos y pendientes (fase 4)
 
