@@ -9,7 +9,14 @@
 División aceptada por el autor el 2026-10-17:
 
 - [ ] 5a. Lluvia a lo largo de una ruta: probabilidad en cada tramo de 1 km a la hora de paso; radar hasta 90 min y
-  después un modelo. Primero, investigar qué fuente usar más allá de 90 min (opciones para que decida el autor).
+  después un modelo. Fuente elegida por el autor: AROME HD 15 min mirando una zona, con la probabilidad de `best_match`
+  de reserva, y paso del radar a AROME entre 60 y 90 min (`DECISIONS.md` 033). División aceptada el 2026-10-17:
+  - [x] 5a-1. Core: previsión de AROME en una rejilla (ahora, archivo y pasada concreta), probabilidad en zona con
+    margen de tiempo y probabilidad de reserva.
+  - [ ] 5a-2. Juez de AROME en zona con pasadas antiguas (1,5-5 h antes) en 12 días de lluvia (**decisión del autor**,
+    por el límite diario de Open-Meteo): tamaño de la zona y margen de tiempo, frente a un punto, y cuándo pasar del
+    radar a AROME.
+  - [ ] 5a-3. Lluvia en cada tramo de una ruta a la hora de paso (radar, mezcla, AROME, reserva).
 - [ ] 5b. Puntuar y ordenar las vueltas con lluvia y viento. **Decisión del autor:** primero menos km con racha de lado
   peligrosa, luego menos km con lluvia "probable", luego mejor ventaja de viento.
 - [ ] 5c. ¿Salir ahora o esperar? Las mismas vueltas saliendo ahora, en 15 min, 30… **hasta 2 h** (decisión del autor).
@@ -17,6 +24,15 @@ División aceptada por el autor el 2026-10-17:
   la ruta** (decisión del autor: probar si el Karoo los muestra).
 - [ ] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
   METAR después), comparado con salir ya con una vuelta cualquiera.
+
+### Cómo se ha validado (fase 5)
+
+- Paso 5a-1 (2026-10-17): 7 tests nuevos (546 en total). Rejilla de 5 × 5 puntos cada 5 km con Barajas en el centro,
+  ordenada de norte a sur y de oeste a este; probabilidad como parte de puntos y cuartos de hora con lluvia, con y sin
+  margen de tiempo, dejando fuera los puntos lejanos; fuera de la rejilla o más allá de la previsión, desconocida; por
+  debajo de 0,2 mm/h, seco. Con respuestas reales grabadas: la pasada de AROME HD del 6 oct. a las 12:00 UTC en 3 × 3
+  puntos alrededor de Barajas (sin fechas en la petición; dura 6 h; 1,2 mm/h de 13:15 a 13:30; probabilidad > 30 % a
+  las 13:30 y < 10 % a las 17:00), la previsión de ahora con fechas y la probabilidad por horas de `best_match`.
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
 círculo de la previsión; 4f no hace falta).

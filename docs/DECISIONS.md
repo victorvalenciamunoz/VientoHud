@@ -786,3 +786,13 @@ Formato: contexto → decisión → alternativas descartadas.
     cambio debe ser antes o después, y el tamaño de la zona de AROME.
 - Alternativas: el conjunto ICON-EU-EPS (probabilidad de verdad, pero llega con 3-4 h de retraso, más grueso y sin
   pasadas para juzgarlo); solo `precipitation_probability` (muy grueso y los modelos no coinciden).
+- Piezas (técnicas, 2026-10-17, paso 5a-1):
+  - **Una sola fuente de Open-Meteo para la lluvia** (`OpenMeteoRainForecastSource`, antes solo para el archivo) con
+    tres modos: la previsión de ahora (`Latest`), el archivo (`Archive`, el del juez de la fase 4) y una pasada concreta
+    (`SingleRun`, sin fechas: la API no las admite y el rango se corta después). También da la probabilidad por horas
+    de reserva (`IRainProbabilitySource`, `best_match`).
+  - **Rejilla de puntos** alrededor de la salida (`ModelRainField.GridAround`), en una sola llamada (cada punto cuenta
+    como una llamada en los límites de Open-Meteo).
+  - **Probabilidad en zona** (`ModelRainField.Probability`): parte con lluvia (desde 0,2 mm/h) de los puntos a menos de
+    un radio y de los cuartos de hora a menos de un margen de tiempo, porque AROME suele acertar el patrón con adelanto o
+    retraso. Valores provisionales (15 km, ±30 min) hasta el juez del 5a-2.

@@ -29,7 +29,7 @@ using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(180) };
 http.DefaultRequestHeaders.UserAgent.ParseAdd("VientoHud/0.1");
 var radar = new OperaRadarSource(http);
 var metar = new IemPrecipitationObservationSource(http);
-var arome = new OpenMeteoPastRainForecastSource(http);
+var arome = new OpenMeteoRainForecastSource(http, OpenMeteoRainOptions.Archive);
 
 const double RadiusKm = 150;
 var threshold = RainNearby.DefaultThresholdMmPerHour;
@@ -243,7 +243,7 @@ foreach (var (name, use, _) in models.Where(x => x.Motion == RainMotionUse.Movin
     md.AppendLine();
 }
 md.AppendLine();
-md.AppendLine($"{OperaRadarSource.AttributionText}. {OpenMeteoPastRainForecastSource.Attribution}. {IemPrecipitationObservationSource.Attribution}.");
+md.AppendLine($"{OperaRadarSource.AttributionText}. {OpenMeteoRainForecastSource.Attribution}. {IemPrecipitationObservationSource.Attribution}.");
 await File.WriteAllTextAsync(Path.Combine(output, "resumen.md"), md.ToString());
 Console.WriteLine(md.ToString());
 

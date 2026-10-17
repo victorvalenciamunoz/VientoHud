@@ -4,17 +4,17 @@ using VientoHud.Core.Tests.Support;
 
 namespace VientoHud.Core.Tests.Rain;
 
-public class PastRainForecastTests
+public class RainForecastSourceTests
 {
     private static readonly Coordinate Barajas = new(40.4936, -3.5668);
     private static readonly Coordinate Leon = new(42.589, -5.6556);
     private static readonly DateTimeOffset Day = new(2026, 10, 6, 0, 0, 0, TimeSpan.Zero);
 
-    private static (OpenMeteoPastRainForecastSource Source, StubHttpMessageHandler Handler) Create(
+    private static (OpenMeteoRainForecastSource Source, StubHttpMessageHandler Handler) Create(
         string fixture, HttpStatusCode status = HttpStatusCode.OK)
     {
         var handler = new StubHttpMessageHandler(status, Fixture.Read($"OpenMeteo/{fixture}"));
-        return (new OpenMeteoPastRainForecastSource(new HttpClient(handler)), handler);
+        return (new OpenMeteoRainForecastSource(new HttpClient(handler)), handler);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class PastRainForecastTests
     [Fact]
     public async Task Network_failures_and_bad_answers_are_forecast_errors()
     {
-        var offline = new OpenMeteoPastRainForecastSource(new HttpClient(new FailingHttpMessageHandler()));
+        var offline = new OpenMeteoRainForecastSource(new HttpClient(new FailingHttpMessageHandler()));
         var (wrong, _) = Create("error-service-overloaded.json");
 
         await Assert.ThrowsAsync<RainForecastException>(() => offline.GetAsync([Barajas], Day, Day.AddDays(1)));
