@@ -1,6 +1,22 @@
 # Estado
 
-**Fase actual: 5 — Combinarlo** (sin empezar)
+**Fase actual: 5 — Combinarlo** (en curso: paso 5a)
+
+## Fase 5
+
+### Qué falta (fase 5)
+
+División aceptada por el autor el 2026-10-17:
+
+- [ ] 5a. Lluvia a lo largo de una ruta: probabilidad en cada tramo de 1 km a la hora de paso; radar hasta 90 min y
+  después un modelo. Primero, investigar qué fuente usar más allá de 90 min (opciones para que decida el autor).
+- [ ] 5b. Puntuar y ordenar las vueltas con lluvia y viento. **Decisión del autor:** primero menos km con racha de lado
+  peligrosa, luego menos km con lluvia "probable", luego mejor ventaja de viento.
+- [ ] 5c. ¿Salir ahora o esperar? Las mismas vueltas saliendo ahora, en 15 min, 30… **hasta 2 h** (decisión del autor).
+- [ ] 5d. Consola y GPX: la recomendación final; el GPX con nombre y descripción con el resumen y **avisos en puntos de
+  la ruta** (decisión del autor: probar si el Karoo los muestra).
+- [ ] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
+  METAR después), comparado con salir ya con una vuelta cualquiera.
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
 círculo de la previsión; 4f no hace falta).
