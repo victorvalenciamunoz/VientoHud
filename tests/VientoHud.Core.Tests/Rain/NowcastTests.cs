@@ -41,13 +41,16 @@ public class NowcastTests
 
     private static RainMotion East(double kmh) => new(At6.AddMinutes(-30), At6, kmh, 0, 0.8, 0.5);
 
+    // The mechanics are tested with a small circle (2 km + 5 km/h), so the storms of the tests stay bigger than it.
+    private static readonly NowcastOptions Small = new() { RadiusKm = 2, RadiusGrowthKmPerHour = 5 };
+
     [Fact]
     public void Rain_coming_from_the_west_arrives_when_it_gets_here()
     {
         // A storm 30 km across whose eastern edge is 20 km west, moving east at 30 km/h: here in ~40 min.
         var grid = Grid([(100, 65, 15)]);
 
-        var nowcast = Nowcast.AtPoint(grid, East(30), Point, At6);
+        var nowcast = Nowcast.AtPoint(grid, East(30), Point, At6, Small);
 
         Assert.Equal(19, nowcast.Steps.Count);
         Assert.Equal(RainLikelihood.No, nowcast.Steps[0].Likelihood);
@@ -62,7 +65,7 @@ public class NowcastTests
         // Overhead, 20 km across, moving east at 40 km/h: its western edge passes in ~15 min.
         var grid = Grid([(100, 100, 10)]);
 
-        var nowcast = Nowcast.AtPoint(grid, East(40), Point, At6);
+        var nowcast = Nowcast.AtPoint(grid, East(40), Point, At6, Small);
 
         Assert.Equal(RainLikelihood.Likely, nowcast.Steps[0].Likelihood);
         Assert.Equal(1, nowcast.Steps[0].Probability);
@@ -75,7 +78,7 @@ public class NowcastTests
     {
         var grid = Grid([(60, 60, 8)]);
 
-        var nowcast = Nowcast.AtPoint(grid, East(40), Point, At6);
+        var nowcast = Nowcast.AtPoint(grid, East(40), Point, At6, Small);
 
         Assert.All(nowcast.Steps, s => Assert.Equal(RainLikelihood.No, s.Likelihood));
         Assert.Null(nowcast.RainArrives);
@@ -87,7 +90,7 @@ public class NowcastTests
         // The point sits right on the western edge of a wide area of rain.
         var grid = Grid([(100, 140, 40)]);
 
-        var nowcast = Nowcast.AtPoint(grid, motion: null, Point, At6);
+        var nowcast = Nowcast.AtPoint(grid, motion: null, Point, At6, Small);
 
         Assert.InRange(nowcast.Steps[^1].Probability!.Value, 0.3, 0.7);
     }
@@ -97,8 +100,8 @@ public class NowcastTests
     {
         var grid = Grid([(100, 100, 10)]);
 
-        var wet = Nowcast.AtPoint(grid, null, Point, At6);
-        var dry = Nowcast.AtPoint(Grid([(100, 140, 10)]), null, Point, At6);
+        var wet = Nowcast.AtPoint(grid, null, Point, At6, Small);
+        var dry = Nowcast.AtPoint(Grid([(100, 140, 10)]), null, Point, At6, Small);
 
         Assert.All(wet.Steps, s => Assert.Equal(RainLikelihood.Likely, s.Likelihood));
         Assert.All(dry.Steps, s => Assert.Equal(RainLikelihood.No, s.Likelihood));
@@ -111,8 +114,8 @@ public class NowcastTests
         // The frame is 10 min old: "in 30 min" is 40 min after the frame.
         var grid = Grid([(100, 65, 15)]);
 
-        var fresh = Nowcast.AtPoint(grid, East(30), Point, At6);
-        var old = Nowcast.AtPoint(grid, East(30), Point, At6.AddMinutes(10));
+        var fresh = Nowcast.AtPoint(grid, East(30), Point, At6, Small);
+        var old = Nowcast.AtPoint(grid, East(30), Point, At6.AddMinutes(10), Small);
 
         Assert.Equal(At6.AddMinutes(10), old.IssuedAt);
         Assert.Equal(At6, old.FrameTime);
@@ -127,7 +130,7 @@ public class NowcastTests
         // Everything west of column 80 has no data; the rain over the point in 60 min comes from 30 km west.
         var grid = Grid(noData: (_, c) => c < 80);
 
-        var nowcast = Nowcast.AtPoint(grid, East(30), Point, At6);
+        var nowcast = Nowcast.AtPoint(grid, East(30), Point, At6, Small);
 
         Assert.Equal(0, nowcast.Steps[0].Probability);
         Assert.Null(nowcast.At(At6.AddMinutes(60)).Probability);
@@ -141,10 +144,24 @@ public class NowcastTests
         // 9.5 km one at 90 min.
         var grid = Grid([(100, 110, 2)]);
 
-        var nowcast = Nowcast.AtPoint(grid, null, Point, At6);
+        var nowcast = Nowcast.AtPoint(grid, null, Point, At6, Small);
 
         Assert.Equal(0, nowcast.Steps[0].Probability);
         Assert.True(nowcast.Steps[^1].Probability > 0);
+    }
+
+    [Fact]
+    public void The_default_circle_is_the_one_the_judge_chose()
+    {
+        // 4 km + 15 km/h (DECISIONS 032): a still storm of 10 km radius overhead fills the 11.5 km circle at 30 min
+        // (~76 %, "likely") but only ~14 % of the 26.5 km one at 90 min ("no"): far ahead, a small storm is a weak sign.
+        var options = new NowcastOptions();
+        var nowcast = Nowcast.AtPoint(Grid([(100, 100, 10)]), null, Point, At6);
+
+        Assert.Equal((4, 15), (options.RadiusKm, options.RadiusGrowthKmPerHour));
+        Assert.Equal(RainLikelihood.Likely, nowcast.Steps[0].Likelihood);
+        Assert.Equal(RainLikelihood.Likely, nowcast.At(At6.AddMinutes(30)).Likelihood);
+        Assert.Equal(RainLikelihood.No, nowcast.Steps[^1].Likelihood);
     }
 
     [Fact]

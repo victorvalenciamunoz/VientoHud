@@ -740,3 +740,22 @@ Formato: contexto → decisión → alternativas descartadas.
   que AROME dijo poco antes: un rival generoso. Que la previsión propia le gane vale más por eso.
 - Alternativas: solo el radar (se juzga a sí mismo); solo el METAR (castiga al radar por la lluvia que no ve en León);
   0,5 mm/h (solo lo que moja de verdad; se puede sacar después con los mismos datos).
+
+## 032 — Círculo de la previsión: 4 km + 15 km/h
+- Contexto: el juez de la fase 4 (`DECISIONS.md` 031; `docs/verificacion/2026-10-17-fase4-juez.md`) probó cinco tamaños
+  del círculo de la previsión (`DECISIONS.md` 030). Con el de partida (2 km + 5 km/h) los porcentajes se pasaban de
+  seguros: cuando decía ~96 %, llovía el 63 % de las veces. Con círculos mayores el Brier baja y los porcentajes se
+  ajustan mejor, a cambio de anunciar algo menos de lluvia como "probable":
+
+  | Círculo | Radio a +30 / +60 / +90 | Brier a +30 / +60 / +90 (radar) | Lluvia anunciada | Dice ~95 %: llueve |
+  |---|---|---|---|---|
+  | 2 km + 5 km/h | 5 / 7 / 10 km | 0,111 / 0,143 / 0,157 | 64 / 52 / 44 % | 63 % |
+  | 3 km + 10 km/h | 9 / 14 / 19 km | 0,103 / 0,129 / 0,139 | 63 / 50 / 45 % | 67 % |
+  | **4 km + 15 km/h** | 13 / 20 / 28 km | 0,100 / 0,121 / 0,129 | 60 / 49 / 43 % | 70 % |
+  | 5 km + 20 km/h | 17 / 27 / 37 km | 0,098 / 0,118 / 0,126 | 59 / 47 / 40 % | 73 % |
+
+  (Radios contando los 5 min que tarda en publicarse la imagen.)
+- Decisión (del autor, 2026-10-17, con la recomendación): **4 km + 15 km/h**, por defecto en `NowcastOptions`. Se queda
+  con casi toda la mejora y apenas pierde avisos; el de 5 km afina un poco más, pero a hora y media ya mira 37 km.
+- Alternativas: el de partida (avisa algo más, porcentajes demasiado seguros); 5 km + 20 km/h (mejor Brier por poco,
+  menos avisos); recalibrar los porcentajes aparte (otra pieza más; el círculo ya los acerca).

@@ -80,10 +80,12 @@ public sealed record NowcastOptions
     /// <summary>
     /// Radius of the area looked at around the place the rain comes from, at the time of the frame. It grows with
     /// <see cref="RadiusGrowthKmPerHour"/>, because rain grows, fades and the motion has errors.
+    /// 4 km + 15 km/h (≈ 13, 20 and 28 km at +30, +60 and +90 min), chosen by the author from the phase 4 judge
+    /// (DECISIONS 032): the percentages match what happens better than with smaller circles.
     /// </summary>
-    public double RadiusKm { get; init; } = 2;
+    public double RadiusKm { get; init; } = 4;
 
-    public double RadiusGrowthKmPerHour { get; init; } = 5;
+    public double RadiusGrowthKmPerHour { get; init; } = 15;
 
     /// <summary>Least rain rate that counts as rain (default: 12 dBZ, as in <see cref="RainNearby"/>).</summary>
     public double ThresholdMmPerHour { get; init; } = RainNearby.DefaultThresholdMmPerHour;

@@ -1,6 +1,9 @@
 # Estado
 
-**Fase actual: 4 — Radar y lluvia a corto plazo** (pasos 4a a 4d y 4e-1 hechos)
+**Fase actual: 5 — Combinarlo** (sin empezar)
+
+Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
+círculo de la previsión; 4f no hace falta).
 
 ## Fase 4
 
@@ -37,7 +40,8 @@
   el ENE (57°) a 39 km/h (6 de 6 parejas…)" o por qué no se sabe, y el PNG lleva una flecha hasta donde llega la lluvia
   en una hora.
 - **Previsión en un punto** (`Nowcast`, `PointNowcast`, `RainLikelihoods`; `DECISIONS.md` 030): cada 5 min hasta
-  90 desde ahora, la probabilidad de lluvia (parte del círculo con lluvia viento arriba, de 2 km más 5 km por hora),
+  90 desde ahora, la probabilidad de lluvia (parte del círculo con lluvia viento arriba, de 4 km más 15 km por hora,
+  elegido con el juez: `DECISIONS.md` 032),
   en palabras (no, puede, probable: cortes del autor en 20 % y 50 %), y la hora a la que llega o se va la lluvia. Sin
   movimiento, la lluvia se queda quieta. `Nowcast.Advect`: la imagen entera movida hacia delante.
 - **`radar` con previsión**: "Previsión aquí, desde las 15:30: ahora no (0 %); +30 min …; +60; +90" y "La lluvia llega
@@ -68,11 +72,13 @@ División aceptada por el autor el 2026-10-16:
   - [x] 4d-1. Core: probabilidad de lluvia en un punto cada 5 min hasta 90, hora de llegada y de fin, imagen movida.
   - [x] 4d-2. `radar` dice la lluvia prevista a +30, +60 y +90 y cuándo llega o se va, y guarda las imágenes previstas.
     Comprobación en momentos pasados en Barajas y León frente a lo que vio el radar después y frente al METAR.
-- [ ] 4e. Juez (backtest; `DECISIONS.md` 031, **decisiones del autor**: contra el radar y contra el METAR, lluvia desde
+- [x] 4e. Juez (backtest; `DECISIONS.md` 031, **decisiones del autor**: contra el radar y contra el METAR, lluvia desde
   0,2 mm/h, días de lluvia de los últimos 3 meses en Madrid y León, rivales "nada se mueve" y AROME HD 15 min):
   - [x] 4e-1. Core: lluvia de los METAR (IEM), previsión pasada de AROME HD cada 15 min (Open-Meteo) y las medidas.
-  - [ ] 4e-2. Pasar el juez y sacar las tablas (hecho el 2026-10-17; falta que el autor elija el tamaño del círculo).
-- [ ] 4f. Movimiento por zonas, solo si el juez dice que el desplazamiento único se queda corto.
+  - [x] 4e-2. Pasar el juez y sacar las tablas (2026-10-17). El autor elige el círculo de 4 km + 15 km/h (`DECISIONS.md` 032).
+- [ ] 4f. Movimiento por zonas: **no hace falta por ahora** (2026-10-17). El desplazamiento único gana a "nada se mueve" y a
+  AROME en todos los plazos y coincide con el viento a 700 hPa; los fallos que se ven son lluvia que nace en el sitio y
+  lluvia que el radar no ve, que el movimiento por zonas no arregla. Queda como mejora.
 
 ### Cómo se ha validado (fase 4)
 
@@ -177,7 +183,7 @@ División aceptada por el autor el 2026-10-16:
   círculo actual (2+5) los porcentajes se pasan de seguros (dice 96 %: llueve el 63 %); con círculos mayores mejoran
   (5+20: dice 92 %, llueve el 73 %) a cambio de anunciar algo menos de lluvia. En Madrid el radar ve lluvia que el
   METAR no da (llovió 18 % frente a 11 %: lluvia que no llega al suelo en verano); en León, al revés (25 % frente a
-  29 %). **Pendiente: el autor elige el tamaño del círculo.**
+  29 %). **El autor elige el círculo de 4 km + 15 km/h** (2026-10-17, `DECISIONS.md` 032), por defecto desde entonces.
 
 ### Riesgos y pendientes (fase 4)
 
