@@ -759,3 +759,30 @@ Formato: contexto → decisión → alternativas descartadas.
   con casi toda la mejora y apenas pierde avisos; el de 5 km afina un poco más, pero a hora y media ya mira 37 km.
 - Alternativas: el de partida (avisa algo más, porcentajes demasiado seguros); 5 km + 20 km/h (mejor Brier por poco,
   menos avisos); recalibrar los porcentajes aparte (otra pieza más; el círculo ya los acerca).
+
+## 033 — Lluvia más allá de 90 min: AROME HD cada 15 min mirando una zona
+- Contexto: la previsión del radar llega a 90 min y una salida dura 2-4 h (fase 5, paso 5a). El juez de la fase 4 vio
+  que AROME HD en un punto acierta mal el sitio exacto. Investigado el 2026-10-17 en la documentación y el código de
+  Open-Meteo y con llamadas reales:
+
+  | | AROME HD 15 min en una zona | Conjunto ICON-EU-EPS | `precipitation_probability` |
+  |---|---|---|---|
+  | Detalle | 1,5 km, cada 15 min (valores propios) | 40 miembros, 6,5 km, cada hora | ~25 km (conjuntos de 0,25°), cada hora |
+  | Alcance | ~4,5-5,5 h desde ahora (pasada cada hora, ~35 min de retraso) | 5 días, 3-4 h de retraso | Días |
+  | Cobertura | 37,5-55,4° N, 12° O-16° E: Madrid y León sí, el sur no | Europa | Mundial |
+  | Pasadas antiguas | Sí: Single Runs API (`run=`), desde abr. 2026 (comprobado) | No (habría que guardarlas) | Sin comprobar |
+  | Coste | 1 llamada por punto | ~4 por punto (miembros / 10) | 1 por punto |
+
+  Otros: AROME France 15 min sale vacío en Madrid; ICON-D2 no llega a España; las demás versiones cada 15 min reparten
+  la hora en cuatro. `precipitation_probability` de distintos modelos no coincide (Madrid, mismas horas: ICON 13-35 %,
+  GFS 65-97 %). MET Norway no da probabilidad fuera de los países nórdicos. AEMET (probabilidad por municipio) pide
+  clave.
+- Decisión (del autor, 2026-10-17, con la recomendación):
+  - **AROME HD cada 15 min mirando una zona** alrededor de cada tramo (parte de la zona con lluvia, como con el radar),
+    porque es la única que se puede juzgar ya con pasadas antiguas.
+  - **`precipitation_probability` de `best_match` solo de reserva**: fuera de la zona de AROME o más allá de su
+    alcance, avisando de que esa parte es menos fiable.
+  - **Mezcla:** radar hasta 60 min; de 60 a 90 min, de radar a AROME poco a poco; AROME después. El juez dirá si el
+    cambio debe ser antes o después, y el tamaño de la zona de AROME.
+- Alternativas: el conjunto ICON-EU-EPS (probabilidad de verdad, pero llega con 3-4 h de retraso, más grueso y sin
+  pasadas para juzgarlo); solo `precipitation_probability` (muy grueso y los modelos no coinciden).
