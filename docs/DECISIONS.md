@@ -874,3 +874,9 @@ Formato: contexto → decisión → alternativas descartadas.
 - Técnica: el GPX lleva los puntos entre los metadatos y el track, con nombre, descripción y símbolo (orden del esquema
   GPX 1.1, comprobado con el esquema oficial). Los textos en español los pone la consola; Core da los datos.
 - Pendiente: que el autor compruebe en su Karoo cómo se ven el nombre, la descripción y los puntos.
+- Resultado en el Karoo (2026-10-18): el panel de Hammerhead no muestra los puntos de aviso (al pulsar no sale nada) y
+  pone a la vuelta el nombre del fichero, no el del GPX. Hammerhead dice oficialmente que el panel y el Karoo no muestran
+  los puntos de interés de un GPX, solo los de RideWithGPS; según un usuario (sin comprobar), el panel los importa si cada
+  `wpt` lleva `<type>` y `<sym>` con uno de 9 valores fijos (`Danger`, `Generic`…:
+  https://github.com/mendalka/gpx-poi-karoo-fixer). **Decisión del autor:** es secundario; lo importante es que la vuelta
+  y la hora se eligen por el viento y la lluvia. Los avisos se quedan en el GPX (no estorban) y no se dedica más tiempo.

@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 5 — Combinarlo** (en curso: 5a a 5d hechos; falta la prueba del autor en el Karoo y el juez, 5e)
+**Fase actual: 5 — Combinarlo** (en curso: 5a a 5d hechos; sigue el juez, 5e)
 
 ## Fase 5
 
@@ -34,13 +34,13 @@ División aceptada por el autor el 2026-10-17:
 - [x] 5c. ¿Salir ahora o esperar? Las mismas vueltas saliendo ahora, en 15 min, 30… **hasta 2 h** (decisión del autor).
   Esperar solo para mojarse menos (5 km o más de lluvia probable) o evitar rachas peligrosas, no por el viento solo
   (**decisión del autor**, `DECISIONS.md` 036).
-- [ ] 5d. Consola y GPX: la recomendación final; el GPX con nombre y descripción con el resumen y **avisos en puntos de
+- [x] 5d. Consola y GPX: la recomendación final; el GPX con nombre y descripción con el resumen y **avisos en puntos de
   la ruta** (decisión del autor: probar si el Karoo los muestra). División y decisiones del autor del 2026-10-18
   (`DECISIONS.md` 037): se amplía `route`; avisos de rachas, lluvia probable y aviso para la zona (como mucho 10); nombre
   corto "Sal 10:30 · 60 km SO".
   - [x] 5d-1. Core: puntos de aviso en el GPX y los avisos de una vuelta.
-  - [ ] 5d-2 (hecho; **falta que el autor lo pruebe en su Karoo**). Consola: `route` con lluvia, orden y salir ahora o
-    esperar; GPX con todo; prueba en vivo y en el Karoo.
+  - [x] 5d-2. Consola: `route` con lluvia, orden y salir ahora o esperar; GPX con todo; prueba en vivo y en el Karoo
+    (2026-10-18: el Karoo no muestra los avisos ni el nombre de dentro del GPX; **el autor lo deja así**, es secundario).
 - [ ] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
   METAR después), comparado con salir ya con una vuelta cualquiera.
 
