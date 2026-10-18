@@ -68,6 +68,20 @@ public class DepartureChoiceTests
     }
 
     [Fact]
+    public void Later_departures_fall_on_whole_quarters_of_an_hour()
+    {
+        var times = DepartureChoice.Times(Now.AddMinutes(14));
+
+        Assert.Equal(Now.AddMinutes(14), times[0]);
+        // 9:15 is a minute after 9:14: skipped.
+        Assert.Equal(Now.AddMinutes(30), times[1]);
+        Assert.Equal(Now.AddMinutes(45), times[2]);
+        Assert.Equal(Now.AddHours(2), times[^1]);
+        Assert.Equal(8, times.Count);
+        Assert.Equal(Now.AddMinutes(15), DepartureChoice.Times(Now.AddMinutes(8))[1]);
+    }
+
+    [Fact]
     public async Task Waits_for_the_rain_overhead_to_move_away()
     {
         // A band of rain 30 km wide over León now, moving east at 30 km/h: its back edge passes León in ~30 min.

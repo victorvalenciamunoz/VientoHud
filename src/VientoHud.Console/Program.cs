@@ -1,6 +1,7 @@
 using VientoHud.ConsoleApp;
 using VientoHud.Core.Location;
 using VientoHud.Core.Rain;
+using VientoHud.Core.Rain.Forecasts;
 using VientoHud.Core.Rain.Opera;
 using VientoHud.Core.Routing;
 using VientoHud.Core.Routing.BRouter;
@@ -64,9 +65,13 @@ switch (args[0])
     case "route":
         if (RouteOptions.Parse(args[1..], out error) is { } routeOptions && BRouterServer(out error) is { } brouter)
         {
-            var planner = new RidePlanner(
-                new LoopGenerator(new BRouterRouteEngine(http, brouter.Options)), new OpenMeteoWindForecastProvider(http));
-            run = () => new RouteCommand(planner, device, Console.Out, brouter.Name, OpenMeteoWindForecastProvider.Attribution)
+            var windProvider = new OpenMeteoWindForecastProvider(http);
+            var planner = new RidePlanner(new LoopGenerator(new BRouterRouteEngine(http, brouter.Options)), windProvider);
+            var radarSource = new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() });
+            var rainForecasts = new OpenMeteoRainForecastSource(http, OpenMeteoRainOptions.Latest);
+            run = () => new RouteCommand(
+                    planner, windProvider, radarSource, rainForecasts, device, Console.Out, brouter.Name,
+                    OpenMeteoWindForecastProvider.Attribution)
                 .RunAsync(routeOptions, cancellation.Token);
         }
         break;
@@ -74,10 +79,7 @@ switch (args[0])
     case "radar":
         if (RadarOptions.Parse(args[1..], out error) is { } radarOptions)
         {
-            // Downloaded frames are kept (~2 MB each) so that looking again at the same time does not download again.
-            var cache = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VientoHud", "radar");
-            var opera = new OperaRadarSource(http, new OperaOptions { CacheDirectory = cache });
+            var opera = new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() });
             run = () => new RadarCommand(opera, device, Console.Out).RunAsync(radarOptions, cancellation.Token);
         }
         break;
@@ -99,7 +101,7 @@ try
     return await run();
 }
 catch (Exception ex) when (ex is WindForecastException or WindObservationException or LocationUnavailableException
-                               or RadarException)
+                               or RadarException or RainForecastException)
 {
     Console.Error.WriteLine($"Error: {ex.Message}");
     return 1;
@@ -126,3 +128,7 @@ static (BRouterOptions Options, string Name)? BRouterServer(out string? error)
     }
     return (new BRouterOptions { BaseUri = uri, MinRequestInterval = TimeSpan.Zero }, uri.ToString());
 }
+
+// Downloaded radar frames are kept (~2 MB each) so that looking again at the same time does not download again.
+static string RadarCache() =>
+    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VientoHud", "radar");

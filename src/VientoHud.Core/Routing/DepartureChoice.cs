@@ -38,7 +38,14 @@ public static class DepartureChoice
 
     public static readonly TimeSpan DefaultStep = TimeSpan.FromMinutes(15);
 
-    /// <summary>Departure times from <paramref name="first"/> every <paramref name="step"/> up to the longest wait.</summary>
+    /// <summary>Clock quarters closer than this to the first departure are skipped.</summary>
+    public static readonly TimeSpan MinGap = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Departure times: <paramref name="first"/>, then every whole <paramref name="step"/> of the clock after it (10:14,
+    /// 10:30, 10:45…, easier to read than 10:29, 10:44…; none within <see cref="MinGap"/> of the first) up to the longest
+    /// wait.
+    /// </summary>
     public static IReadOnlyList<DateTimeOffset> Times(DateTimeOffset first, TimeSpan? maxWait = null, TimeSpan? step = null)
     {
         var wait = maxWait ?? DefaultMaxWait;
@@ -47,7 +54,18 @@ public static class DepartureChoice
         {
             throw new ArgumentException("The wait must not be negative and the step must be positive.");
         }
-        return Enumerable.Range(0, (int)(wait / every) + 1).Select(i => first + i * every).ToList();
+        var times = new List<DateTimeOffset> { first };
+        var next = new DateTimeOffset((first.UtcTicks / every.Ticks + 1) * every.Ticks, TimeSpan.Zero);
+        // A quarter a minute or two after the first time is the same departure.
+        if (next - first < MinGap)
+        {
+            next += every;
+        }
+        for (; next <= first + wait; next += every)
+        {
+            times.Add(next);
+        }
+        return times;
     }
 
     /// <summary>

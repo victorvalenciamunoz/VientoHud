@@ -4,6 +4,16 @@
 
 ## Fase 5
 
+### Qué funciona (fase 5)
+
+- **Lluvia en la ruta** (`RainOutlook`, `RouteRain`; `DECISIONS.md` 033-034): radar hasta 2 h, mezcla con AROME HD 15 min
+  en zona hasta 3 h, aviso para la zona después; reserva de `best_match` fuera de AROME.
+- **Orden con lluvia y viento** (`RideRanking.Order`; `DECISIONS.md` 035) y **salir ahora o esperar**
+  (`DepartureChoice`; `DECISIONS.md` 036).
+- **`route` con todo** (`DECISIONS.md` 037): la recomendación arriba ("Sal ahora" o "Mejor espera: sal a las 11:00…"),
+  cada vuelta con viento, lluvia, rachas y llegada, y un GPX por vuelta con nombre corto, el resumen en la descripción y
+  avisos en puntos de la ruta (`RideAlerts`, `GpxWaypoint`).
+
 ### Qué falta (fase 5)
 
 División aceptada por el autor el 2026-10-17:
@@ -29,7 +39,8 @@ División aceptada por el autor el 2026-10-17:
   (`DECISIONS.md` 037): se amplía `route`; avisos de rachas, lluvia probable y aviso para la zona (como mucho 10); nombre
   corto "Sal 10:30 · 60 km SO".
   - [x] 5d-1. Core: puntos de aviso en el GPX y los avisos de una vuelta.
-  - [ ] 5d-2. Consola: `route` con lluvia, orden y salir ahora o esperar; GPX con todo; prueba en vivo y en el Karoo.
+  - [ ] 5d-2 (hecho; **falta que el autor lo pruebe en su Karoo**). Consola: `route` con lluvia, orden y salir ahora o
+    esperar; GPX con todo; prueba en vivo y en el Karoo.
 - [ ] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
   METAR después), comparado con salir ya con una vuelta cualquiera.
 
@@ -64,6 +75,13 @@ División aceptada por el autor el 2026-10-17:
   que viene, sale ahora; en la ida y vuelta de La Bañeza con chubascos lejos de casa de 2 a 3 h desde ahora, la salida 2 h
   más tarde no gana por tener sin contar la parte lejana; rachas de 60 km/h las dos primeras horas, espera y se las
   ahorra; sin vueltas, nada que elegir. `RideRanking.Rank` puntúa con un campo de viento ya pedido.
+- Paso 5d-2 (2026-10-18): 1 test nuevo (575 en total): las salidas tardías caen en cuartos de hora en punto (sin los
+  que caen a menos de 5 min de la primera). La consola no tiene tests: probada en vivo con el BRouter local. León, 60 km,
+  día seco: "Sal ahora (10:13)", tres vueltas sin lluvia y la tercera con un aviso de racha de lado en el GPX ("Racha
+  lado 41", km 24-26). Tres Cantos, 60 km, con lluvia en el centro: "Mejor espera: sal a las 11:00 en vez de ahora; te
+  ahorras 21,2 km de lluvia probable"; aun así, lluvia probable en los km 9-41 hacia las 11:22 (75 %), con el aviso
+  "Lluvia ~11:22" en el GPX. El GPX lleva el nombre corto ("Sal 11:00 · 54 km ESE"), la descripción con la
+  recomendación, el viento por tramos, la lluvia, las rachas, el resumen de la vuelta y las atribuciones.
 - Paso 5d-1 (2026-10-18): 5 tests nuevos (574 en total). GPX con puntos de aviso antes del track, válido con el esquema
   oficial, con nombre, descripción y símbolo. Avisos: dónde empieza cada tramo de lluvia probable (con su máximo), las
   rachas y el aviso para la zona en orden de marcha; "puede" no marca nada; con demasiados, primero las rachas y la lluvia
