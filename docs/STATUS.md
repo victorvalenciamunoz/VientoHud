@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 5 — Combinarlo** (en curso: 5a a 5c hechos; sigue 5d)
+**Fase actual: 5 — Combinarlo** (en curso: 5a a 5d hechos; falta la prueba del autor en el Karoo y el juez, 5e)
 
 ## Fase 5
 
