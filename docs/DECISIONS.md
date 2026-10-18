@@ -822,3 +822,13 @@ Formato: contexto → decisión → alternativas descartadas.
 - Cautela: pocos casos por plazo y pasadas de AROME de hasta ~1 h de antigüedad (en vivo, 35-95 min).
 - Alternativas: contar también más allá de 3 h con su probabilidad (reordenaría las vueltas por ruido); el aviso con la
   probabilidad por horas de `best_match` (más gruesa; queda de reserva donde no llega AROME).
+- Piezas (técnicas, 2026-10-18, paso 5a-3; `RainOutlook`, `RouteRain`):
+  - **Un "panorama de lluvia"** (`RainOutlook`) por salida: la última imagen de radar con su movimiento, AROME en una
+    rejilla alrededor de la salida (alcance de las vueltas + 15 km, cada 5 km, como mucho 15 × 15 puntos; solo si la
+    salida pasa de 2 h) y la probabilidad por horas de reserva en la salida. Se pide una vez para todas las vueltas.
+  - **Probabilidad en un sitio y una hora:** radar hasta 2 h; de 2 a 3 h, mezcla lineal (el peso de AROME pasa de 0 a 1);
+    si falta una fuente, la otra; sin AROME (fuera de su zona), la reserva. Donde el radar no tiene datos viento arriba
+    (un radar caído, o lluvia rápida que viene de fuera del recorte), AROME aunque falten menos de 2 h.
+  - **Tramo a tramo** (`RouteRain`): la probabilidad en el medio de cada tramo de 1 km a la hora de paso; km con lluvia
+    "probable" y "puede"; primera lluvia; más allá de 3 h, sin contar y un aviso para la zona (AROME en toda la
+    rejilla cuarto de hora a cuarto de hora, o la reserva cuando AROME ya no llega).

@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 5 — Combinarlo** (en curso: paso 5a)
+**Fase actual: 5 — Combinarlo** (en curso: 5a hecho; sigue 5b)
 
 ## Fase 5
 
@@ -16,7 +16,8 @@ División aceptada por el autor el 2026-10-17:
   - [x] 5a-2. Juez de AROME en zona con pasadas antiguas: 20 días de lluvia (cabían más que los 12 acordados con el mismo
     gasto). **Decisión del autor:** radar hasta 2 h, mezcla hasta 3 h, AROME en zona (15 km, ±30 min) después, y más
     allá de 3 h solo un aviso para la zona (`DECISIONS.md` 034).
-  - [ ] 5a-3. Lluvia en cada tramo de una ruta a la hora de paso (radar, mezcla, AROME, reserva).
+  - [x] 5a-3. Lluvia en cada tramo de una ruta a la hora de paso (radar, mezcla, AROME, reserva) y aviso para la zona.
+- [x] 5a terminado (2026-10-18).
 - [ ] 5b. Puntuar y ordenar las vueltas con lluvia y viento. **Decisión del autor:** primero menos km con racha de lado
   peligrosa, luego menos km con lluvia "probable", luego mejor ventaja de viento.
 - [ ] 5c. ¿Salir ahora o esperar? Las mismas vueltas saliendo ahora, en 15 min, 30… **hasta 2 h** (decisión del autor).
@@ -37,6 +38,16 @@ División aceptada por el autor el 2026-10-17:
   los 10 días más lluviosos de Barajas y de León, 4 salidas por día tras cada pasada archivada (cada 3 h), plazos de
   1 a 4,5 h, 79 casos por plazo. Tabla y conclusiones en `DECISIONS.md` 034: la zona mejora a AROME en un punto, el
   radar movido gana a los dos hasta las 3 h y más allá AROME no gana a decir la probabilidad media de esos días.
+- Paso 5a-3 (2026-10-18): 11 tests nuevos (557 en total). Radar hasta 2 h; mezcla a medias a las 2 h 30 y solo AROME a
+  las 3 h; más allá, sin contar; sin radar, AROME; sin AROME, la reserva (también en la mezcla); nada, desconocido; lluvia
+  que llega movida por el radar; aviso para la zona desde la primera hora con un 20 % (AROME) y con la reserva cuando
+  AROME acaba; una sola petición a cada fuente y AROME solo para salidas de más de 2 h (15 × 15 puntos con 20 km de
+  alcance, nunca más de 225); fuera de AROME, la reserva; en la vuelta norte de León (fixture), tramos con radar, mezcla y
+  sin contar, y aviso. **En vivo con días pasados** (`tools/investigacion/rainroute.cs`, con lo que se sabía entonces):
+  salida del autor de Humanes (73 km) el 6 oct. a las 13:00 UTC: seca hasta el km 45 como vio el radar; al final "puede"
+  (20-22 %) donde el radar vio lluvia (km 65-73). La Bañeza (96 km) el 30 sept. a las 06:00 UTC con el frente: "probable"
+  en los km 20-35 (06:50-07:15) y el radar vio lluvia en los km 25-30 a las 07:02 (5 de los 11 km "probables" se mojaron,
+  ninguno fuera); desde el km 75, sin contar y aviso para la zona desde las 09:00 (25 %, de la reserva).
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
 círculo de la previsión; 4f no hace falta).

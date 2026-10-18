@@ -119,17 +119,37 @@ public static class Nowcast
             throw new ArgumentException("Step must be positive and the horizon not negative.", nameof(options));
         }
 
-        var (x, y) = latest.Projection.Forward(point);
         var steps = new List<RainChance>();
         for (var lead = TimeSpan.Zero; lead <= options.Horizon; lead += options.Step)
         {
             var time = now + lead;
-            var hours = (time - latest.Time).TotalHours;
-            var (upwindX, upwindY) = Upwind(x, y, motion, hours);
-            var radiusMeters = (options.RadiusKm + options.RadiusGrowthKmPerHour * hours) * 1000;
-            steps.Add(new RainChance(time, WetShare(latest, upwindX, upwindY, radiusMeters, options.ThresholdMmPerHour)));
+            steps.Add(new RainChance(time, ChanceAt(latest, motion, point, time, options)));
         }
         return new PointNowcast(point, now, latest.Time, motion, steps);
+    }
+
+    /// <summary>
+    /// Chance of rain at <paramref name="point"/> at <paramref name="time"/> (UTC, not before the frame), in [0, 1];
+    /// null when the radar has no data for most of the area it comes from. The same as one step of
+    /// <see cref="AtPoint"/>, for places and times that change together (the legs of a route).
+    /// </summary>
+    public static double? ChanceAt(
+        RainGrid latest, RainMotion? motion, Coordinate point, DateTimeOffset time, NowcastOptions? options = null)
+    {
+        options ??= new NowcastOptions();
+        if (time.Offset != TimeSpan.Zero)
+        {
+            throw new ArgumentException("Time must be in UTC.", nameof(time));
+        }
+        if (time < latest.Time)
+        {
+            throw new ArgumentException("Time cannot be before the frame.", nameof(time));
+        }
+        var (x, y) = latest.Projection.Forward(point);
+        var hours = (time - latest.Time).TotalHours;
+        var (upwindX, upwindY) = Upwind(x, y, motion, hours);
+        var radiusMeters = (options.RadiusKm + options.RadiusGrowthKmPerHour * hours) * 1000;
+        return WetShare(latest, upwindX, upwindY, radiusMeters, options.ThresholdMmPerHour);
     }
 
     /// <summary>
