@@ -1,3 +1,4 @@
+using VientoHud.Core.Rain;
 using VientoHud.Core.Routing;
 using VientoHud.Core.Tests.Support;
 using VientoHud.Core.Wind;
@@ -193,6 +194,94 @@ public class RideRankingTests
         Assert.Equal(options.Select(o => o.Score), options.Select(o => o.Score).Order());
         // From the south-west, La Bañeza (out south-west, back north-east) is the one with the wind in the face first.
         Assert.Equal(96, options[0].Winds.Count);
+    }
+
+    // An option with the wind advantage, km of dangerous gusts across and km of likely rain given.
+    private static RideOption Option(int index, double advantage, double gustyKm = 0, int likelyRainKm = 0)
+    {
+        var legs = Enumerable.Range(0, Math.Max(1, likelyRainKm))
+            .Select(i => new RouteLeg(i, i, 1, Leon, Leon, Leon, 0, 1, null, Eight, Eight.AddMinutes(2.4)))
+            .Select(l => new LegRain(l, new PlaceRain(likelyRainKm == 0 ? 0 : 0.9, RainSourceKind.Radar)))
+            .ToList();
+        GustyStretch[] gusts = gustyKm > 0 ? [new GustyStretch(0, gustyKm, 50)] : [];
+        return new RideOption(index, Rectangle(), false, [], new RideScore(advantage, 0, gusts, true), new RideRain(legs, null));
+    }
+
+    [Fact]
+    public void Rain_comes_before_the_wind_and_gusts_before_the_rain()
+    {
+        var windy = Option(1, advantage: 20, likelyRainKm: 12);
+        var dry = Option(2, advantage: 5);
+        var gusty = Option(3, advantage: 30, gustyKm: 2);
+
+        var ordered = RideRanking.Order([windy, gusty, dry]);
+
+        Assert.Equal([dry, windy, gusty], ordered);
+    }
+
+    [Fact]
+    public void Less_than_five_km_of_rain_apart_is_a_tie_and_the_wind_decides()
+    {
+        var wetterButWindier = Option(1, advantage: 15, likelyRainKm: 4);
+        var drier = Option(2, advantage: 5, likelyRainKm: 0);
+
+        Assert.Equal([wetterButWindier, drier], RideRanking.Order([drier, wetterButWindier]));
+    }
+
+    [Fact]
+    public void Ties_in_rain_are_groups_from_the_driest_not_pairs()
+    {
+        // 0, 4 and 8 km: 0 and 4 tie, 8 does not tie with 0, so it goes after both, even with the best wind.
+        var zero = Option(1, advantage: 1, likelyRainKm: 0);
+        var four = Option(2, advantage: 10, likelyRainKm: 4);
+        var eight = Option(3, advantage: 30, likelyRainKm: 8);
+
+        Assert.Equal([four, zero, eight], RideRanking.Order([eight, zero, four]));
+    }
+
+    [Fact]
+    public void Without_rain_the_order_is_the_wind_one()
+    {
+        var options = new[] { Option(1, 3), Option(2, 9, gustyKm: 1), Option(3, 7) }
+            .Select(o => o with { Rain = null }).ToList();
+
+        Assert.Equal(options.Select(o => o.Score).Order(), RideRanking.Order(options).Select(o => o.Score));
+    }
+
+    [Fact]
+    public async Task Ranks_with_the_rain_on_each_leg()
+    {
+        // Wind from the north favours the rectangle that goes north first, but it rains north of León: the one going
+        // south comes first.
+        var provider = new FakeWindForecastProvider(
+            Enumerable.Range(0, 3).Select(h => new WindSample(Eight.AddHours(h), 20, null, 0, "fake")).ToList());
+        var north = Rectangle();
+        var south = Track(Leon, Leon.Destination(180, 6), Leon.Destination(180, 6).Destination(90, 2), Leon.Destination(90, 2), Leon);
+        var outlook = new RainOutlook(Eight, RainNorthOfLeon(), null, null, null);
+
+        var dryRanking = await RideRanking.RankAsync(provider, [north, south], Eight);
+        var wetRanking = await RideRanking.RankAsync(provider, [north, south], Eight, rain: outlook);
+
+        Assert.Equal(0, dryRanking[0].RouteIndex);
+        Assert.Equal(1, wetRanking[0].RouteIndex);
+        Assert.True(wetRanking.First(o => o.RouteIndex == 0).LikelyRainKm >= 5);
+        Assert.Equal(0, wetRanking[0].LikelyRainKm);
+    }
+
+    // A radar frame of 41 × 41 km around León with rain (5 mm/h) more than 2 km north of it.
+    private static RainGrid RainNorthOfLeon()
+    {
+        var opera = LambertAzimuthalEqualArea.FromProj("+proj=laea +lat_0=55 +lon_0=10 +x_0=1950000 +y_0=-2100000 +ellps=WGS84");
+        var (x, y) = opera.Forward(Leon);
+        var rates = new float[41 * 41];
+        for (var r = 0; r < 41; r++)
+        {
+            for (var c = 0; c < 41; c++)
+            {
+                rates[r * 41 + c] = 20 - r > 2 ? 5 : 0;
+            }
+        }
+        return new RainGrid(Eight, opera, x - 20_500, y + 20_500, 1000, 41, 41, rates);
     }
 
     [Fact]

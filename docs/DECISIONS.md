@@ -832,3 +832,17 @@ Formato: contexto → decisión → alternativas descartadas.
   - **Tramo a tramo** (`RouteRain`): la probabilidad en el medio de cada tramo de 1 km a la hora de paso; km con lluvia
     "probable" y "puede"; primera lluvia; más allá de 3 h, sin contar y un aviso para la zona (AROME en toda la
     rejilla cuarto de hora a cuarto de hora, o la reserva cuando AROME ya no llega).
+
+## 035 — Orden de las vueltas con lluvia y viento
+- Contexto: el paso 5b ordena las vueltas con la lluvia de cada tramo (`DECISIONS.md` 034) además del viento
+  (`DECISIONS.md` 022).
+- Decisión (del autor, 2026-10-17 y 2026-10-18; `RideRanking.Order`):
+  1. **Menos km con racha de lado peligrosa** (más de 40 km/h), como hasta ahora: la seguridad primero.
+  2. **Menos km con lluvia "probable"** (más del 50 %, contada hasta 3 h desde ahora). **Menos de 5 km de diferencia
+     es un empate**: la previsión de lluvia no afina a pocos km. "Puede" no cuenta (acierta poco: juez de la fase 4).
+  3. **Mejor ventaja de viento** (de cara en la primera mitad, a favor en la segunda).
+- Técnica: el empate no se compara de dos en dos (0, 4 y 8 km empatarían por parejas pero no los tres): entre las
+  vueltas con los mismos km de rachas, ordenadas por lluvia, cada grupo toma la más seca que queda y todas las que estén
+  a menos de 5 km de ella; dentro del grupo decide el viento. Sin lluvia (no se miró), el orden es el de la fase 3.
+- Alternativas: la lluvia antes que las rachas (el autor prefirió la seguridad primero); comparar los km exactos (el orden
+  dependería del ruido de la previsión); sumar también los km de "puede" (acierta poco).

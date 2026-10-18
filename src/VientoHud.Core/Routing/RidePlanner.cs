@@ -1,3 +1,4 @@
+using VientoHud.Core.Rain;
 using VientoHud.Core.Wind;
 
 namespace VientoHud.Core.Routing;
@@ -38,6 +39,7 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
     /// A bearing chosen by the rider: the loops are spread evenly from it and the wind does not choose them.
     /// </param>
     /// <param name="progress">Told about each bearing as soon as it is done.</param>
+    /// <param name="rain">The rain to come; when given, it counts in the ranking (DECISIONS 035).</param>
     /// <param name="cancellationToken">Cancels the requests.</param>
     /// <exception cref="WindForecastException">The forecast failed.</exception>
     public async Task<RidePlan> PlanAsync(
@@ -48,6 +50,7 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
         int count = 3,
         double? firstBearing = null,
         IProgress<LoopResult>? progress = null,
+        RainOutlook? rain = null,
         CancellationToken cancellationToken = default)
     {
         if (departure.Offset != TimeSpan.Zero)
@@ -86,7 +89,7 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
             ? []
             : RideRanking.BestWayRound(await RideRanking.RankAsync(
                     forecasts, found.Select(i => loops[i].Best!.Route).ToList(), departure, averageSpeedKmh,
-                    cancellationToken: cancellationToken))
+                    rain: rain, cancellationToken: cancellationToken))
                 // Point back to the loop each option comes from.
                 .Select(o => o with { RouteIndex = found[o.RouteIndex] })
                 .ToList();

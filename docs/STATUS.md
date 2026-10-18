@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 5 — Combinarlo** (en curso: 5a hecho; sigue 5b)
+**Fase actual: 5 — Combinarlo** (en curso: 5a y 5b hechos; sigue 5c)
 
 ## Fase 5
 
@@ -18,8 +18,9 @@ División aceptada por el autor el 2026-10-17:
     allá de 3 h solo un aviso para la zona (`DECISIONS.md` 034).
   - [x] 5a-3. Lluvia en cada tramo de una ruta a la hora de paso (radar, mezcla, AROME, reserva) y aviso para la zona.
 - [x] 5a terminado (2026-10-18).
-- [ ] 5b. Puntuar y ordenar las vueltas con lluvia y viento. **Decisión del autor:** primero menos km con racha de lado
-  peligrosa, luego menos km con lluvia "probable", luego mejor ventaja de viento.
+- [x] 5b. Puntuar y ordenar las vueltas con lluvia y viento. **Decisión del autor:** primero menos km con racha de lado
+  peligrosa, luego menos km con lluvia "probable" (menos de 5 km de diferencia es empate), luego mejor ventaja de viento
+  (`DECISIONS.md` 035).
 - [ ] 5c. ¿Salir ahora o esperar? Las mismas vueltas saliendo ahora, en 15 min, 30… **hasta 2 h** (decisión del autor).
 - [ ] 5d. Consola y GPX: la recomendación final; el GPX con nombre y descripción con el resumen y **avisos en puntos de
   la ruta** (decisión del autor: probar si el Karoo los muestra).
@@ -48,6 +49,10 @@ División aceptada por el autor el 2026-10-17:
   (20-22 %) donde el radar vio lluvia (km 65-73). La Bañeza (96 km) el 30 sept. a las 06:00 UTC con el frente: "probable"
   en los km 20-35 (06:50-07:15) y el radar vio lluvia en los km 25-30 a las 07:02 (5 de los 11 km "probables" se mojaron,
   ninguno fuera); desde el km 75, sin contar y aviso para la zona desde las 09:00 (25 %, de la reserva).
+- Paso 5b (2026-10-18): 5 tests nuevos (562 en total). La más seca va antes que la de mejor viento y las rachas antes que
+  la lluvia; 4 km de diferencia de lluvia es empate y decide el viento; 0, 4 y 8 km: 0 y 4 empatan y 8 va detrás aunque
+  tenga el mejor viento; sin lluvia, el orden de la fase 3; con lluvia al norte de León, el rectángulo que va al sur pasa
+  delante del que va al norte, que tenía mejor viento. `RidePlanner` acepta el panorama de lluvia y lo pasa al orden.
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
 círculo de la previsión; 4f no hace falta).

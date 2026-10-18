@@ -36,7 +36,7 @@ internal sealed class RouteCommand(
         var plan = await planner.PlanAsync(
             start, targetKm, departure, options.SpeedKmh, options.Count, options.Bearing,
             new LineProgress(r => output.WriteLine($"  {Heading(r.BearingDegrees)}: {Outcome(r)}")),
-            cancellationToken);
+            cancellationToken: cancellationToken);
         // The progress lines come after the planner has looked at the wind; say what it saw first.
         output.WriteLine();
         output.WriteLine(Describe(plan.Wind));

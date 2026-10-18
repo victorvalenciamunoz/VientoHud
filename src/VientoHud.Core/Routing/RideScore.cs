@@ -1,3 +1,4 @@
+using VientoHud.Core.Rain;
 using VientoHud.Core.Wind;
 
 namespace VientoHud.Core.Routing;
@@ -49,16 +50,54 @@ public sealed record RideScore(
 /// <param name="Reversed">Whether this is the route ridden the other way round from how it was generated.</param>
 /// <param name="Winds">The wind on each leg, in riding order.</param>
 /// <param name="Score">How good it is for the wind.</param>
+/// <param name="Rain">The rain on each leg and the warning for the area; null when the rain was not looked at.</param>
 public sealed record RideOption(
     int RouteIndex,
     Route Route,
     bool Reversed,
     IReadOnlyList<LegWind> Winds,
-    RideScore Score);
+    RideScore Score,
+    RideRain? Rain = null)
+{
+    /// <summary>Km where rain is likely; 0 when the rain was not looked at.</summary>
+    public double LikelyRainKm => Rain?.LikelyKm ?? 0;
+}
 
-/// <summary>Scores rides for the wind and ranks routes ridden both ways (DECISIONS 022).</summary>
+/// <summary>Scores rides for the wind and ranks routes ridden both ways (DECISIONS 022 and 035).</summary>
 public static class RideRanking
 {
+    /// <summary>
+    /// Rides whose km of likely rain differ by less than this count as equally wet, and the wind decides (the author's
+    /// choice, DECISIONS 035): a forecast of rain is not precise to a few km.
+    /// </summary>
+    public const double RainTieKm = 5;
+
+    /// <summary>
+    /// Best first, in the order the author chose (DECISIONS 035): fewer km with dangerous gusts across; then fewer km
+    /// with likely rain, where differences under <see cref="RainTieKm"/> are a tie; then the larger wind advantage.
+    /// </summary>
+    /// <remarks>
+    /// Ties in rain are not compared pair by pair (0, 4 and 8 km would be a tie two by two but not all three): among
+    /// rides with the same gusty km, sorted by rain, each group takes the driest left and every ride within
+    /// <see cref="RainTieKm"/> of it.
+    /// </remarks>
+    public static IReadOnlyList<RideOption> Order(IEnumerable<RideOption> options)
+    {
+        var ordered = new List<RideOption>();
+        foreach (var sameGusts in options.GroupBy(o => o.Score.GustyKm).OrderBy(g => g.Key))
+        {
+            var left = sameGusts.OrderBy(o => o.LikelyRainKm).ToList();
+            while (left.Count > 0)
+            {
+                var driest = left[0].LikelyRainKm;
+                var group = left.TakeWhile(o => o.LikelyRainKm < driest + RainTieKm).ToList();
+                ordered.AddRange(group.OrderByDescending(o => o.Score.WindAdvantageKmh));
+                left.RemoveRange(0, group.Count);
+            }
+        }
+        return ordered;
+    }
+
     /// <summary>Gust across the road the rider is not comfortable with (the author's choice, DECISIONS 022).</summary>
     public const double DefaultMaxCrossGustKmh = 40;
 
@@ -99,8 +138,9 @@ public static class RideRanking
     }
 
     /// <summary>
-    /// Every route ridden both ways, best first. Asks <paramref name="provider"/> once, at the wind points of all the
-    /// routes, for the hours the longest ride lasts.
+    /// Every route ridden both ways, best first (<see cref="Order"/>). Asks <paramref name="provider"/> once, at the
+    /// wind points of all the routes, for the hours the longest ride lasts. With <paramref name="rain"/>, the rain on
+    /// each leg counts too.
     /// </summary>
     /// <exception cref="WindForecastException">The provider failed or lacks some place or hour.</exception>
     public static async Task<IReadOnlyList<RideOption>> RankAsync(
@@ -109,6 +149,7 @@ public static class RideRanking
         DateTimeOffset departure,
         double averageSpeedKmh = RideDistance.DefaultAverageSpeedKmh,
         double maxCrossGustKmh = DefaultMaxCrossGustKmh,
+        RainOutlook? rain = null,
         CancellationToken cancellationToken = default)
     {
         if (routes.Count == 0)
@@ -131,14 +172,12 @@ public static class RideRanking
             rides.Max(r => r.Legs[^1].EndTime),
             cancellationToken);
 
-        return rides
-            .Select(r =>
-            {
-                var winds = RouteWind.Along(r.Legs, field);
-                return new RideOption(r.Index, r.Route, r.Reversed, winds, Score(winds, maxCrossGustKmh));
-            })
-            .OrderBy(o => o.Score)
-            .ToList();
+        return Order(rides.Select(r =>
+        {
+            var winds = RouteWind.Along(r.Legs, field);
+            return new RideOption(r.Index, r.Route, r.Reversed, winds, Score(winds, maxCrossGustKmh),
+                rain is null ? null : RouteRain.Along(r.Legs, rain));
+        }));
     }
 
     /// <summary>Each route once, in its better way round, keeping the order of <paramref name="ranked"/>.</summary>
