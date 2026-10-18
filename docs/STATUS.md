@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 5 — Combinarlo** (en curso: 5a y 5b hechos; sigue 5c)
+**Fase actual: 5 — Combinarlo** (en curso: 5a a 5c hechos; sigue 5d)
 
 ## Fase 5
 
@@ -21,7 +21,9 @@ División aceptada por el autor el 2026-10-17:
 - [x] 5b. Puntuar y ordenar las vueltas con lluvia y viento. **Decisión del autor:** primero menos km con racha de lado
   peligrosa, luego menos km con lluvia "probable" (menos de 5 km de diferencia es empate), luego mejor ventaja de viento
   (`DECISIONS.md` 035).
-- [ ] 5c. ¿Salir ahora o esperar? Las mismas vueltas saliendo ahora, en 15 min, 30… **hasta 2 h** (decisión del autor).
+- [x] 5c. ¿Salir ahora o esperar? Las mismas vueltas saliendo ahora, en 15 min, 30… **hasta 2 h** (decisión del autor).
+  Esperar solo para mojarse menos (5 km o más de lluvia probable) o evitar rachas peligrosas, no por el viento solo
+  (**decisión del autor**, `DECISIONS.md` 036).
 - [ ] 5d. Consola y GPX: la recomendación final; el GPX con nombre y descripción con el resumen y **avisos en puntos de
   la ruta** (decisión del autor: probar si el Karoo los muestra).
 - [ ] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
@@ -53,6 +55,11 @@ División aceptada por el autor el 2026-10-17:
   la lluvia; 4 km de diferencia de lluvia es empate y decide el viento; 0, 4 y 8 km: 0 y 4 empatan y 8 va detrás aunque
   tenga el mejor viento; sin lluvia, el orden de la fase 3; con lluvia al norte de León, el rectángulo que va al sur pasa
   delante del que va al norte, que tenía mejor viento. `RidePlanner` acepta el panorama de lluvia y lo pasa al orden.
+- Paso 5c (2026-10-18): 7 tests nuevos (569 en total). Salidas cada 15 min hasta 2 h; con una banda de lluvia encima que
+  se va al este, espera (15-75 min) y se ahorra 5 km o más de lluvia; seco con mejor viento más tarde, sale ahora; lluvia
+  que viene, sale ahora; en la ida y vuelta de La Bañeza con chubascos lejos de casa de 2 a 3 h desde ahora, la salida 2 h
+  más tarde no gana por tener sin contar la parte lejana; rachas de 60 km/h las dos primeras horas, espera y se las
+  ahorra; sin vueltas, nada que elegir. `RideRanking.Rank` puntúa con un campo de viento ya pedido.
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
 círculo de la previsión; 4f no hace falta).

@@ -172,13 +172,30 @@ public static class RideRanking
             rides.Max(r => r.Legs[^1].EndTime),
             cancellationToken);
 
-        return Order(rides.Select(r =>
-        {
-            var winds = RouteWind.Along(r.Legs, field);
-            return new RideOption(r.Index, r.Route, r.Reversed, winds, Score(winds, maxCrossGustKmh),
-                rain is null ? null : RouteRain.Along(r.Legs, rain));
-        }));
+        return Rank(field, routes, departure, averageSpeedKmh, maxCrossGustKmh, rain);
     }
+
+    /// <summary>
+    /// Every route ridden both ways, best first, with a wind field already at hand (it must cover the places and hours of
+    /// the rides: <see cref="RouteWind.SamplePoints"/>).
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">The field has no wind for some leg.</exception>
+    public static IReadOnlyList<RideOption> Rank(
+        WindField field,
+        IReadOnlyList<Route> routes,
+        DateTimeOffset departure,
+        double averageSpeedKmh = RideDistance.DefaultAverageSpeedKmh,
+        double maxCrossGustKmh = DefaultMaxCrossGustKmh,
+        RainOutlook? rain = null) =>
+        Order(routes
+            .SelectMany((route, i) => new[] { (Index: i, Route: route, Reversed: false), (Index: i, Route: route.Reversed(), Reversed: true) })
+            .Select(r =>
+            {
+                var legs = RouteLegs.Split(r.Route, departure, averageSpeedKmh);
+                var winds = RouteWind.Along(legs, field);
+                return new RideOption(r.Index, r.Route, r.Reversed, winds, Score(winds, maxCrossGustKmh),
+                    rain is null ? null : RouteRain.Along(legs, rain));
+            }));
 
     /// <summary>Each route once, in its better way round, keeping the order of <paramref name="ranked"/>.</summary>
     public static IReadOnlyList<RideOption> BestWayRound(IReadOnlyList<RideOption> ranked) =>

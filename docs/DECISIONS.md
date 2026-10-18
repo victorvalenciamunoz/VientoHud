@@ -846,3 +846,19 @@ Formato: contexto → decisión → alternativas descartadas.
   a menos de 5 km de ella; dentro del grupo decide el viento. Sin lluvia (no se miró), el orden es el de la fase 3.
 - Alternativas: la lluvia antes que las rachas (el autor prefirió la seguridad primero); comparar los km exactos (el orden
   dependería del ruido de la previsión); sumar también los km de "puede" (acierta poco).
+
+## 036 — ¿Salir ahora o esperar?
+- Contexto: el paso 5c decide si conviene esperar para salir (hasta 2 h, cada 15 min: decisión del autor).
+- Decisión (del autor, 2026-10-18, opción A; `DepartureChoice`):
+  - **Esperar solo para mojarse menos o evitar rachas peligrosas, nunca por el viento solo**: una salida más tarde vale
+    si quita algún km de racha de lado peligrosa (sin añadir 5 km o más de lluvia probable) o, con las mismas rachas, al
+    menos 5 km de lluvia probable (el mismo umbral del empate, `DECISIONS.md` 035). Si no, se sale ahora.
+  - Entre las que valen: la que más rachas quita, luego la que más lluvia quita, luego la más temprana.
+- Técnicas:
+  - **Las mismas vueltas para todas las salidas** (las buscadas para salir ahora), puntuadas en cada hora de salida con
+    una sola petición de viento y un solo panorama de lluvia; de cada hora cuenta su mejor vuelta.
+  - **Comparación justa de la lluvia:** cuanto más tarde se sale, más parte de la vuelta cae más allá de las 3 h
+    contadas. Se compara solo en los km contados en las dos (los primeros km, hasta donde llega la más tardía): saber
+    menos no puede hacer que una salida parezca más seca.
+- Alternativas: esperar también por el viento (opción B; el viento cambia despacio y esperar tiene su coste); comparar la
+  lluvia de toda la vuelta (la salida tardía saldría más seca por desconocimiento).

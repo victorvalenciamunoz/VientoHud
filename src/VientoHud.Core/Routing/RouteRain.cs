@@ -18,6 +18,18 @@ public sealed record RideRain(IReadOnlyList<LegRain> Legs, AreaRain? AreaWarning
     /// <summary>Km of legs not counted (ridden more than 3 h from now) or with nothing known.</summary>
     public double UncountedKm => Legs.Where(l => l.Rain.Probability is null).Sum(l => l.Leg.LengthKm);
 
+    /// <summary>Km from the start whose rain is counted (up to 3 h from now); the rest is only warned about.</summary>
+    public double CountedKm => Legs
+        .Where(l => l.Rain.Source != RainSourceKind.BeyondHorizon)
+        .Select(l => l.Leg.EndKm)
+        .DefaultIfEmpty(0)
+        .Max();
+
+    /// <summary>Km with likely rain among the legs that start before <paramref name="km"/> from the start.</summary>
+    public double LikelyKmWithin(double km) => Legs
+        .Where(l => l.Leg.StartKm < km - 1e-9 && l.Rain.Likelihood == RainLikelihood.Likely)
+        .Sum(l => l.Leg.LengthKm);
+
     /// <summary>First leg where rain is at least possible; null if none.</summary>
     public LegRain? FirstRain => Legs.FirstOrDefault(l => l.Rain.Likelihood is RainLikelihood.Possible or RainLikelihood.Likely);
 }
