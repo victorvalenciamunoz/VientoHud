@@ -862,3 +862,15 @@ Formato: contexto → decisión → alternativas descartadas.
     menos no puede hacer que una salida parezca más seca.
 - Alternativas: esperar también por el viento (opción B; el viento cambia despacio y esperar tiene su coste); comparar la
   lluvia de toda la vuelta (la salida tardía saldría más seca por desconocimiento).
+
+## 037 — La recomendación en la consola y en el GPX
+- Contexto: el paso 5d junta todo en `route` y lo mete en el GPX, que es el producto (el móvil va guardado).
+- Decisiones (del autor, 2026-10-18, con las recomendaciones):
+  - **Se amplía `route`** en vez de crear otro comando. Mira desde ahora (o desde `--at`) hasta 2 h después.
+  - **Avisos en puntos de la ruta** (`wpt` del GPX, `RideAlerts`): donde empieza cada tramo con racha de lado peligrosa,
+    cada tramo con lluvia probable y la parte con aviso para la zona; como mucho 10 (se quedan primero las rachas, luego
+    la lluvia más larga, luego el aviso). Nada del viento: serían demasiados y no es peligro.
+  - **Nombre corto** del GPX, del estilo "Sal 10:30 · 60 km SO"; se revisará al verlo en el Karoo.
+- Técnica: el GPX lleva los puntos entre los metadatos y el track, con nombre, descripción y símbolo (orden del esquema
+  GPX 1.1, comprobado con el esquema oficial). Los textos en español los pone la consola; Core da los datos.
+- Pendiente: que el autor compruebe en su Karoo cómo se ven el nombre, la descripción y los puntos.

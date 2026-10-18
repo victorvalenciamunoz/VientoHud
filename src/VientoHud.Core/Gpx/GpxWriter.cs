@@ -20,7 +20,7 @@ public static class GpxWriter
     private const string CoordinateFormat = "0.#######";
     private const string ElevationFormat = "0.#";
 
-    /// <summary>Writes the track as UTF-8 (no byte order mark). Leaves the stream open.</summary>
+    /// <summary>Writes the track and its waypoints as UTF-8 (no byte order mark). Leaves the stream open.</summary>
     public static void Write(GpxTrack track, Stream output)
     {
         ArgumentNullException.ThrowIfNull(track);
@@ -56,6 +56,20 @@ public static class GpxWriter
         }
         xml.WriteElementString("time", Namespace, track.Time.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture));
         xml.WriteEndElement();
+
+        // Waypoints go between metadata and trk; inside, name, desc and sym in that order.
+        foreach (var waypoint in track.Waypoints)
+        {
+            xml.WriteStartElement("wpt", Namespace);
+            xml.WriteAttributeString("lat", waypoint.Position.Latitude.ToString(CoordinateFormat, CultureInfo.InvariantCulture));
+            xml.WriteAttributeString("lon", waypoint.Position.Longitude.ToString(CoordinateFormat, CultureInfo.InvariantCulture));
+            xml.WriteElementString("name", Namespace, waypoint.Name);
+            if (waypoint.Description is { } waypointDescription)
+                xml.WriteElementString("desc", Namespace, waypointDescription);
+            if (waypoint.Symbol is { } symbol)
+                xml.WriteElementString("sym", Namespace, symbol);
+            xml.WriteEndElement();
+        }
 
         // trk: name, desc, then the segment.
         xml.WriteStartElement("trk", Namespace);

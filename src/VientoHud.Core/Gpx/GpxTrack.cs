@@ -24,19 +24,34 @@ public sealed record GpxCopyright(string Author, Uri? License = null)
         new("OpenStreetMap contributors", new Uri("https://opendatacommons.org/licenses/odbl/"));
 }
 
+/// <summary>A point to mark on the way (GPX `wpt`), which bike GPS units show as a point of interest.</summary>
+/// <param name="Name">Short text shown by the GPS.</param>
+/// <param name="Description">Longer text, if any.</param>
+/// <param name="Symbol">GPS symbol name (`sym`), if any.</param>
+public sealed record GpxWaypoint(Coordinate Position, string Name, string? Description = null, string? Symbol = null)
+{
+    public string Name { get; } = !string.IsNullOrWhiteSpace(Name)
+        ? Name
+        : throw new ArgumentException("Name is required.", nameof(Name));
+}
+
 /// <summary>A single-segment GPX track: the exact line a bike GPS follows as a course.</summary>
 /// <param name="Name">Track name shown by the GPS.</param>
 /// <param name="Points">Points in riding order. At least two.</param>
 /// <param name="Time">When the file was created, in UTC.</param>
 /// <param name="Description">Longer text (summary of the ride), if any.</param>
 /// <param name="Copyright">Data rights and licence, if any.</param>
+/// <param name="Waypoints">Points to mark on the way, if any.</param>
 public sealed record GpxTrack(
     string Name,
     IReadOnlyList<GpxTrackPoint> Points,
     DateTimeOffset Time,
     string? Description = null,
-    GpxCopyright? Copyright = null)
+    GpxCopyright? Copyright = null,
+    IReadOnlyList<GpxWaypoint>? Waypoints = null)
 {
+    public IReadOnlyList<GpxWaypoint> Waypoints { get; } = Waypoints ?? [];
+
     public string Name { get; } = !string.IsNullOrWhiteSpace(Name)
         ? Name
         : throw new ArgumentException("Name is required.", nameof(Name));
@@ -50,7 +65,12 @@ public sealed record GpxTrack(
         : throw new ArgumentException("Time must be in UTC.", nameof(Time));
 
     /// <summary>The track of a route, with elevations, under OpenStreetMap's licence (routes are built from its data).</summary>
-    public static GpxTrack FromRoute(Routing.Route route, string name, DateTimeOffset time, string? description = null)
+    public static GpxTrack FromRoute(
+        Routing.Route route,
+        string name,
+        DateTimeOffset time,
+        string? description = null,
+        IReadOnlyList<GpxWaypoint>? waypoints = null)
     {
         ArgumentNullException.ThrowIfNull(route);
         return new GpxTrack(
@@ -58,6 +78,7 @@ public sealed record GpxTrack(
             route.Points.Select(p => new GpxTrackPoint(p.Position, p.ElevationMeters)).ToList(),
             time,
             description,
-            GpxCopyright.OpenStreetMap);
+            GpxCopyright.OpenStreetMap,
+            waypoints);
     }
 }

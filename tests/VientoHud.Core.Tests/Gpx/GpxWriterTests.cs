@@ -47,6 +47,27 @@ public class GpxWriterTests
     }
 
     [Fact]
+    public async Task Waypoints_go_before_the_track_and_stay_valid()
+    {
+        var route = await RecordedRoutes.LeonNorth.LoadAsync();
+        GpxWaypoint[] waypoints =
+        [
+            new(route.Points[10].Position, "Lluvia ~11:40", "km 3-8: lluvia probable (80 %)", "Danger Area"),
+            new(route.Points[40].Position, "Racha lado 45"),
+        ];
+
+        var xml = GpxWriter.ToXml(GpxTrack.FromRoute(route, "Sal 10:30 · 17 km N", Created, "Resumen", waypoints));
+
+        Assert.Empty(SchemaErrors(xml));
+        Assert.True(xml.IndexOf("<wpt", StringComparison.Ordinal) < xml.IndexOf("<trk>", StringComparison.Ordinal));
+        Assert.Contains("<name>Lluvia ~11:40</name>", xml);
+        Assert.Contains("<desc>km 3-8: lluvia probable (80 %)</desc>", xml);
+        Assert.Contains("<sym>Danger Area</sym>", xml);
+        Assert.Equal(2, xml.Split("<wpt ").Length - 1);
+        Assert.Throws<ArgumentException>(() => new GpxWaypoint(route.Points[0].Position, " "));
+    }
+
+    [Fact]
     public void Minimal_track_is_valid_against_the_official_gpx_1_1_schema() =>
         Assert.Empty(SchemaErrors(GpxWriter.ToXml(MinimalTrack())));
 

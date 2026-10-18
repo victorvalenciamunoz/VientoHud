@@ -25,7 +25,11 @@ División aceptada por el autor el 2026-10-17:
   Esperar solo para mojarse menos (5 km o más de lluvia probable) o evitar rachas peligrosas, no por el viento solo
   (**decisión del autor**, `DECISIONS.md` 036).
 - [ ] 5d. Consola y GPX: la recomendación final; el GPX con nombre y descripción con el resumen y **avisos en puntos de
-  la ruta** (decisión del autor: probar si el Karoo los muestra).
+  la ruta** (decisión del autor: probar si el Karoo los muestra). División y decisiones del autor del 2026-10-18
+  (`DECISIONS.md` 037): se amplía `route`; avisos de rachas, lluvia probable y aviso para la zona (como mucho 10); nombre
+  corto "Sal 10:30 · 60 km SO".
+  - [x] 5d-1. Core: puntos de aviso en el GPX y los avisos de una vuelta.
+  - [ ] 5d-2. Consola: `route` con lluvia, orden y salir ahora o esperar; GPX con todo; prueba en vivo y en el Karoo.
 - [ ] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
   METAR después), comparado con salir ya con una vuelta cualquiera.
 
@@ -60,6 +64,10 @@ División aceptada por el autor el 2026-10-17:
   que viene, sale ahora; en la ida y vuelta de La Bañeza con chubascos lejos de casa de 2 a 3 h desde ahora, la salida 2 h
   más tarde no gana por tener sin contar la parte lejana; rachas de 60 km/h las dos primeras horas, espera y se las
   ahorra; sin vueltas, nada que elegir. `RideRanking.Rank` puntúa con un campo de viento ya pedido.
+- Paso 5d-1 (2026-10-18): 5 tests nuevos (574 en total). GPX con puntos de aviso antes del track, válido con el esquema
+  oficial, con nombre, descripción y símbolo. Avisos: dónde empieza cada tramo de lluvia probable (con su máximo), las
+  rachas y el aviso para la zona en orden de marcha; "puede" no marca nada; con demasiados, primero las rachas y la lluvia
+  más larga.
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
 círculo de la previsión; 4f no hace falta).
