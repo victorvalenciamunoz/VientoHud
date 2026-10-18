@@ -13,9 +13,9 @@ División aceptada por el autor el 2026-10-17:
   de reserva, y paso del radar a AROME entre 60 y 90 min (`DECISIONS.md` 033). División aceptada el 2026-10-17:
   - [x] 5a-1. Core: previsión de AROME en una rejilla (ahora, archivo y pasada concreta), probabilidad en zona con
     margen de tiempo y probabilidad de reserva.
-  - [ ] 5a-2. Juez de AROME en zona con pasadas antiguas (1,5-5 h antes) en 12 días de lluvia (**decisión del autor**,
-    por el límite diario de Open-Meteo): tamaño de la zona y margen de tiempo, frente a un punto, y cuándo pasar del
-    radar a AROME.
+  - [x] 5a-2. Juez de AROME en zona con pasadas antiguas: 20 días de lluvia (cabían más que los 12 acordados con el mismo
+    gasto). **Decisión del autor:** radar hasta 2 h, mezcla hasta 3 h, AROME en zona (15 km, ±30 min) después, y más
+    allá de 3 h solo un aviso para la zona (`DECISIONS.md` 034).
   - [ ] 5a-3. Lluvia en cada tramo de una ruta a la hora de paso (radar, mezcla, AROME, reserva).
 - [ ] 5b. Puntuar y ordenar las vueltas con lluvia y viento. **Decisión del autor:** primero menos km con racha de lado
   peligrosa, luego menos km con lluvia "probable", luego mejor ventaja de viento.
@@ -33,6 +33,10 @@ División aceptada por el autor el 2026-10-17:
   debajo de 0,2 mm/h, seco. Con respuestas reales grabadas: la pasada de AROME HD del 6 oct. a las 12:00 UTC en 3 × 3
   puntos alrededor de Barajas (sin fechas en la petición; dura 6 h; 1,2 mm/h de 13:15 a 13:30; probabilidad > 30 % a
   las 13:30 y < 10 % a las 17:00), la previsión de ahora con fechas y la probabilidad por horas de `best_match`.
+- Paso 5a-2 (2026-10-17), **juez de AROME en zona** (`judge5a.cs`, ~80 min, 5.994 llamadas a Open-Meteo):
+  los 10 días más lluviosos de Barajas y de León, 4 salidas por día tras cada pasada archivada (cada 3 h), plazos de
+  1 a 4,5 h, 79 casos por plazo. Tabla y conclusiones en `DECISIONS.md` 034: la zona mejora a AROME en un punto, el
+  radar movido gana a los dos hasta las 3 h y más allá AROME no gana a decir la probabilidad media de esos días.
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
 círculo de la previsión; 4f no hace falta).

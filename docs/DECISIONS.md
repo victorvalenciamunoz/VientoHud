@@ -796,3 +796,29 @@ Formato: contexto → decisión → alternativas descartadas.
   - **Probabilidad en zona** (`ModelRainField.Probability`): parte con lluvia (desde 0,2 mm/h) de los puntos a menos de
     un radio y de los cuartos de hora a menos de un margen de tiempo, porque AROME suele acertar el patrón con adelanto o
     retraso. Valores provisionales (15 km, ±30 min) hasta el juez del 5a-2.
+
+## 034 — Radar hasta 2 h, mezcla hasta 3 h y, después, solo un aviso para la zona
+- Contexto: juez de AROME HD 15 min en zona (paso 5a-2, `tools/investigacion/judge5a.cs`,
+  `docs/verificacion/2026-10-17-fase5-arome-zona.*`): 20 días de lluvia en Barajas y León, ~80 casos por plazo, con
+  pasadas antiguas (Single Runs API; en el archivo solo hay una cada 3 h). Brier contra el radar (más bajo, mejor):
+
+  | Plazo | Radar movido | AROME en un punto | AROME en zona (15 km, ±30 min) | Siempre la media (~21 %) |
+  |---|---|---|---|---|
+  | +60 | 0,118 | 0,215 | 0,191 | 0,160 |
+  | +90 | 0,135 | 0,190 | 0,160 | 0,152 |
+  | +120 | 0,091 | 0,203 | 0,172 | 0,160 |
+  | +150 | 0,168 | 0,266 | 0,210 | 0,167 |
+  | +180 | 0,133 | 0,190 | 0,146 | 0,144 |
+  | +210 a +270 | — | 0,24-0,29 | 0,18-0,22 | ~0,17 |
+
+  Mirar una zona mejora a AROME (0,224 → ~0,19 en conjunto; los radios de 5 a 20 km y los márgenes de 0 a 60 min salen
+  casi iguales). Pero el radar movido le gana hasta las 3 h, y de 2,5 h en adelante AROME no gana a decir siempre la
+  probabilidad media de esos días: no sirve para el kilómetro concreto. Contra el METAR, lo mismo.
+- Decisión (del autor, 2026-10-18, con la recomendación):
+  - **Radar hasta 2 h; de 2 a 3 h, mezcla que pasa poco a poco del radar a AROME en zona (15 km, ±30 min); después,
+    AROME** (cambia la de `DECISIONS.md` 033, que era de 60 a 90 min).
+  - **Más allá de 3 h no se cuenta la lluvia kilómetro a kilómetro** para ordenar las vueltas: solo un aviso general
+    para la zona ("a partir de las 13:00, posibilidad de chubascos en la zona, ≈30 %"), con AROME en toda la rejilla.
+- Cautela: pocos casos por plazo y pasadas de AROME de hasta ~1 h de antigüedad (en vivo, 35-95 min).
+- Alternativas: contar también más allá de 3 h con su probabilidad (reordenaría las vueltas por ruido); el aviso con la
+  probabilidad por horas de `best_match` (más gruesa; queda de reserva donde no llega AROME).
