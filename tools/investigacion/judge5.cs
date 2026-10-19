@@ -320,7 +320,24 @@ sealed class DiskCache(string folder) : DelegatingHandler
         {
             return new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new ByteArrayContent(await File.ReadAllBytesAsync(path, cancellationToken)) };
         }
-        var response = await base.SendAsync(request, cancellationToken);
+        // Open-Meteo counts each place of a request as a call (600 a minute at most): keep under ~500 a minute, and after
+        // a 429 wait a minute and try again.
+        HttpResponseMessage response;
+        for (var attempt = 1; ; attempt++)
+        {
+            if (uri.Host.Contains("open-meteo"))
+            {
+                await PaceAsync(Places(uri), cancellationToken);
+            }
+            response = await base.SendAsync(request, cancellationToken);
+            if (response.StatusCode != System.Net.HttpStatusCode.TooManyRequests || attempt == 4)
+            {
+                break;
+            }
+            Console.Error.WriteLine($"  429 de {uri.Host}; espero 65 s");
+            response.Dispose();
+            await Task.Delay(TimeSpan.FromSeconds(65), cancellationToken);
+        }
         if (response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsByteArrayAsync(cancellationToken);
@@ -329,6 +346,33 @@ sealed class DiskCache(string folder) : DelegatingHandler
             return new HttpResponseMessage(response.StatusCode) { Content = new ByteArrayContent(body) };
         }
         return response;
+    }
+
+    private const int CallsPerMinute = 500;
+    private readonly Queue<(DateTime Time, int Calls)> _recent = new();
+
+    private static int Places(Uri uri)
+    {
+        var latitude = uri.Query.TrimStart('?').Split('&').FirstOrDefault(p => p.StartsWith("latitude=", StringComparison.Ordinal));
+        return latitude is null ? 1 : Uri.UnescapeDataString(latitude).Count(c => c == ',') + 1;
+    }
+
+    private async Task PaceAsync(int calls, CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            var now = DateTime.UtcNow;
+            while (_recent.Count > 0 && now - _recent.Peek().Time > TimeSpan.FromMinutes(1))
+            {
+                _recent.Dequeue();
+            }
+            if (_recent.Sum(r => r.Calls) + calls <= CallsPerMinute || _recent.Count == 0)
+            {
+                _recent.Enqueue((now, calls));
+                return;
+            }
+            await Task.Delay(_recent.Peek().Time + TimeSpan.FromMinutes(1) - now + TimeSpan.FromSeconds(1), cancellationToken);
+        }
     }
 }
 

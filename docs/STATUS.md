@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 5 — Combinarlo** (en curso: 5a a 5d hechos; sigue el juez, 5e)
+**Fase actual: 5 — Combinarlo** (5a a 5e hechos; falta el visto bueno del autor al juez)
 
 ## Fase 5
 
@@ -41,8 +41,9 @@ División aceptada por el autor el 2026-10-17:
   - [x] 5d-1. Core: puntos de aviso en el GPX y los avisos de una vuelta.
   - [x] 5d-2. Consola: `route` con lluvia, orden y salir ahora o esperar; GPX con todo; prueba en vivo y en el Karoo
     (2026-10-18: el Karoo no muestra los avisos ni el nombre de dentro del GPX; **el autor lo deja así**, es secundario).
-- [ ] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
-  METAR después), comparado con salir ya con una vuelta cualquiera.
+- [x] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
+  METAR después), comparado con salir ya con una vuelta cualquiera. Sitios del autor: La Bañeza y Humanes de Madrid
+  (`DECISIONS.md` 038). **Falta el visto bueno del autor.**
 
 ### Cómo se ha validado (fase 5)
 
@@ -75,6 +76,21 @@ División aceptada por el autor el 2026-10-17:
   que viene, sale ahora; en la ida y vuelta de La Bañeza con chubascos lejos de casa de 2 a 3 h desde ahora, la salida 2 h
   más tarde no gana por tener sin contar la parte lejana; rachas de 60 km/h las dos primeras horas, espera y se las
   ahorra; sin vueltas, nada que elegir. `RideRanking.Rank` puntúa con un campo de viento ya pedido.
+- Paso 5e (2026-10-19), **juez de la fase 5** (`tools/investigacion/judge5.cs`, BRouter local; resultados en
+  `docs/verificacion/2026-10-19-fase5-juez.*`): 7 días con lluvia por sitio, decisiones a las 9:00 y 12:00, 60 km a 25 km/h.
+  La primera pasada perdió 10 casos por el límite por minuto de Open-Meteo; el juez ahora espacia las peticiones (≤ 500
+  llamadas/min) y reintenta tras un 429, y la segunda pasada salió completa con la caché. 24 casos (4 de Humanes sin
+  vuelta válida):
+
+  | Sitio | Casos | Esperó | Mojado app | App saliendo ya | Sin mirar | App ≤ sin mirar | Ventaja app | Ventaja sin mirar |
+  |---|---|---|---|---|---|---|---|---|
+  | La Bañeza | 14 | 4 | 13,8 km | 15,1 km | 15,7 km | 86 % | +9,0 km/h | +8,3 km/h |
+  | Humanes | 10 | 2 | 7,1 km | 10,5 km | 8,1 km | 70 % | +0,7 km/h | −2,4 km/h |
+  | **Los dos** | **24** | **6** | **11,0 km** | **13,2 km** | **12,5 km** | **79 %** | **+5,5 km/h** | **+3,8 km/h** |
+
+  Km mojados según el radar a la hora de paso; ventaja de viento real con el METAR. Esperar ayudó en 5 de 6 (Humanes 3 ago.:
+  13 km en vez de 45) y empeoró en 1. Ganancia pequeña y muestra corta; los casos caros son tormentas de verano que nacen
+  en el sitio y lluvia en toda la zona (lectura en `DECISIONS.md` 038).
 - Paso 5d-2 (2026-10-18): 1 test nuevo (575 en total): las salidas tardías caen en cuartos de hora en punto (sin los
   que caen a menos de 5 min de la primera). La consola no tiene tests: probada en vivo con el BRouter local. León, 60 km,
   día seco: "Sal ahora (10:13)", tres vueltas sin lluvia y la tercera con un aviso de racha de lado en el GPX ("Racha
@@ -285,6 +301,10 @@ División aceptada por el autor el 2026-10-16:
 - **La caché no se limpia sola:** ~2 MB por imagen; hará falta antes del juez.
 - **RATE sale más seco que la reflectividad** (0,24 frente a 1,0 mm/h en Barajas el 3 oct.): no se sabe aún cuál
   acierta más.
+- **Fase 5: lluvia que nadie prevé** (juez 5e): en 6 de 24 casos se mojó 10 km o más con 0 km de lluvia probable prevista
+  (tormentas que nacen en el sitio; más allá de 2 h, AROME no afina). Y con lluvia en toda la zona ninguna vuelta ni
+  espera de 2 h la evita: la app podría decirlo ("lloverá en cualquier vuelta") en vez de ordenar.
+- **Humanes sin vuelta válida** en 4 de 14 casos: el generador de la fase 2 en el suroeste de Madrid.
 - **Paquete de una sola persona** (PureHDF): si se abandona, el lector queda aislado en `OdimComposite`.
 - **`radar` tarda ~20 s** con el movimiento (cuatro imágenes de reflectividad de 1-4 s cada una, más la descarga).
 - **Lluvia que nace en el sitio:** mover la lluvia no ve las tormentas que se forman encima (Barajas, 6 oct. 14:06 UTC).

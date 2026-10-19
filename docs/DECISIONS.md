@@ -880,3 +880,28 @@ Formato: contexto → decisión → alternativas descartadas.
   `wpt` lleva `<type>` y `<sym>` con uno de 9 valores fijos (`Danger`, `Generic`…:
   https://github.com/mendalka/gpx-poi-karoo-fixer). **Decisión del autor:** es secundario; lo importante es que la vuelta
   y la hora se eligen por el viento y la lluvia. Los avisos se quedan en el GPX (no estorban) y no se dedica más tiempo.
+
+## 038 — Juez de la fase 5: la recomendación con lo que se sabía, frente a lo que pasó
+- Contexto: el paso 5e comprueba la recomendación completa. Sitios elegidos por el autor (2026-10-18): La Bañeza y
+  Humanes de Madrid; el resto, con la recomendación: los 7 días con más lluvia (METAR, 06-17 UTC) de los últimos 3 meses en
+  cada sitio, decisiones a las 9:00 y 12:00 locales, 60 km a 25 km/h, esperas de hasta 2 h.
+- Método (`tools/investigacion/judge5.cs`): la app decide con lo que se sabía entonces (viento previsto del archivo
+  "salgo ahora", radar de 5 min antes y su movimiento, la última pasada archivada de AROME HD 15 min ya publicada, la
+  reserva de `best_match`): vuelta, sentido y hora de salida. Lo que pasó: km mojados según el radar (celda del medio
+  de cada tramo a la hora de paso, desde 0,2 mm/h) y ventaja de viento con el METAR (La Bañeza: León aeropuerto, a 38 km;
+  Humanes: Getafe y Cuatro Vientos). Rivales: salir ya con la mejor vuelta de la app, y salir ya con la vuelta elegida
+  sin mirar el tiempo (rumbos cada 120° desde el norte).
+- Resultado (2026-10-19; `docs/verificacion/2026-10-19-fase5-juez.*`): 24 casos (4 de Humanes sin vuelta válida):
+
+  | Sitio | Casos | Esperó | Mojado app | App saliendo ya | Sin mirar | App ≤ sin mirar | Ventaja app | Ventaja sin mirar |
+  |---|---|---|---|---|---|---|---|---|
+  | La Bañeza | 14 | 4 | 13,8 km | 15,1 km | 15,7 km | 86 % | +9,0 km/h | +8,3 km/h |
+  | Humanes | 10 | 2 | 7,1 km | 10,5 km | 8,1 km | 70 % | +0,7 km/h | −2,4 km/h |
+  | Los dos | 24 | 6 | 11,0 km | 13,2 km | 12,5 km | 79 % | +5,5 km/h | +3,8 km/h |
+
+  Esperar ayudó en 5 de 6 (17,8 km mojados frente a 26,5 saliendo ya; Humanes 3 ago.: 13 km en vez de 45) y empeoró en
+  1 (La Bañeza 3 oct. 9:00: 38 frente a 18).
+- Lectura: la app se moja algo menos y lleva algo más de viento que no mirar, pero la ganancia es pequeña y la muestra
+  corta. Los casos caros son los que nadie previó: tormentas de verano que nacen en el sitio (Humanes 15 ago.: prevista
+  0 km, mojado 45) y lluvia en toda la zona (La Bañeza 27 ago. y 29 sept.: prevista 46-51 km, mojado 45), donde ninguna
+  vuelta ni espera de 2 h la evita. En 6 de los 24 casos se mojó 10 km o más con 0 km de lluvia probable prevista.
