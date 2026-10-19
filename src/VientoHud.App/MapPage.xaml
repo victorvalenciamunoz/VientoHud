@@ -6,7 +6,7 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource HudBackground}">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
 
         <!-- Header in the family's look: the name, and which map is on. -->
         <Grid Grid.Row="0" Padding="16,44,16,8" ColumnDefinitions="*,Auto">
@@ -16,11 +16,26 @@
                    TextColor="{DynamicResource HudTextMuted}" VerticalOptions="Center" />
         </Grid>
 
-        <!-- The map (DECISIONS 050). Phase 7e: the points the rider touches go here. -->
-        <mapsui:MapControl Grid.Row="1" x:Name="MapView" />
+        <!-- Where to head (phase 7d): the headline, the wind in words, and what the app is doing or why it could not. -->
+        <VerticalStackLayout Grid.Row="1" Padding="16,0,16,10" Spacing="2">
+            <Label x:Name="Headline" IsVisible="False" FontFamily="ChakraPetchBold" FontSize="24" CharacterSpacing="1"
+                   TextColor="{DynamicResource HudGood}" />
+            <Label x:Name="Detail" IsVisible="False" FontFamily="OpenSansRegular" FontSize="13" TextColor="{DynamicResource HudTextSoft}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label x:Name="Status" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
+                       VerticalOptions="Center" />
+                <Button Grid.Column="1" x:Name="Retry" Text="REINTENTAR" IsVisible="False"
+                        FontFamily="ChakraPetch" FontSize="11" BorderWidth="1" CornerRadius="6" Padding="10,4"
+                        BackgroundColor="Transparent" TextColor="{DynamicResource HudGuide}" BorderColor="{DynamicResource HudGuide}"
+                        Clicked="OnRetryClicked" />
+            </Grid>
+        </VerticalStackLayout>
+
+        <!-- The map (DECISIONS 050): home, the fan of the recommended direction and, in 7e, the points the rider touches. -->
+        <mapsui:MapControl Grid.Row="2" x:Name="MapView" />
 
         <!-- The credit the tiles' licences ask for, always in view; a tap opens the provider's page. -->
-        <Label Grid.Row="2" x:Name="Attribution" Padding="16,6,16,10" FontFamily="OpenSansRegular" FontSize="11"
+        <Label Grid.Row="3" x:Name="Attribution" Padding="16,6,16,10" FontFamily="OpenSansRegular" FontSize="11"
                TextColor="{DynamicResource HudTextMuted}">
             <Label.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnAttributionTapped" />

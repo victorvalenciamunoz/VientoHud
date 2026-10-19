@@ -6,6 +6,12 @@
 
 ### Qué funciona (fase 7)
 
+- **Ubicación y dirección en la app** (paso 7d): `GeolocationProvider` (pide el permiso y la posición al móvil, con la
+  interfaz de Core) y `DirectionAdvisor` en Core (el viento de las horas de la salida en el sitio, `StartDirection`, y
+  el abanico `DirectionFan`: un sector de ±45° hasta donde llega una ida y vuelta de la distancia; `RidePlanner` lo usa
+  también). La pantalla muestra "Hacia el O" (`RideText.DirectionHeadline`), la frase del viento, la posición como
+  punto ámbar con el mapa centrado en ella y el abanico en cian translúcido; mientras tanto, qué está haciendo; si
+  algo falla, por qué y un botón REINTENTAR. Salida de 2 h fija hasta 7g.
 - **Esqueleto de la app** (`src/VientoHud.App`, paso 7c, `DECISIONS.md` 050): .NET MAUI solo Android, con las letras y
   la paleta de CieloHud (`HudTheme`), un mapa de Mapsui a pantalla completa con las teselas de OpenCycleMap
   (Thunderforest, clave leída al compilar de `VIENTOHUD_THUNDERFOREST_KEY`; sin ella, OpenStreetMap y la cabecera lo
@@ -54,8 +60,9 @@ visto bueno del autor**:
 - [x] 7c. **Elegir el mapa** (opciones comprobadas en su fuente: licencia, mapas de fondo y sus normas de uso, clave,
   mantenimiento; decisión del autor: Mapsui con OpenCycleMap, `DECISIONS.md` 050) y esqueleto de la app con el mapa y
   la estética de CieloHud; arranca en el emulador y en el móvil del autor.
-- [ ] 7d. Ubicación del móvil y la dirección: "hacia el oeste", el viento de las próximas horas y un abanico en el
-  mapa. Una llamada a Open-Meteo: segundos.
+- [x] 7d. Ubicación del móvil y la dirección: "hacia el oeste", el viento de las próximas horas y un abanico en el
+  mapa. Una llamada a Open-Meteo: segundos. Hecho; **pendiente verlo en vivo con viento** (el 2026-10-19 Open-Meteo
+  no tenía cupo: solo se vio la posición y el camino de error con REINTENTAR).
 - [ ] 7e. **Tocar el mapa**: un punto, ida y vuelta; dos o tres, vuelta. Distancia al momento, la ruta dibujada, y
   con ella el viento por tramos, la lluvia, salir ahora o esperar, el sentido mejor y la llegada. Juez: los mismos
   puntos en la consola dan lo mismo; segundos hasta la ruta.
@@ -90,6 +97,15 @@ visto bueno del autor**:
   vuelta) y `route` en León dan el mismo texto y los mismos GPX, salvo un km contado de más en una lluvia por el minuto
   que pasa entre las dos pasadas (el horizonte de 3 h se mueve con la hora). Open-Meteo dio 503 a ratos toda la tarde y
   hubo que repetir la comparación tres veces: razón de más para el reintento de 7b.
+- Paso 7d (2026-10-19): 7 tests nuevos (624 en total): el abanico (25 puntos a 23 km de casa para 60 km, de 225° a
+  315° alrededor de 270°, bien alrededor del norte, ninguno con viento flojo o variable); `DirectionAdvisor` pide las
+  horas de la salida en el sitio (3 para 60 km a las 8:00, 4 desde las 8:50) y da rumbo y abanico, o ninguno con
+  calma; hora en UTC; y los titulares "Hacia el SO", "Da igual hacia dónde", "Sin rumbo claro". **En el emulador**
+  con la posición puesta en La Bañeza y el permiso dado: punto ámbar en La Bañeza, mapa centrado, "Sin previsión de
+  viento: … Daily API request limit exceeded" y REINTENTAR (`docs/verificacion/2026-10-19-fase7-7d-emulador.png`).
+  **En el móvil**: el permiso se pidió y el autor lo dio; captura pendiente (el móvil se bloquea solo). El viento y el
+  abanico en vivo quedan para cuando Open-Meteo vuelva a dar cupo. Pendiente de pulir: el mensaje de error es el
+  técnico de Core, en inglés; en 7h habrá que darle una frase llana.
 - Paso 7c (2026-10-19): sin tests (no hay lógica en la app; la solución entera compila y los 617 de Core pasan con el
   proyecto nuevo dentro). **En el emulador** (Pixel, Android 14): pantalla de arranque con el icono, y el mapa de
   OpenCycleMap centrado en León con relieve, pueblos y la EuroVelo 3, la cabecera "VIENTOHUD · OPENCYCLEMAP" y la

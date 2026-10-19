@@ -1,6 +1,11 @@
 using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using VientoHud.App.Maps;
+using VientoHud.App.Services;
+using VientoHud.Core.Location;
+using VientoHud.Core.Routing;
+using VientoHud.Core.Wind;
+using VientoHud.Core.Wind.OpenMeteo;
 using VientoHud.Core.Net;
 
 namespace VientoHud.App;
@@ -25,6 +30,11 @@ public static class MauiProgram
         // One client for every service, with the retries of DECISIONS 049.
         builder.Services.AddSingleton(_ => ResilientHttp.CreateClient());
         builder.Services.AddSingleton<TileSources>();
+
+        // Core: the wind and where to head (7d). The device: where the rider is.
+        builder.Services.AddSingleton<IWindForecastProvider>(sp => new OpenMeteoWindForecastProvider(sp.GetRequiredService<HttpClient>()));
+        builder.Services.AddSingleton<DirectionAdvisor>();
+        builder.Services.AddSingleton<ILocationProvider, GeolocationProvider>();
         builder.Services.AddTransient<MapPage>();
 
 #if DEBUG

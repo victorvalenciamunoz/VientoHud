@@ -53,6 +53,15 @@ public static class RideText
         _ => throw new ArgumentOutOfRangeException(nameof(wind), wind.Kind, null),
     };
 
+    /// <summary>The headline of the app: "Hacia el O", or that it does not matter.</summary>
+    public static string DirectionHeadline(StartDirectionAdvice wind) => wind.Kind switch
+    {
+        StartAdviceKind.HeadIntoWind => $"Hacia el {Point(wind.StartBearingDegrees!.Value)}",
+        StartAdviceKind.Calm => "Da igual hacia dónde",
+        StartAdviceKind.Variable => "Sin rumbo claro",
+        _ => throw new ArgumentOutOfRangeException(nameof(wind), wind.Kind, null),
+    };
+
     public static string Advantage(RideScore score) =>
         $"ventaja de viento {Signed(score.WindAdvantageKmh)} " +
         $"({Along(score.FirstHalfHeadwindKmh)} en la 1.ª mitad, {Along(score.SecondHalfHeadwindKmh)} en la 2.ª)";

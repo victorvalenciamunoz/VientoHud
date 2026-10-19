@@ -37,6 +37,14 @@ public class RideTextTests
     }
 
     [Fact]
+    public void Headlines_where_to_head()
+    {
+        Assert.Equal("Hacia el SO", RideText.DirectionHeadline(new Core.Wind.StartDirectionAdvice(Core.Wind.StartAdviceKind.HeadIntoWind, 225, 225, 18, 18, 1, 3)));
+        Assert.Equal("Da igual hacia dónde", RideText.DirectionHeadline(new Core.Wind.StartDirectionAdvice(Core.Wind.StartAdviceKind.Calm, null, 90, 2, 3, 0.7, 3)));
+        Assert.Equal("Sin rumbo claro", RideText.DirectionHeadline(new Core.Wind.StartDirectionAdvice(Core.Wind.StartAdviceKind.Variable, null, 90, 5, 15, 0.3, 3)));
+    }
+
+    [Fact]
     public void Describes_the_wind_advantage_as_it_feels()
     {
         Assert.Equal(

@@ -64,10 +64,8 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
             throw new ArgumentException("Departure must be in UTC.", nameof(departure));
         }
 
-        // The wind at the start during the ride: from the hour it starts to the one it should end in.
-        var hours = Math.Max(1, (int)Math.Ceiling(targetKm / averageSpeedKmh + departure.Minute / 60.0));
-        var forecast = await forecasts.GetHourlyAsync(start, departure, hours, cancellationToken);
-        var wind = StartDirection.Recommend(forecast.Hours);
+        // The wind at the start during the ride, and which way it says to head.
+        var wind = (await new DirectionAdvisor(forecasts).AdviseAsync(start, targetKm, departure, averageSpeedKmh, cancellationToken)).Wind;
         var bearings = (firstBearing is { } bearing
             ? LoopGenerator.SpreadBearings(count, bearing)
             : RideBearings.For(wind, count)).ToList();
