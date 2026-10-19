@@ -1,0 +1,77 @@
+Fase 7, paso 7b: en qué se va el tiempo de una recomendación (2026-10-19, 60 km, salida a las 17:00)
+=====================================================================================================
+
+1. Una petición a BRouter (tools/investigacion/brouterspeed.cs): brouter.de tarda lo mismo que el local.
+
+   Petición          local Fuenlabrada  brouter.de Fuenlabrada  local León  brouter.de León
+   ida 23 km E              2,52 s             2,25 s             0,14 s        0,41 s
+   ida 23 km S              0,37 s             0,34 s             0,14 s        0,30 s
+   ida 23 km O              0,36 s             0,37 s             0,15 s        0,21 s
+   vuelta 60 km             1,86 s             1,10 s             0,50 s        0,45 s
+
+2. Peticiones de una recomendación entera (tools/investigacion/requests.cs, RidePlanner, BRouter local sin esperas).
+   "r" = pide los mismos puntos que otra anterior; "x" = BRouter no pudo unir los puntos.
+
+== fuenlabrada: 121 peticiones en 131 s, 2 repetidas (mismos puntos), 15 sin unir; viento HeadIntoWind, rumbos 85, 130, 40, 175, 355, 265
+   vuelta 85°                    12 peticiones: 3,9 1,3 2,2 1,6 2,2 0,6 2,3 1,5 1,9 0,7x 0,5x 0,9
+   vuelta 130°                   12 peticiones: 1,6 0,9 1,8 0,3x 1,7 0,1x 1,7 0,2rx 1,7 0,2rx 1,1 0,2
+   vuelta 40°                    11 peticiones: 0,3x 2,8 2,2 2,5 1,8 0,6x 0,6 0,8 0,6 1,2 1,0
+   ida y vuelta 85°              12 peticiones: 1,3 0,4 0,4 0,4 0,7 1,6 0,4 0,5 1,5 0,7 0,7 0,6
+   ida y vuelta 130°             12 peticiones: 0,4 0,4 0,4 0,3 0,6 0,7 0,6 0,4 0,2 0,2 0,4 0,5
+   ida y vuelta 40°               9 peticiones: 1,1 1,0 1,1 1,4 1,6 0,4 0,4 0,6 0,8
+   vuelta 175°                   12 peticiones: 0,3x 0,3x 0,3x 0,9 0,3 0,9 0,2 1,0 0,2 0,0x 1,0 0,1x
+   vuelta 355°                    2 peticiones: 1,1 1,2
+   vuelta 265°                    5 peticiones: 0,1x 0,7 0,6 1,2 0,5
+   ida y vuelta 175°             12 peticiones: 0,3 0,3 0,3 0,4 0,2 0,4 0,1 0,4 0,4 0,4 0,8 0,3
+   ida y vuelta 355°             10 peticiones: 0,2x 0,8 1,2 1,0 0,8 1,2 1,4 1,0 0,8 0,8
+   ida y vuelta 265°             12 peticiones: 0,6 0,8 0,2 0,8 0,2 0,5 0,2 0,4 0,7 0,2 1,0 0,2
+== leon: 43 peticiones en 16 s, 0 repetidas (mismos puntos), 1 sin unir; viento Calm, rumbos 0, 120, 240
+   vuelta 0°                      2 peticiones: 1,4 0,3
+   vuelta 120°                   12 peticiones: 0,1 0,2 0,3 0,2 0,3 0,3 0,2 0,3 0,2 0,3 0,2 0,2
+   vuelta 240°                    3 peticiones: 0,3 0,4 0,3
+   ida y vuelta 0°               10 peticiones: 0,2 0,1 0,1 0,1 0,2 0,1 0,1 0,1 0,1 0,2
+   ida y vuelta 120°              8 peticiones: 0,4 0,2 0,2 0,2 0,1 0,2 0,1x 0,2
+   ida y vuelta 240°              8 peticiones: 0,2 0,2 0,2 0,1 0,1 0,1 0,1 0,2
+== humanes: 56 peticiones en 44 s, 0 repetidas (mismos puntos), 4 sin unir; viento Calm, rumbos 0, 120, 240
+   vuelta 0°                      5 peticiones: 1,5 0,7 0,6 1,0 0,7
+   vuelta 120°                   12 peticiones: 1,8 1,5 0,8 0,3 1,4 0,1 1,7 0,3 1,7 0,2 0,9 0,8
+   vuelta 240°                   12 peticiones: 0,1x 0,5 0,1 0,5 0,5 0,6 0,2 0,5 0,2 0,4 0,3 0,1
+   ida y vuelta 0°                5 peticiones: 0,2x 1,1 0,6 0,9 0,6
+   ida y vuelta 120°             10 peticiones: 0,3 0,4 0,4 0,2 0,4 0,4 0,5 0,2 0,7 0,0x
+   ida y vuelta 240°             12 peticiones: 0,2 0,2 0,2 0,0x 0,1 0,1 0,4 0,1 0,5 0,1 0,1 0,1
+== trescantos: 56 peticiones en 53 s, 0 repetidas (mismos puntos), 3 sin unir; viento Calm, rumbos 0, 120, 240
+   vuelta 0°                     12 peticiones: 1,2x 0,1x 0,2x 0,4 0,6 0,6 0,7 0,8 0,3 0,8 0,4 0,3
+   vuelta 120°                    1 peticiones: 0,7
+   vuelta 240°                   12 peticiones: 1,9 1,5 0,5 1,4 0,4 1,8 0,9 1,2 0,6 1,9 1,3 0,3
+   ida y vuelta 0°               12 peticiones: 0,1 0,3 0,4 0,1 0,4 0,1 0,1 0,1 0,4 0,2 0,2 0,2
+   ida y vuelta 120°              7 peticiones: 1,0 0,4 0,6 0,4 0,4 0,6 0,3
+   ida y vuelta 240°             12 peticiones: 2,2 1,5 0,2 0,2 0,7 0,2 1,5 0,3 0,3 2,4 0,4 0,4
+== labaneza: 40 peticiones en 12 s, 0 repetidas (mismos puntos), 1 sin unir; viento Calm, rumbos 0, 120, 240
+   vuelta 0°                      5 peticiones: 1,1 0,1 0,1 0,1 0,1
+   vuelta 120°                    4 peticiones: 0,1x 0,1 0,1 0,1
+   vuelta 240°                    3 peticiones: 0,1 0,2 0,1
+   ida y vuelta 0°                7 peticiones: 0,1 0,1 0,1 0,2 0,2 0,1 0,1
+   ida y vuelta 120°              9 peticiones: 0,1 0,1 0,1 0,1 0,1 0,1 0,2 0,1 0,1
+   ida y vuelta 240°             12 peticiones: 0,0 0,0 0,1 0,0 0,0 0,1 0,1 0,1 0,1 0,1 0,1 0,2
+
+   Lectura:
+   - Repetidas: 2 de 316 en total. No hay nada que ahorrar guardando respuestas durante la búsqueda.
+   - Las idas y vueltas se llevan 8-12 peticiones cada una (unos dos tercios del total): las 5 variantes del rumbo
+     (0°, ±15°, ±30°, DECISIONS 044) cuestan 1-4 peticiones cada una aunque la primera ya sea válida.
+   - Las vueltas que no salen válidas gastan las 12 (Fuenlabrada 3, Humanes 2, Tres Cantos 2, León 1).
+   - Buscar a los lados (solo Fuenlabrada): 53 de las 121.
+   - Cada rumbo empieza a ciegas con el radio: lo aprendido en los rumbos anteriores no se usa.
+
+   Estimación desde el móvil con brouter.de (lo medido más 1 s de espera entre peticiones, DECISIONS 018):
+   La Bañeza ~45 s, León ~50 s, Humanes ~1 min 20 s, Tres Cantos ~1 min 30 s, Fuenlabrada ~4 min.
+   Aproximadamente la mitad es la espera de 1 s que nos imponemos nosotros.
+
+3. La lluvia (tools/investigacion/raintime.cs, alcance 35 km, hasta 4,5 h):
+
+   sin caché fuenlabrada    9,1 s, 7 peticiones, 8,7 MB; radar 11:50, movimiento sí, AROME sí
+   sin caché leon           1,1 s, 3 peticiones, 0,4 MB (los 4 cuadros del radar ya estaban en la caché)
+   con caché fuenlabrada    6,9 s, 3 peticiones, 0,4 MB
+
+   La lluvia no es el problema de tiempo (1-9 s), pero sí de datos: ~8,7 MB de radar por recomendación cuando los
+   cuadros son nuevos (cada 5-15 min). Y AROME cuesta 225 llamadas a Open-Meteo (una por punto): tres recomendaciones
+   en un minuto chocan con el límite de 600/min (HTTP 429 en la tercera pasada).

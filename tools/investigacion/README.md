@@ -42,3 +42,5 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `urban.cs` | Fase 6: km en ciudad (`RouteUrban`) de las vueltas e idas y vueltas de hoy en tres rumbos desde los sitios de prueba, y km de vuelta cerca de casa; un GPX por ruta con un nombre citable (`humanes-N-iv`). |
 | `ridesurban.cs` | Fase 6: km en ciudad (`RouteUrban`) de las salidas reales del autor, pasándolas por el BRouter local con un punto cada km. |
 | `brouterspeed.cs` | Fase 7: cuánto tarda una sola petición (tres idas de 23 km y una vuelta de 60 km) en cada servidor de BRouter que se le pase, en Fuenlabrada y León, con 1,5 s entre peticiones. |
+| `requests.cs` | Fase 7: en qué se van las peticiones a BRouter de una recomendación (`RidePlanner`) en los cinco sitios de prueba: por rumbo y forma, repetidas (mismos puntos), sin unir y el tiempo de cada una. BRouter local. |
+| `raintime.cs` | Fase 7: cuánto tarda y cuánto baja la parte de lluvia de una recomendación (radar OPERA, AROME, reserva) en Fuenlabrada y León, sin caché y con ella. |

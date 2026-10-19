@@ -26,7 +26,9 @@ División aceptada por el autor el 2026-10-19 (`DECISIONS.md` 047):
   - Juez: tests con servicios falsos, y `route` con el BRouter local da el mismo texto y los mismos GPX antes y después.
 - [ ] 7b. Preparar Core para el móvil (borrar las imágenes viejas del radar) y medir con brouter.de desde el ordenador
   en los 5 sitios de prueba: tiempo, peticiones a BRouter, llamadas a Open-Meteo y MB descargados. Con eso el autor
-  decide cómo llevar la espera.
+  decide cómo llevar la espera. **Medido** (2026-10-19, `docs/verificacion/2026-10-19-fase7-peticiones.txt`): desde el
+  móvil con brouter.de, La Bañeza y León ~50 s, Humanes y Tres Cantos ~1,5 min, Fuenlabrada ~4 min. **Decisión del
+  autor pendiente.**
 - [ ] 7c. Esqueleto de la app (como CieloHud: solo Android, con su estética); arranca en el emulador y en el móvil.
 - [ ] 7d. Ubicación del móvil y recomendación en texto, con avance, cancelar y la pantalla encendida mientras busca; la
   duración fija hasta 7g. Juez: en el mismo sitio y a la misma hora, la app dice lo mismo que la consola.
@@ -45,11 +47,20 @@ División aceptada por el autor el 2026-10-19 (`DECISIONS.md` 047):
   UTC. **Antes y después** con el BRouter local (60 km, salida a las 17:00, las dos versiones seguidas): León y
   Fuenlabrada dan el mismo texto y los mismos GPX, byte a byte (6 y 12 ficheros). Fuenlabrada busca a los lados: 121
   peticiones y 220-250 s incluso con el BRouter local.
+- Paso 7b, medida (2026-10-19; `brouterspeed.cs`, `requests.cs`, `raintime.cs`;
+  `docs/verificacion/2026-10-19-fase7-peticiones.txt`): una petición a brouter.de tarda lo mismo que al local
+  (0,2-2,5 s). El tiempo es el número de peticiones: 40 (La Bañeza), 43 (León), 56 (Humanes, Tres Cantos), 121
+  (Fuenlabrada, buscando a los lados). Solo 2 de 316 piden los mismos puntos que otra: no hay nada que ahorrar guardando
+  respuestas. Las idas y vueltas (5 variantes del rumbo, `DECISIONS.md` 044) se llevan dos tercios; las vueltas que no
+  salen válidas gastan 12 cada una. La lluvia tarda 1-9 s pero baja ~8,7 MB de radar cuando los cuadros son nuevos, y
+  AROME cuesta 225 llamadas a Open-Meteo por recomendación (tres seguidas en un minuto dan 429).
 
 ### Riesgos y pendientes (fase 7)
 
-- Con brouter.de, buscar a los lados puede llegar a ~120 peticiones (~2 min solo de esperas a una por segundo); se mide
-  en 7b. Ojo: con el BRouter local Fuenlabrada ya tarda ~4 min (121 peticiones), así que con brouter.de puede ser más.
+- **La espera en el móvil** (medida en 7b): de ~50 s (León, La Bañeza) a ~4 min (Fuenlabrada) con brouter.de, la mitad
+  por la espera de 1 s entre peticiones que nos imponemos (brouter.de no publica normas y nos bloqueó dos veces). Lo que
+  en `DECISIONS.md` 044 ponía "~2 min" solo contaba esa espera, no las peticiones. El autor decide cómo llevarla.
+- Datos en el móvil: ~8,7 MB de radar por recomendación cuando los cuadros son nuevos; AROME, 225 llamadas a Open-Meteo.
 - Las imágenes del radar (~2 MB cada una) se guardan sin límite: en el móvil hay que borrar las viejas (7b).
 - Android puede cortar una búsqueda larga si la pantalla se apaga o se cambia de app (ColorOS de OPPO es estricto).
 
