@@ -6,6 +6,9 @@
 
 ### Qué funciona (fase 7)
 
+- **La recomendación entera en Core** (`RideAdvisor`, `RideRequest`, `RideAdvice`; paso 7a-1): rutas, lluvia y hora de
+  salida en una sola llamada, con avance por rumbo y cancelar; si la lluvia falla, sigue sin ella y dice por qué.
+  `route` la usa.
 - Nada todavía en la app. El entorno ya está listo (comprobado el 2026-10-19): .NET 10.0.401 con la parte de Android,
   Java 17, SDK de Android 35-37, emulador con móviles virtuales (Android 12-14) y la virtualización activa; la app de
   CieloHud se compiló para Android en este ordenador el 2026-10-14.
@@ -18,7 +21,7 @@
 División aceptada por el autor el 2026-10-19 (`DECISIONS.md` 047):
 
 - [ ] 7a. Llevar a Core lo que hoy hace `route` por dentro, para que la consola y la app solo muestren:
-  - [ ] 7a-1. La búsqueda entera en Core (rutas, lluvia, hora de salida), con avance y cancelar.
+  - [x] 7a-1. La búsqueda entera en Core (rutas, lluvia, hora de salida), con avance y cancelar.
   - [ ] 7a-2. Los textos en Core (recomendación, resumen de cada ruta, nombre y descripción del GPX y del fichero).
   - Juez: tests con servicios falsos, y `route` con el BRouter local da el mismo texto y los mismos GPX antes y después.
 - [ ] 7b. Preparar Core para el móvil (borrar las imágenes viejas del radar) y medir con brouter.de desde el ordenador
@@ -36,9 +39,17 @@ División aceptada por el autor el 2026-10-19 (`DECISIONS.md` 047):
 
 ### Cómo se ha validado (fase 7)
 
+- Paso 7a-1 (2026-10-19): 5 tests nuevos (596 en total): rutas, lluvia pedida una vez (también AROME, al pasar de 2 h)
+  y las 9 salidas ordenadas, con cada opción apuntando a su rumbo y forma; sin radar, ordena igual y dice por qué; sin
+  ninguna ruta válida, no pide la lluvia; con la salida más tarde, la lluvia se pide desde ahora; la hora tiene que ir en
+  UTC. **Antes y después** con el BRouter local (60 km, salida a las 17:00, las dos versiones seguidas): León y
+  Fuenlabrada dan el mismo texto y los mismos GPX, byte a byte (6 y 12 ficheros). Fuenlabrada busca a los lados: 121
+  peticiones y 220-250 s incluso con el BRouter local.
+
 ### Riesgos y pendientes (fase 7)
 
-- Con brouter.de, buscar a los lados puede llegar a ~120 peticiones (~2 min a una por segundo); se mide en 7b.
+- Con brouter.de, buscar a los lados puede llegar a ~120 peticiones (~2 min solo de esperas a una por segundo); se mide
+  en 7b. Ojo: con el BRouter local Fuenlabrada ya tarda ~4 min (121 peticiones), así que con brouter.de puede ser más.
 - Las imágenes del radar (~2 MB cada una) se guardan sin límite: en el móvil hay que borrar las viejas (7b).
 - Android puede cortar una búsqueda larga si la pantalla se apaga o se cambia de app (ColorOS de OPPO es estricto).
 

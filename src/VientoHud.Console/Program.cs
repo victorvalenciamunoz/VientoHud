@@ -69,9 +69,9 @@ switch (args[0])
             var planner = new RidePlanner(new LoopGenerator(new BRouterRouteEngine(http, brouter.Options)), windProvider);
             var radarSource = new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() });
             var rainForecasts = new OpenMeteoRainForecastSource(http, OpenMeteoRainOptions.Latest);
+            var advisor = new RideAdvisor(planner, windProvider, radarSource, rainForecasts, rainForecasts);
             run = () => new RouteCommand(
-                    planner, windProvider, radarSource, rainForecasts, device, Console.Out, brouter.Name,
-                    OpenMeteoWindForecastProvider.Attribution)
+                    advisor, device, Console.Out, brouter.Name, OpenMeteoWindForecastProvider.Attribution)
                 .RunAsync(routeOptions, cancellation.Token);
         }
         break;

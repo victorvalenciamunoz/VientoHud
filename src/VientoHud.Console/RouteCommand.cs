@@ -15,10 +15,7 @@ namespace VientoHud.ConsoleApp;
 /// wind, the rain, the ranking and the departure come from Core.
 /// </summary>
 internal sealed class RouteCommand(
-    RidePlanner planner,
-    IWindForecastProvider winds,
-    IRadarSource radar,
-    OpenMeteoRainForecastSource rainForecasts,
+    RideAdvisor advisor,
     ILocationProvider device,
     TextWriter output,
     string engineName,
@@ -39,10 +36,15 @@ internal sealed class RouteCommand(
         output.WriteLine($"Motor de rutas: BRouter en {engineName}.");
         output.WriteLine();
 
-        var plan = await planner.PlanAsync(
-            start, targetKm, departure, options.SpeedKmh, options.Count, options.Bearing,
+        var ride = await advisor.AdviseAsync(
+            new RideRequest(start, targetKm, departure, options.SpeedKmh, options.Count, options.Bearing), now,
             new LineProgress(r => output.WriteLine($"  {Kind(r)} {Heading(r.BearingDegrees)}: {Outcome(r)}")),
-            cancellationToken: cancellationToken);
+            cancellationToken);
+        var plan = ride.Plan;
+        var outlook = ride.Rain;
+        var noRain = ride.RainFailure;
+        var advice = ride.Departure;
+        var chosen = advice.Chosen;
         // The progress lines come after the planner has looked at the wind; say what it saw first.
         output.WriteLine();
         output.WriteLine(Describe(plan.Wind));
@@ -50,31 +52,6 @@ internal sealed class RouteCommand(
             ? $"Rumbos buscados: {string.Join(", ", plan.Bearings.Select(Heading))}." +
               (plan.Bearings.Count > options.Count ? " Se amplió el abanico: contra el viento no salía ninguna vuelta válida." : "")
             : $"Rumbos buscados (a partir del indicado con --bearing): {string.Join(", ", plan.Bearings.Select(Heading))}.");
-
-        // The valid loops, ridden at each departure up to 2 h later with the wind and the rain (DECISIONS 035-036).
-        var found = Enumerable.Range(0, plan.Loops.Count).Where(i => plan.Loops[i].Found).ToList();
-        var routes = found.Select(i => plan.Loops[i].Best!.Route).ToList();
-        var departures = DepartureChoice.Times(departure);
-        RainOutlook? outlook = null;
-        string? noRain = null;
-        if (routes.Count > 0)
-        {
-            var reach = routes.SelectMany(r => r.Points).Max(p => p.Position.DistanceKmTo(start));
-            var last = routes.Max(r => RouteLegs.Split(r, departures[^1], options.SpeedKmh)[^1].EndTime);
-            try
-            {
-                outlook = await RainOutlook.ForecastAsync(
-                    radar, rainForecasts, rainForecasts, start, reach, now < departure ? now : departure, last,
-                    cancellationToken: cancellationToken);
-            }
-            catch (Exception ex) when (ex is RadarException or RainForecastException)
-            {
-                noRain = ex.Message;
-            }
-        }
-        var advice = await DepartureChoice.ChooseAsync(
-            winds, routes, departures, outlook, options.SpeedKmh, cancellationToken: cancellationToken);
-        var chosen = advice.Chosen;
 
         output.WriteLine();
         var recommendation = Recommendation(advice, options.At is null);
@@ -98,7 +75,7 @@ internal sealed class RouteCommand(
         for (var i = 0; i < chosen.Ranked.Count; i++)
         {
             var option = chosen.Ranked[i];
-            var loop = plan.Loops[found[option.RouteIndex]];
+            var loop = ride.LoopOf(option);
             var outAndBack = loop.Shape == RouteShape.OutAndBack;
             var turn = outAndBack ? "ida y vuelta" : option.Route.TurnsClockwise() ? "sentido horario" : "sentido antihorario";
             var arrival = option.Winds[^1].Leg.EndTime;
