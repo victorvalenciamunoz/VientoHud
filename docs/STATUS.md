@@ -14,7 +14,11 @@
 - **Zonas construidas** (`Towns/`; `DECISIONS.md` 045): `GhslBuiltUpSource` baja una vez el cuadro de GHSL BUILT-S de la
   zona (10° × 10°, 26 MB el de Madrid y León), lo guarda y lee solo los bloques de alrededor (BigTIFF con LZW, lector
   propio); `TownMap` junta las casillas construidas (15 % o más) en pueblos: une huecos de una calle, rellena los
-  parques de dentro, quita las manchas de menos de 0,2 km² y simplifica el contorno. Aún no lo usa la ruta (6e-2, 6e-3).
+  parques de dentro, quita las manchas de menos de 0,2 km² y simplifica el contorno.
+- **Puntos de paso fuera de los pueblos** (`TownAvoidance`; `DECISIONS.md` 045): con el mapa de pueblos (`route` lo pide
+  a GHSL para 0,4 de la distancia más 5 km alrededor de casa), cada punto de paso en un pueblo se mueve al sitio más
+  cercano a 300 m o más de cualquier pueblo (como mucho 4 km), a la misma distancia de casa si puede; casa no se mueve.
+  Si GHSL falla, `route` lo dice y hace las rutas como antes. Cita GHSL en la salida y en el GPX.
 
 ### Qué falta (fase 6)
 
@@ -36,7 +40,10 @@ División aceptada por el autor el 2026-10-19:
     en gpx.studio. Hecho (`GhslBuiltUpSource`, `TownMap`). **Ojo del autor** (2026-10-19): "bastante bien"; une
     Griñón y Cubas de la Sagra (franja de menos de 200 m: se deja); los pueblos pequeños no hay que evitarlos ("un
     pueblo pequeño no es problema tener que atravesarlo").
-  - [ ] 6e-2. Mover los puntos de paso fuera de las zonas; medir las 30 salidas.
+  - [x] 6e-2. Mover los puntos de paso fuera de las zonas; medir las 30 salidas. Hecho (`TownAvoidance`; `route` usa
+    GHSL): **no mejora por sí solo** (628 → 626 km de ciudad): los puntos en pueblo (20-30 % en Madrid, ninguno en León)
+    se mueven, pero las carreteras para llegar siguen cruzando pueblos. Se deja porque lo necesita 6e-3: con zonas que
+    BRouter debe rodear, un punto dentro le obliga a entrar.
   - [ ] 6e-3. Pasar las zonas a BRouter como zonas con coste; medir, ajustar el peso y ojo del autor.
 
 ### Cómo se ha validado (fase 6)
@@ -73,6 +80,11 @@ División aceptada por el autor el 2026-10-19:
   construidos). **En vivo** (`towns.cs`, 40 km; `docs/verificacion/2026-10-19-fase6-pueblos-ghsl.txt`): leer 40-90 ms
   y juntar 80-160 ms en el ordenador; el sur de Madrid es una mancha de 367 km²; en León, 66 pueblos (58 km²): la
   ciudad y pocos pueblos, porque los de la provincia tienen poca superficie construida.
+- Paso 6e-2 (2026-10-19): 5 tests nuevos (608 en total): un punto en un pueblo sale justo fuera a la misma distancia de
+  casa; casa y un punto demasiado dentro se quedan; el generador nunca pide un punto en un pueblo; el planificador pide
+  el mapa una vez (0,4 × 60 + 5 = 29 km) y lo cita; sin mapa hace las rutas como antes y dice por qué. **Medida**
+  (`urban.cs ... pueblos`; `docs/verificacion/2026-10-19-fase6-puntos-fuera-de-pueblos.txt`): 628 → 626 km de ciudad
+  en las 30 salidas, sin mejora.
 
 
 Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).

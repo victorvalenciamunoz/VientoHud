@@ -83,6 +83,10 @@ internal sealed class RouteCommand(
         {
             output.WriteLine($"Sin previsión de lluvia: {noRain}");
         }
+        if (plan.TownsFailure is not null)
+        {
+            output.WriteLine($"Sin mapa de pueblos: {plan.TownsFailure} Las rutas no los evitan.");
+        }
 
         var stamp = Local(chosen.Departure, "yyyyMMdd-HHmm");
         Directory.CreateDirectory(options.OutputDirectory);
@@ -127,7 +131,7 @@ internal sealed class RouteCommand(
             var description = string.Join("\n",
                 new[] { recommendation, $"{i + 1}.ª opción. {(outAndBack ? "Ida y vuelta" : "Vuelta")} {Km(option.Route.DistanceKm)}{(outAndBack ? "" : $", {turn}")}." }
                     .Concat(lines)
-                    .Concat(Attributions(option.Route, outlook)));
+                    .Concat(Attributions(option.Route, outlook, plan.TownsAttribution)));
             var file = await WriteGpxAsync(
                 options.OutputDirectory, $"{i + 1}-{FileKind(loop)}-{targetKm:0}km-{Point(loop.BearingDegrees)}-{stamp}.gpx",
                 option.Route, name, chosen.Departure, description, alerts.Select(Waypoint).ToList(), cancellationToken);
@@ -174,6 +178,10 @@ internal sealed class RouteCommand(
         if (outlook is not null)
         {
             output.WriteLine(OperaRadarSourceAttribution);
+        }
+        if (plan.TownsAttribution is not null)
+        {
+            output.WriteLine(plan.TownsAttribution);
         }
         return chosen.Ranked.Count > 0 ? 0 : 1;
     }
@@ -250,7 +258,7 @@ internal sealed class RouteCommand(
         }
     }
 
-    private static IEnumerable<string> Attributions(Route route, RainOutlook? outlook)
+    private static IEnumerable<string> Attributions(Route route, RainOutlook? outlook, string? towns)
     {
         if (route.Attribution is { } attribution)
         {
@@ -260,6 +268,10 @@ internal sealed class RouteCommand(
         if (outlook is not null)
         {
             yield return OperaRadarSourceAttribution;
+        }
+        if (towns is not null)
+        {
+            yield return towns;
         }
     }
 

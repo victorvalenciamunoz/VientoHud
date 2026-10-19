@@ -1,4 +1,5 @@
 using VientoHud.Core.Rain;
+using VientoHud.Core.Towns;
 using VientoHud.Core.Wind;
 
 namespace VientoHud.Core.Routing;
@@ -17,19 +18,31 @@ namespace VientoHud.Core.Routing;
 /// The valid loops, each in its better way round, best first for the wind (DECISIONS 022); their
 /// <see cref="RideOption.RouteIndex"/> is the position in <paramref name="Loops"/>. Empty when no loop was valid.
 /// </param>
+/// <param name="TownsAttribution">Credit for the town map the waypoints were moved out of; null if there was none.</param>
+/// <param name="TownsFailure">Why there was no town map, when one was asked for and failed.</param>
 public sealed record RidePlan(
     DateTimeOffset Departure,
     StartDirectionAdvice Wind,
     IReadOnlyList<double> Bearings,
     IReadOnlyList<LoopResult> Loops,
-    IReadOnlyList<RideOption> Ranked);
+    IReadOnlyList<RideOption> Ranked,
+    string? TownsAttribution = null,
+    string? TownsFailure = null);
 
 /// <summary>
 /// Plans a ride for the wind (phase 3): looks at the wind for the hours of the ride, looks for loops where it helps
 /// (<see cref="RideBearings"/>) and ranks them both ways round (<see cref="RideRanking"/>).
 /// </summary>
-public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider forecasts)
+public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider forecasts, IBuiltUpSource? builtUp = null)
 {
+    /// <summary>
+    /// The town map covers this share of the target distance around the start, plus <see cref="TownMarginKm"/>: an out
+    /// and back reaches about 0.38 of it (DECISIONS 040), a loop less.
+    /// </summary>
+    public const double TownReachShare = 0.4;
+
+    public const double TownMarginKm = 5;
+
     /// <summary>
     /// When the best route has more than this share in town, the bearings to the sides and behind are searched too
     /// (DECISIONS 044).
@@ -72,6 +85,10 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
             ? LoopGenerator.SpreadBearings(count, bearing)
             : RideBearings.For(wind, count)).ToList();
 
+        // Towns to move the waypoints out of (DECISIONS 045); without them the routes are made as before.
+        var (towns, townsFailure) = await TownsAsync();
+        var routes = generator.WithTowns(towns);
+
         // A loop and an out and back for each bearing (the author's choice, DECISIONS 041); the ranking decides.
         var loops = (await GenerateBothAsync(bearings)).ToList();
         // Nothing valid into the wind: widen the fan, one bearing at a time, until one is (the author's choice,
@@ -108,7 +125,7 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
             }
         }
 
-        return new RidePlan(departure, wind, bearings, loops, ranked);
+        return new RidePlan(departure, wind, bearings, loops, ranked, towns is null ? null : builtUp!.Attribution, townsFailure);
 
         async Task<List<RideOption>> RankFoundAsync()
         {
@@ -123,13 +140,30 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
                     .ToList();
         }
 
+        async Task<(TownMap? Towns, string? Failure)> TownsAsync()
+        {
+            if (builtUp is null)
+            {
+                return (generator.Towns, null);
+            }
+            try
+            {
+                var grid = await builtUp.GetAroundAsync(start, targetKm * TownReachShare + TownMarginKm, cancellationToken);
+                return (TownMap.From(grid), null);
+            }
+            catch (Exception ex) when (ex is BuiltUpException or IOException)
+            {
+                return (generator.Towns, ex.Message);
+            }
+        }
+
         async Task<IReadOnlyList<LoopResult>> GenerateBothAsync(IReadOnlyList<double> towards)
         {
-            var both = (await generator.GenerateManyAsync(start, towards, targetKm, RouteShape.Loop, progress, cancellationToken)).ToList();
+            var both = (await routes.GenerateManyAsync(start, towards, targetKm, RouteShape.Loop, progress, cancellationToken)).ToList();
             // Not when the engine has just stopped answering.
             if (both.All(l => l.EngineFailure is null))
             {
-                both.AddRange(await generator.GenerateManyAsync(
+                both.AddRange(await routes.GenerateManyAsync(
                     start, towards, targetKm, RouteShape.OutAndBack, progress, cancellationToken));
             }
             return both;

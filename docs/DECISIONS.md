@@ -1038,6 +1038,11 @@ Formato: contexto → decisión → alternativas descartadas.
     0,2 km²): "bastante bien". Une Griñón y Cubas de la Sagra (les separa una franja de menos de 200 m; sin unir huecos
     se separan, pero también se parten las ciudades): se deja. Los pueblos pequeños, que casi no salen en León, no hay
     que evitarlos: "un pueblo pequeño no es problema tener que atravesarlo".
+  - Paso 6e-2 (2026-10-19): los puntos de paso en un pueblo se mueven al sitio más cercano a 300 m o más de cualquier
+    pueblo (como mucho 4 km), a la misma distancia de casa si puede. Medido en las 30 salidas: 628 → 626 km de ciudad,
+    sin mejora; en la zona de Madrid se mueven todos los que caen en pueblo (20-30 %), pero las carreteras para llegar
+    siguen cruzando pueblos, y en León no cae ninguno. Se deja porque lo necesita 6e-3 (un punto dentro de una zona con
+    coste obliga a BRouter a entrar).
 - Alternativas:
   - **Overpass** (zonas `landuse` de OpenStreetMap; recomendada primero): gratis y sin clave, pero el 2026-10-19
     `overpass-api.de` y `overpass.private.coffee` respondieron 502 y 500 casi toda la tarde ("at capacity"), y su aviso
