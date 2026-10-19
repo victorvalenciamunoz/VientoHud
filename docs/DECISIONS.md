@@ -946,3 +946,20 @@ Formato: contexto → decisión → alternativas descartadas.
   vuelta; dos de las tres vueltas no eran válidas y las tres idas y vueltas sí. En León con viento flojo gana una ida y
   vuelta por poco (+5 frente a +2).
 - Alternativas: una sola ida y vuelta, contra el viento (menos peticiones; con brouter.de importaría más).
+
+## 042 — Cómo se mide la ciudad de una ruta
+- Contexto: fase 6, paso 6c: el autor vio rutas casi todas por ciudad (Humanes) y lazos que cruzan León o Tres Cantos.
+  BRouter tiene una estimación de "ciudad alrededor" (`estimated_town_class`), pero los datos de mapa que usamos no la
+  traen (comprobado el 2026-10-19 en Madrid centro, León y Humanes: solo `estimated_traffic_class` y
+  `estimated_crossing_class`).
+- Decisión (técnica, provisional hasta el ojo del autor; `RouteUrban`):
+  - **Un km está en ciudad** si tiene 2 o más nodos de casco urbano (pasos de peatones, semáforos, stops, ceda el paso)
+    o va por calles (residencial, de servicio, peatonal) al menos la mitad. El cliente de BRouter guarda ya las etiquetas
+    de los nodos (`Route.Nodes`).
+  - **Volver a casa:** km a menos de 3 km de la salida fuera de los 5 primeros y los 5 últimos.
+- Medida de hoy (2026-10-19, `tools/investigacion/urban.cs`, 60 km, rumbos 0°, 120°, 240°; tabla en
+  `docs/verificacion/2026-10-19-fase6-ciudad-antes.txt`): Humanes 31-97 % en ciudad (la ida y vuelta al N, 97 %),
+  Fuenlabrada 48-90 %, Tres Cantos 14-59 %, León 17-36 %, La Bañeza 10-30 %. Volver a casa casi siempre 0: los lazos
+  que el autor vio cruzan la ciudad o sus alrededores más allá de 3 km, no vuelven al centro.
+- Alternativas: polígonos de zonas urbanas de OpenStreetMap (otra fuente externa, más trabajo); datos de BRouter con la
+  estimación de ciudad (otros mapas; sin comprobar si existen).

@@ -31,19 +31,29 @@ public sealed record RouteSegment(double StartKm, double LengthKm, IReadOnlyDict
     public string? Surface => WayTags.GetValueOrDefault("surface");
 }
 
+/// <summary>A point of the route with OpenStreetMap node tags, e.g. "highway=crossing", "highway=traffic_signals".</summary>
+/// <param name="AtKm">Distance from the start of the route.</param>
+public sealed record RouteNode(double AtKm, IReadOnlyDictionary<string, string> Tags);
+
 /// <summary>A route through a list of waypoints along real roads.</summary>
 /// <param name="Points">The track, in riding order.</param>
 /// <param name="Segments">Consecutive stretches covering the whole route, in riding order.</param>
 /// <param name="DistanceKm">Length of the route.</param>
 /// <param name="AscentMeters">Total climb, as the engine estimates it (smoothed), if known.</param>
 /// <param name="Attribution">Credit line the routing service and map data require.</param>
+/// <param name="Nodes">
+/// Points with node tags (crossings, traffic signals…), in riding order; empty when the engine does not report them.
+/// </param>
 public sealed record Route(
     IReadOnlyList<RoutePoint> Points,
     IReadOnlyList<RouteSegment> Segments,
     double DistanceKm,
     double? AscentMeters,
-    string Attribution)
+    string Attribution,
+    IReadOnlyList<RouteNode>? Nodes = null)
 {
+    public IReadOnlyList<RouteNode> Nodes { get; } = Nodes ?? [];
+
     public IReadOnlyList<RoutePoint> Points { get; } = Points is { Count: >= 2 }
         ? Points
         : throw new ArgumentException("A route needs at least two points.", nameof(Points));
@@ -72,7 +82,8 @@ public sealed record Route(
             .ToList(),
         DistanceKm,
         Points[0].Position.DistanceKmTo(Points[^1].Position) < 0.5 ? AscentMeters : null,
-        Attribution);
+        Attribution,
+        Nodes.Reverse().Select(n => n with { AtKm = Math.Max(0, DistanceKm - n.AtKm) }).ToList());
 
     /// <summary>
     /// There and back the same way (DECISIONS 040): this route, from the start to a far point, followed by itself in
@@ -90,6 +101,7 @@ public sealed record Route(
             Segments.Concat(back.Segments.Select(s => new RouteSegment(DistanceKm + s.StartKm, s.LengthKm, s.WayTags))).ToList(),
             2 * DistanceKm,
             ascent,
-            Attribution);
+            Attribution,
+            Nodes.Concat(back.Nodes.Select(n => n with { AtKm = DistanceKm + n.AtKm })).ToList());
     }
 }

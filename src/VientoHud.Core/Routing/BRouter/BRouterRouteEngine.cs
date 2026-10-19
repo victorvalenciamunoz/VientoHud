@@ -198,7 +198,8 @@ public sealed class BRouterRouteEngine(HttpClient httpClient, BRouterOptions? op
 
     /// <summary>
     /// Reads BRouter's GeoJSON: the first feature is the track (coordinates as [lon, lat, elevation]); its
-    /// "messages" table has one row per stretch, ending at the row's position, with its length in metres and way tags.
+    /// "messages" table has one row per stretch, ending at the row's position, with its length in metres, way tags and the
+    /// tags of the node it ends at (crossings, traffic signals…).
     /// </summary>
     private static Route ParseGeoJson(string body)
     {
@@ -216,8 +217,10 @@ public sealed class BRouterRouteEngine(HttpClient httpClient, BRouterOptions? op
         var header = messages[0].EnumerateArray().Select(h => h.GetString()).ToList();
         var distanceColumn = ColumnIndex(header, "Distance");
         var tagsColumn = ColumnIndex(header, "WayTags");
+        var nodeTagsColumn = header.IndexOf("NodeTags");
 
         var segments = new List<RouteSegment>();
+        var nodes = new List<RouteNode>();
         var startMeters = 0.0;
         foreach (var row in messages.EnumerateArray().Skip(1))
         {
@@ -234,6 +237,11 @@ public sealed class BRouterRouteEngine(HttpClient httpClient, BRouterOptions? op
                 segments.Add(new RouteSegment(startMeters / 1000, meters / 1000, tags));
             }
             startMeters += meters;
+            // Node tags belong to the point the row ends at.
+            if (nodeTagsColumn >= 0 && row[nodeTagsColumn].GetString() is { Length: > 0 } nodeTags)
+            {
+                nodes.Add(new RouteNode(startMeters / 1000, ParseTags(nodeTags)));
+            }
         }
 
         return new Route(
@@ -241,7 +249,8 @@ public sealed class BRouterRouteEngine(HttpClient httpClient, BRouterOptions? op
             segments,
             DistanceKm: ParseNumber(properties, "track-length")!.Value / 1000,
             AscentMeters: ParseNumber(properties, "filtered ascend"),
-            Attribution);
+            Attribution,
+            nodes);
     }
 
     private static int ColumnIndex(List<string?> header, string name)

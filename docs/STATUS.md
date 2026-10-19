@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 6 — Mejores rutas** (en curso: 6a y 6b hechos; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+**Fase actual: 6 — Mejores rutas** (en curso: 6a, 6b y la medida del 6c hechos; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
 
 ## Fase 6
 
@@ -20,8 +20,9 @@ División aceptada por el autor el 2026-10-19:
 - [x] 6b. Ida y vuelta en la recomendación: **una por rumbo buscado** (decisión del autor, `DECISIONS.md` 041) junto a
   las vueltas, en el mismo orden (rachas, lluvia, viento). **Ojo del autor** (2026-10-19): la de León está bien; la de
   Humanes hacia el NE va casi toda por ciudad o cerca de ciudades (Fuenlabrada, Getafe): es lo que deben arreglar 6c y 6d.
-- [ ] 6c. Medir las ciudades: km por ciudad de cada ruta y si vuelve a pasar cerca de la salida a mitad de camino, en las
-  salidas de prueba, antes de cambiar nada.
+- [ ] 6c (medida hecha; **falta el ojo del autor para ajustar la medida**). Medir las ciudades: km por ciudad de cada
+  ruta y si vuelve a pasar cerca de la salida a mitad de camino, en las salidas de prueba, antes de cambiar nada
+  (`DECISIONS.md` 042).
 - [ ] 6d. Evitar ciudades (generador y perfil de BRouter) y juez de la fase: antes y después, en números y a ojo; los
   límites, con los datos del 6c.
 
@@ -36,6 +37,10 @@ División aceptada por el autor el 2026-10-19:
   vuelta contra el viento sale primera con viento claro. **En vivo** con `route` (BRouter local, 60 km): Humanes, viento
   del NE a 18 km/h, primera la ida y vuelta al NE (+20 km/h de ventaja frente a +4 de la mejor vuelta; dos vueltas no
   válidas, las tres idas y vueltas sí); León, viento flojo, gana una ida y vuelta al N por poco.
+- Paso 6c (2026-10-19): 6 tests nuevos (586 en total): km con 2 cruces o semáforos, o media calle, en ciudad; tramos
+  seguidos; etiquetas `crossing` solas; un ocho que pasa por casa a mitad (6 km); los nodos de la vuelta de León grabada
+  (más del 30 % en ciudad) y al dar la vuelta a la ruta. **Medida en vivo** (`urban.cs`): Humanes 31-97 %, Fuenlabrada
+  48-90 %, Tres Cantos 14-59 %, León 17-36 %, La Bañeza 10-30 %.
 
 
 Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).
