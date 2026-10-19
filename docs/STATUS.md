@@ -18,26 +18,33 @@
 
 ### Qué falta (fase 7)
 
-División aceptada por el autor el 2026-10-19 (`DECISIONS.md` 047):
+Primera división (`DECISIONS.md` 047) superada por la decisión 048 (2026-10-19): la ruta la traza el usuario en el
+mapa. Lo hecho hasta entonces: 7a-1 (`RideAdvisor`, lo usa `route`) y la medida de 7b. División nueva, **pendiente del
+visto bueno del autor**:
 
-- [ ] 7a. Llevar a Core lo que hoy hace `route` por dentro, para que la consola y la app solo muestren:
-  - [x] 7a-1. La búsqueda entera en Core (rutas, lluvia, hora de salida), con avance y cancelar.
-  - [ ] 7a-2. Los textos en Core (recomendación, resumen de cada ruta, nombre y descripción del GPX y del fichero).
-  - Juez: tests con servicios falsos, y `route` con el BRouter local da el mismo texto y los mismos GPX antes y después.
-- [ ] 7b. Preparar Core para el móvil (borrar las imágenes viejas del radar) y medir con brouter.de desde el ordenador
-  en los 5 sitios de prueba: tiempo, peticiones a BRouter, llamadas a Open-Meteo y MB descargados. Con eso el autor
-  decide cómo llevar la espera. **Medido** (2026-10-19, `docs/verificacion/2026-10-19-fase7-peticiones.txt`): desde el
-  móvil con brouter.de, La Bañeza y León ~50 s, Humanes y Tres Cantos ~1,5 min, Fuenlabrada ~4 min. **Decisión del
-  autor pendiente.**
-- [ ] 7c. Esqueleto de la app (como CieloHud: solo Android, con su estética); arranca en el emulador y en el móvil.
-- [ ] 7d. Ubicación del móvil y recomendación en texto, con avance, cancelar y la pantalla encendida mientras busca; la
-  duración fija hasta 7g. Juez: en el mismo sitio y a la misma hora, la app dice lo mismo que la consola.
-- [ ] 7e. **Ver la ruta en el móvil:** mapa de la ruta (opciones comprobadas en su fuente; decisión del autor).
+- [ ] 7a. Core para la app:
+  - [x] 7a-1. La recomendación automática entera en Core (`RideAdvisor`); se queda para la consola.
+  - [ ] 7a-2. **Ruta trazada por el usuario**: de unos puntos (uno: ida y vuelta hasta ahí; dos o más: vuelta por ahí) a
+    la ruta por BRouter en una petición, con las reglas de carretera, la distancia, el viento por tramos en los dos
+    sentidos, la lluvia, salir ahora o esperar, la ciudad y la llegada. Todo son piezas que ya existen, enlazadas.
+    Juez: tests con el motor falso, y en vivo desde la consola (un comando que recibe los puntos) en los sitios de
+    prueba: segundos y el ojo del autor.
+  - [ ] 7a-3. Los textos en Core (recomendación, resumen de la ruta, nombre y descripción del GPX y del fichero).
+- [ ] 7b. Preparar Core para el móvil: borrar las imágenes viejas del radar (~2 MB cada una, hoy sin límite).
+- [ ] 7c. **Elegir el mapa** (opciones comprobadas en su fuente: licencia, mapas de fondo y sus normas de uso, clave,
+  mantenimiento; decisión del autor) y esqueleto de la app con el mapa y la estética de CieloHud; arranca en el
+  emulador y en el móvil.
+- [ ] 7d. Ubicación del móvil y la dirección: "hacia el oeste", el viento de las próximas horas y un abanico en el
+  mapa. Una llamada a Open-Meteo: segundos.
+- [ ] 7e. **Tocar el mapa**: un punto, ida y vuelta; dos o tres, vuelta. Distancia al momento, la ruta dibujada, y
+  con ella el viento por tramos, la lluvia, salir ahora o esperar, el sentido mejor y la llegada. Juez: los mismos
+  puntos en la consola dan lo mismo; segundos hasta la ruta.
 - [ ] 7f. **Mandarla al aparato**, sea cual sea: "Compartir" (Hammerhead y la mayoría) y "Abrir con" (Garmin Connect),
   quizá también guardarla en Descargas. Juez: llega al Karoo y al Fenix 5 del autor.
-- [ ] 7g. Elegir duración o distancia con un toque (valores y velocidad media, decisión del autor).
+- [ ] 7g. Opciones con un toque: velocidad media y, si hace falta, la hora de salida (decisión del autor).
 - [ ] 7h. Pantalla definitiva con la estética de CieloHud y versión instalable firmada.
-- [ ] 7i. Juez de la fase: salidas reales usando solo la app (tiempo, datos gastados, GPX en el Karoo, ojo del autor).
+- [ ] 7i. Juez de la fase: salidas reales usando solo la app (segundos hasta la ruta, datos gastados, GPX en el Karoo
+  y en el Fenix, ojo del autor sobre el viento y la lluvia que hubo).
 
 ### Cómo se ha validado (fase 7)
 
@@ -57,9 +64,10 @@ División aceptada por el autor el 2026-10-19 (`DECISIONS.md` 047):
 
 ### Riesgos y pendientes (fase 7)
 
-- **La espera en el móvil** (medida en 7b): de ~50 s (León, La Bañeza) a ~4 min (Fuenlabrada) con brouter.de, la mitad
-  por la espera de 1 s entre peticiones que nos imponemos (brouter.de no publica normas y nos bloqueó dos veces). Lo que
-  en `DECISIONS.md` 044 ponía "~2 min" solo contaba esa espera, no las peticiones. El autor decide cómo llevarla.
+- **La espera de la recomendación automática** (medida en 7b): de ~50 s (León, La Bañeza) a ~4 min (Fuenlabrada) con
+  brouter.de, la mitad por la espera de 1 s entre peticiones que nos imponemos (brouter.de no publica normas y nos
+  bloqueó dos veces). Lo que en `DECISIONS.md` 044 ponía "~2 min" solo contaba esa espera. Resuelto para la app por
+  otro camino: la ruta la traza el usuario y cuesta una petición (`DECISIONS.md` 048).
 - Datos en el móvil: ~8,7 MB de radar por recomendación cuando los cuadros son nuevos; AROME, 225 llamadas a Open-Meteo.
 - Las imágenes del radar (~2 MB cada una) se guardan sin límite: en el móvil hay que borrar las viejas (7b).
 - Android puede cortar una búsqueda larga si la pantalla se apaga o se cambia de app (ColorOS de OPPO es estricto).

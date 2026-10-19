@@ -8,8 +8,8 @@ Lee `docs/VISION.md` para el porqué y `docs/PLAN.md` para las fases. El estado 
 
 ## Principios (no negociables)
 
-- **Cero entrada de datos manual.** La ubicación sale del dispositivo. Como mucho, el usuario elige opciones
-  (duración o distancia de la salida); nunca escribe datos.
+- **Sin teclear datos.** La ubicación sale del dispositivo. El usuario elige tocando: opciones (duración, velocidad)
+  y puntos en el mapa (hasta dónde ir, por dónde pasar); nunca escribe datos (`docs/DECISIONS.md` 048).
 - **Sin backend propio ni base de datos.** Se pueden consumir APIs y datos públicos (previsión, radar, OpenStreetMap,
   motores de rutas), pero no montamos servidor. Cachés en fichero local si hace falta.
 - **El tiempo es el juez.** Toda predicción debe poder contrastarse con lo que pasó de verdad

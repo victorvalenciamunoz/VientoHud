@@ -82,6 +82,12 @@ Añadida por el autor el 2026-10-19 (`DECISIONS.md` 039), al ver las rutas de la
 
 ## Fase 7 — App MAUI (Android)
 
-- Pantalla única de recomendación, estética HUD.
-- Mapa de la ruta y botón para compartir o descargar el GPX.
-- Elegir duración o distancia con un toque.
+Replanteada por el autor el 2026-10-19 (`DECISIONS.md` 048): la ruta la traza el usuario tocando el mapa; la app pone
+la dirección, el tiempo y el juicio. El generador automático de las fases 2 a 6 se queda en Core y en la consola.
+
+- Pantalla única, estética de CieloHud: "Sal ahora (o espera), hacia el oeste", con el viento y la lluvia.
+- Mapa con la dirección recomendada; el usuario toca un punto (ida y vuelta) o dos o tres (vuelta). Una petición a
+  BRouter por ruta; distancia al momento; viento por tramos, lluvia, sentido mejor, llegada.
+- Mandar el GPX al aparato de la bici, sea cual sea (compartir y abrir con).
+- **Juez:** salidas reales usando solo la app: segundos hasta la ruta, datos gastados, el GPX en el Karoo y en el Fenix,
+  y el ojo del autor sobre lo que pasó con el viento y la lluvia.

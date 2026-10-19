@@ -1093,3 +1093,26 @@ Formato: contexto → decisión → alternativas descartadas.
   GPX, pero sí lo abre ("Abrir con"). La app necesita las dos cosas (se prueba en 7f).
 - Alternativas: copiar en la app lo que hace la consola (dos sitios con la misma lógica); empezar por la app y mover a
   Core después (la app nacería con lógica dentro).
+
+## 048 — La ruta la traza el usuario en el mapa; la app pone la dirección, el tiempo y el juicio
+- Contexto: fase 7. Medido el 2026-10-19 (`docs/verificacion/2026-10-19-fase7-peticiones.txt`): una recomendación
+  automática cuesta de 40 a 121 peticiones a BRouter (de 45 s a 4 min desde el móvil con brouter.de), porque el
+  generador adivina la ruta: mueve los puntos hasta que la distancia encaja (12 peticiones por vuelta fallida), prueba
+  5 variantes de cada ida y vuelta y amplía a los lados. Una sola petición tarda 0,2-2,5 s. Y el autor lleva desde la
+  fase 2 viendo que, sin pedirle nada al usuario, la generación de rutas "no termina de funcionar" (Humanes sin vuelta
+  válida, rutas por ciudad, lazos). Bikemap, que el autor usa, deja poner puntos en el mapa y el motor los une.
+- Decisión (del autor, 2026-10-19):
+  - **La app pide información tocando el mapa, nunca escribiendo**: la dirección recomendada sale sola (viento y lluvia,
+    `StartDirection`), y el usuario toca **un punto** (ida y vuelta hasta ahí) o **dos o tres** (vuelta pasando por esos
+    sitios). Cada ruta es **una petición** a BRouter con el perfil de carretera. La distancia se ve al momento y se
+    ajusta moviendo los puntos.
+  - La app sigue haciendo sola lo que la distingue: dirección buena, salir ahora o esperar, viento tramo a tramo a la
+    hora de paso, lluvia en la ruta, sentido mejor de una vuelta, rachas de lado, reglas de carretera y medida de
+    ciudad (como aviso), y el GPX con el resumen.
+  - **El generador automático no va en la app** de la fase 7. Queda en Core y en `route` (consola), sin borrar nada.
+  - Se cambia el principio "cero entrada de datos manual" de `CLAUDE.md` por "sin teclear datos": elegir y tocar sí;
+    escribir, no. `docs/VISION.md` cambia en el mismo sentido.
+- Alternativas: seguir con lo automático y acelerarlo (varias búsquedas a la vez contra brouter.de, sin normas
+  publicadas y con dos bloqueos; enseñar pronto la primera; aprovechar el radio entre rumbos) —descartado por el autor,
+  porque el fondo del problema es adivinar la ruta—; las dos cosas con un botón "propónmela tú" (más trabajo en la app
+  para algo que no funciona bien; se puede añadir después si se echa de menos).

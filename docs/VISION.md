@@ -19,7 +19,7 @@ Cargas el GPX en el GPS de la bici, guardas el móvil y te vas. Ni pantalla ni a
 ## Por qué
 
 - Es cálculo sobre el mundo real, no una app de meter y sacar datos.
-- No pide nada al usuario salvo elegir cuánto quiere rodar.
+- No pide al usuario más que un par de toques en el mapa: hasta dónde ir o por dónde pasar. Nunca teclear.
 - No exige atención durante la actividad: todo lo útil va en el GPX y en el resumen previo.
 - Tiene un juez objetivo: el viento y la lluvia que hubo de verdad.
 
@@ -27,7 +27,8 @@ Cargas el GPX en el GPS de la bici, guardas el móvil y te vas. Ni pantalla ni a
 
 1. **Viento:** previsión por horas y, sobre todo, por tramo de la ruta (a qué hora pasarás por cada sitio).
 2. **Lluvia a corto plazo (nowcasting):** predicción propia a 30-90 min moviendo las imágenes del radar hacia delante.
-3. **Ruta circular:** generada desde tu ubicación, puntuada según viento y lluvia, exportada a GPX.
+3. **Ruta:** la app dice hacia dónde conviene ir; tú tocas en el mapa hasta dónde (ida y vuelta) o por dónde (vuelta);
+   la ruta sale por carreteras reales, puntuada según viento y lluvia, y exportada a GPX.
 
 ## Qué NO es
 
