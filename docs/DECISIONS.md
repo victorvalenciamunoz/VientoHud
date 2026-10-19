@@ -1116,3 +1116,19 @@ Formato: contexto → decisión → alternativas descartadas.
   publicadas y con dos bloqueos; enseñar pronto la primera; aprovechar el radio entre rumbos) —descartado por el autor,
   porque el fondo del problema es adivinar la ruta—; las dos cosas con un botón "propónmela tú" (más trabajo en la app
   para algo que no funciona bien; se puede añadir después si se echa de menos).
+
+## 049 — Reintentos de red con Microsoft.Extensions.Http.Resilience, y la lluvia reutilizada
+- Contexto: fase 7, paso 7b. El 2026-10-19 un 503 pasajero de Open-Meteo ("sobrecargado") en el viento tiró una
+  recomendación entera; no había reintentos. Y cada ruta trazada vuelve a pedir el radar y AROME (225 llamadas): tres
+  en un minuto dan 429 ("vuelve a intentarlo en un minuto").
+- Decisión (del autor, 2026-10-19, con la recomendación):
+  - **Microsoft.Extensions.Http.Resilience** (Microsoft, MIT, 10.11.0 del 2026-10-14, sobre Polly; ya usada en
+    GincanaHud), como capa sobre el `HttpClient`: Core no cambia, salvo definir una vez la regla para que consola y
+    app usen la misma. **Solo el reintento** (5xx, 408, 429, fallos de red; 3 veces con esperas crecientes y azar,
+    respeta `Retry-After`), no el paquete estándar: su tope de 10 s por intento no vale para un cuadro de radar de 2 MB
+    con datos móviles. Se mantienen los 60 s de Core.
+  - **El 429 no se arregla reintentando**: la lluvia (radar y AROME) se reutiliza unos minutos para el mismo sitio, en
+    vez de pedirla con cada punto que se toca en el mapa.
+- Alternativas: Polly directo (BSD-3; desde el 2026-11-16 cobra una cuota a empresas que ganen más de 20.000 $ con un
+  producto que lo use; no aplica); un reintento a mano (unas 15 líneas, sin azar ni `Retry-After`, probado por
+  nosotros).

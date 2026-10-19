@@ -4,6 +4,7 @@ using VientoHud.Core.Wind.Observations.Iem;
 using VientoHud.Core.Wind.OpenMeteo;
 using VientoHud.Core.Wind.Verification;
 using static VientoHud.ConsoleApp.Display;
+using static VientoHud.Core.Text.SpanishText;
 
 namespace VientoHud.ConsoleApp;
 

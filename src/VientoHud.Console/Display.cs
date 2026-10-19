@@ -1,23 +1,14 @@
 using System.Globalization;
 using VientoHud.Core;
 using VientoHud.Core.Location;
+using VientoHud.Core.Text;
 using VientoHud.Core.Wind;
 
 namespace VientoHud.ConsoleApp;
 
-/// <summary>Spanish labels and number formats shared by the commands.</summary>
+/// <summary>Labels that only the console shows. The Spanish words and numbers shared with the app are in <see cref="SpanishText"/>.</summary>
 internal static class Display
 {
-    public static readonly CultureInfo Spanish = CultureInfo.GetCultureInfo("es-ES");
-
-    private static readonly Dictionary<CompassPoint, string> SpanishPoints = new()
-    {
-        [CompassPoint.N] = "N", [CompassPoint.NNE] = "NNE", [CompassPoint.NE] = "NE", [CompassPoint.ENE] = "ENE",
-        [CompassPoint.E] = "E", [CompassPoint.ESE] = "ESE", [CompassPoint.SE] = "SE", [CompassPoint.SSE] = "SSE",
-        [CompassPoint.S] = "S", [CompassPoint.SSW] = "SSO", [CompassPoint.SW] = "SO", [CompassPoint.WSW] = "OSO",
-        [CompassPoint.W] = "O", [CompassPoint.WNW] = "ONO", [CompassPoint.NW] = "NO", [CompassPoint.NNW] = "NNO",
-    };
-
     private static readonly Dictionary<string, string> ModelNames = new()
     {
         ["meteofrance_arome_france"] = "AROME",
@@ -27,7 +18,8 @@ internal static class Display
         ["ecmwf_ifs025"] = "ECMWF 0,25°",
     };
 
-    public static string Point(double degrees) => SpanishPoints[Compass.ToCompassPoint(degrees)];
+    /// <summary>A UTC time in the local zone of this computer.</summary>
+    public static string Local(DateTimeOffset utc, string format) => SpanishText.Local(utc, TimeZoneInfo.Local, format);
 
     public static string Model(string model) => ModelNames.GetValueOrDefault(model, model);
 
@@ -37,8 +29,6 @@ internal static class Display
         ForecastLead.DayAhead => "24 h",
         _ => lead.ToString(),
     };
-
-    public static string Kmh(double value) => $"{value.ToString("0", Spanish)} km/h";
 
     public static string Coordinates(Coordinate c) =>
         $"{c.Latitude.ToString("0.0000", CultureInfo.InvariantCulture)}, " +
@@ -55,8 +45,26 @@ internal static class Display
 
         var fix = await device.GetCurrentAsync(cancellationToken);
         var source = fix.AccuracyMeters is { } accuracy
-            ? $"del dispositivo, ±{accuracy.ToString("0", Spanish)} m"
+            ? $"del dispositivo, ±{accuracy.ToString("0", SpanishText.Spanish)} m"
             : "del dispositivo";
         return (fix.Position, source);
     }
+
+    /// <summary>Writes a GPX to <paramref name="directory"/> and returns the full path.</summary>
+    public static async Task<string> WriteGpxAsync(string directory, string fileName, Core.Gpx.GpxTrack track, CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(directory);
+        var file = Path.GetFullPath(Path.Combine(directory, fileName));
+        await using var stream = File.Create(file);
+        Core.Gpx.GpxWriter.Write(track, stream);
+        await stream.FlushAsync(cancellationToken);
+        return file;
+    }
+
+    public static string AlertsNote(int count) => count switch
+    {
+        0 => "",
+        1 => " (1 aviso en la ruta)",
+        var n => $" ({n} avisos en la ruta)",
+    };
 }

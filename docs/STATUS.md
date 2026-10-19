@@ -6,6 +6,10 @@
 
 ### Qué funciona (fase 7)
 
+- **Los textos en Core** (`SpanishText`, `RideText`, `RideGpx` en `VientoHud.Core.Text`; paso 7a-3): la recomendación
+  ("Sal ahora" / "Mejor espera…"), el viento, la ventaja y los tramos, las rachas, la lluvia, la ciudad, la llegada, los
+  resúmenes, y el nombre, el nombre de fichero y los avisos del GPX; en español, con la zona horaria como parámetro.
+  La consola solo decide en qué línea va cada cosa.
 - **Ruta trazada por el usuario** (`TracedRideAdvisor`, `TracedRequest`, `TracedRide`; paso 7a-2, `DECISIONS.md` 048):
   un punto es una ida y vuelta hasta él, dos o más una vuelta por ellos; **una petición** a BRouter y el mismo juicio
   que el planificador (viento en los dos sentidos, lluvia, salir ahora o esperar, ciudad), más los tramos prohibidos y
@@ -33,7 +37,7 @@ visto bueno del autor**:
     sentidos, la lluvia, salir ahora o esperar, la ciudad y la llegada. Todo son piezas que ya existen, enlazadas.
     Juez: tests con el motor falso, y en vivo desde la consola (un comando que recibe los puntos) en los sitios de
     prueba: segundos y el ojo del autor.
-  - [ ] 7a-3. Los textos en Core (recomendación, resumen de la ruta, nombre y descripción del GPX y del fichero).
+  - [x] 7a-3. Los textos en Core (recomendación, resumen de la ruta, nombre y descripción del GPX y del fichero).
 - [ ] 7b. Preparar Core para el móvil: borrar las imágenes viejas del radar (~2 MB cada una, hoy sin límite) y
   reintentar una vez las respuestas pasajeras de Open-Meteo (503 "sobrecargado", 429): el 2026-10-19 un 503 del viento
   tiró una recomendación entera.
@@ -68,6 +72,14 @@ visto bueno del autor**:
   ciudad) en **14 s** en total; Humanes vuelta por Griñón y Navalcarnero (49 km, 35 %, sentido horario por el viento);
   La Bañeza ida y vuelta hasta Astorga (56 km, 21 %). Una pasada cayó por un 503 pasajero de Open-Meteo en el viento
   (sin reintento; va a 7b). Los GPX quedan para el ojo del autor.
+- Paso 7a-3 (2026-10-19): 6 tests nuevos (608 en total): "Sal ahora (10:30)" y "Mejor espera: sal a las 11:00 en vez
+  de ahora; evitas 3 km con rachas de lado peligrosas y te ahorras 5,5 km de lluvia probable"; la ventaja de viento como
+  se siente; las rachas de lado solo si las hay o no se conocen; números y puntos cardinales en español; el nombre del
+  GPX y del fichero ("1-vuelta-60km-SO-20261019-1030.gpx", "-descartada"); los avisos como puntos con nombre corto.
+  **Antes y después** con el BRouter local, las dos versiones seguidas: `trace` en Humanes (vuelta) y León (ida y
+  vuelta) y `route` en León dan el mismo texto y los mismos GPX, salvo un km contado de más en una lluvia por el minuto
+  que pasa entre las dos pasadas (el horizonte de 3 h se mueve con la hora). Open-Meteo dio 503 a ratos toda la tarde y
+  hubo que repetir la comparación tres veces: razón de más para el reintento de 7b.
 - Paso 7b, medida (2026-10-19; `brouterspeed.cs`, `requests.cs`, `raintime.cs`;
   `docs/verificacion/2026-10-19-fase7-peticiones.txt`): una petición a brouter.de tarda lo mismo que al local
   (0,2-2,5 s). El tiempo es el número de peticiones: 40 (La Bañeza), 43 (León), 56 (Humanes, Tres Cantos), 121

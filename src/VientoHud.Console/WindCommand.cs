@@ -1,6 +1,7 @@
 using VientoHud.Core.Location;
 using VientoHud.Core.Wind;
 using static VientoHud.ConsoleApp.Display;
+using static VientoHud.Core.Text.SpanishText;
 
 namespace VientoHud.ConsoleApp;
 

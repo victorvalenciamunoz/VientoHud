@@ -1,22 +1,25 @@
 using VientoHud.Core.Location;
 using VientoHud.Core.Routing;
+using VientoHud.Core.Text;
 using static VientoHud.ConsoleApp.Display;
-using static VientoHud.ConsoleApp.RouteCommand;
+using static VientoHud.Core.Text.SpanishText;
 
 namespace VientoHud.ConsoleApp;
 
 /// <summary>
 /// A ride through the points the rider gives (DECISIONS 048): one request to BRouter, then the wind both ways round, the
-/// rain, leave now or wait, and one GPX. Formatting only: everything comes from Core.
+/// rain, leave now or wait, and one GPX. Layout only: everything, sentences included, comes from Core.
 /// </summary>
 internal sealed class TraceCommand(TracedRideAdvisor advisor, ILocationProvider device, TextWriter output, string engineName, string windAttribution)
 {
+    private static readonly TimeZoneInfo Zone = TimeZoneInfo.Local;
+
     /// <summary>0 when the GPX was written, 1 when the points could not be joined.</summary>
     public async Task<int> RunAsync(TraceOptions options, CancellationToken cancellationToken)
     {
         var (start, source) = await ResolveLocationAsync(options.Location, device, cancellationToken);
         var now = DateTimeOffset.UtcNow;
-        var departure = options.At is { } at ? DepartureTime.Next(at, now, TimeZoneInfo.Local) : now;
+        var departure = options.At is { } at ? DepartureTime.Next(at, now, Zone) : now;
         var request = new TracedRequest(start, options.Via, departure, options.SpeedKmh);
 
         output.WriteLine(request.Shape == RouteShape.OutAndBack
@@ -39,7 +42,7 @@ internal sealed class TraceCommand(TracedRideAdvisor advisor, ILocationProvider 
 
         var option = ride.Ride;
         var chosen = ride.Departure.Chosen;
-        var recommendation = Recommendation(ride.Departure, options.At is null);
+        var recommendation = RideText.Recommendation(ride.Departure, options.At is null, Zone);
         output.WriteLine(recommendation);
         if (ride.RainFailure is not null)
         {
@@ -48,78 +51,35 @@ internal sealed class TraceCommand(TracedRideAdvisor advisor, ILocationProvider 
         output.WriteLine();
 
         var outAndBack = ride.Shape == RouteShape.OutAndBack;
-        var turn = outAndBack ? "ida y vuelta" : option.Route.TurnsClockwise() ? "sentido horario" : "sentido antihorario";
-        var lines = new List<string>
-        {
-            $"{Capitalized(turn)}: {Advantage(option.Score)}",
-            string.Join(" · ", WindStretches.Describe(option.Winds).Select(Stretch)),
-        };
-        if (option.Score.GustyStretches.Count > 0)
-        {
-            lines.Add($"¡Ojo! Rachas de lado de más de {Kmh(RideRanking.DefaultMaxCrossGustKmh)}: " +
-                      string.Join(", ", option.Score.GustyStretches.Select(s =>
-                          $"km {s.StartKm.ToString("0", Spanish)}-{s.EndKm.ToString("0", Spanish)} (hasta {Kmh(s.MaxCrossGustKmh)})")) + ".");
-        }
-        else if (!option.Score.GustsKnown)
-        {
-            lines.Add("Sin previsión de rachas para alguna hora: no se puede avisar de las de lado.");
-        }
-        lines.AddRange(RainLines(option, ride.RainFailure));
-        lines.Add($"Ciudad: {Km(option.Urban.UrbanKm)} ({Percent(option.Urban.UrbanFraction)}) por calles o travesías.");
-        lines.Add($"{Summary(ride)}. Llegada hacia las {Local(option.Winds[^1].Leg.EndTime, "HH:mm")}.");
+        var turn = RideText.Turn(option, ride.Shape);
+        var lines = new List<string> { $"{Capitalized(turn)}: {RideText.Advantage(option.Score)}" };
+        lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone));
+        lines.Add($"{RideText.TracedSummary(ride)}. {RideText.Arrival(option, Zone)}");
 
-        var alerts = RideAlerts.For(option);
-        var farthest = options.Via.MaxBy(v => v.DistanceKmTo(start));
-        var bearing = start.BearingTo(farthest);
-        var name = $"Sal {Local(chosen.Departure, "HH:mm")} · {option.Route.DistanceKm.ToString("0", Spanish)} km {Point(bearing)}" +
-                   (outAndBack ? " ida y vuelta" : "");
-        var description = string.Join("\n",
-            new[] { recommendation, $"{(outAndBack ? "Ida y vuelta" : "Vuelta")} {Km(option.Route.DistanceKm)}{(outAndBack ? "" : $", {turn}")}." }
+        // The file name carries the bearing to the farthest point given (Hammerhead shows the file name).
+        var bearing = start.BearingTo(options.Via.MaxBy(v => v.DistanceKmTo(start)));
+        var track = RideGpx.Track(
+            option, RideGpx.Name(chosen.Departure, option.Route.DistanceKm, bearing, ride.Shape, Zone), chosen.Departure,
+            new[] { recommendation, $"{RideText.Kind(ride.Shape)} {Km(option.Route.DistanceKm)}{(outAndBack ? "" : $", {turn}")}." }
                 .Concat(lines)
-                .Concat(Attributions(option.Route, ride.Rain)));
-        Directory.CreateDirectory(options.OutputDirectory);
+                .Concat(RideText.Attributions(option.Route, ride.Rain)),
+            Zone);
         var file = await WriteGpxAsync(
-            options.OutputDirectory,
-            $"{(outAndBack ? "ida-y-vuelta" : "vuelta")}-{option.Route.DistanceKm:0}km-{Point(bearing)}-{Local(chosen.Departure, "yyyyMMdd-HHmm")}.gpx",
-            option.Route, name, chosen.Departure, description, alerts.Select(Waypoint).ToList(), cancellationToken);
+            options.OutputDirectory, RideGpx.FileName(ride.Shape, option.Route.DistanceKm, bearing, chosen.Departure, Zone),
+            track, cancellationToken);
 
         foreach (var line in lines)
         {
             output.WriteLine(line);
         }
-        output.WriteLine($"GPX: {file}{(alerts.Count switch { 0 => "", 1 => " (1 aviso en la ruta)", var n => $" ({n} avisos en la ruta)" })}");
+        output.WriteLine($"GPX: {file}{AlertsNote(track.Waypoints.Count)}");
         output.WriteLine();
         output.WriteLine(option.Route.Attribution);
         output.WriteLine(windAttribution);
         if (ride.Rain is not null)
         {
-            output.WriteLine(OperaRadarSourceAttribution);
+            output.WriteLine(Core.Rain.Opera.OperaRadarSource.AttributionText);
         }
         return 0;
-    }
-
-    /// <summary>Distance, climb, roads and how far the route passes from the points given.</summary>
-    private static string Summary(TracedRide ride)
-    {
-        var a = ride.Analysis;
-        var parts = new List<string> { Km(ride.Route.DistanceKm) };
-        if (ride.Route.AscentMeters is { } ascent)
-        {
-            parts.Add($"desnivel {ascent.ToString("0", Spanish)} m");
-        }
-        parts.Add($"nacionales (trunk) {Km(a.TrunkKm)}");
-        if (a.PavedTrackKm >= 0.05)
-        {
-            parts.Add($"caminos asfaltados {Km(a.PavedTrackKm)}");
-        }
-        if (a.ForbiddenKm >= 0.05)
-        {
-            parts.Add($"¡tramos prohibidos (autovía o sin asfalto) {Km(a.ForbiddenKm)}!");
-        }
-        if (a.MaxWaypointOffsetKm >= 0.5)
-        {
-            parts.Add($"pasa a {Km(a.MaxWaypointOffsetKm)} de un punto");
-        }
-        return string.Join(", ", parts);
     }
 }
