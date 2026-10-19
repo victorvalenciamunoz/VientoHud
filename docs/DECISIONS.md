@@ -917,3 +917,19 @@ Formato: contexto → decisión → alternativas descartadas.
   - **Sin rango de distancia.**
 - Alternativas: meterlo como pasos extra de la fase 5 (la habría alargado con trabajo de rutas, que es de la fase 2);
   dejarlo para después de la app.
+
+## 040 — Ida y vuelta: la ida de BRouter y la misma carretera de vuelta
+- Contexto: fase 6, paso 6a (`DECISIONS.md` 039): proponer idas y vueltas junto a las vueltas.
+- Decisión (técnica, 2026-10-19; `RouteShape.OutAndBack`, `Route.ThereAndBack`):
+  - **Se pide a BRouter solo la ida** (de la salida a un punto en el rumbo) **y la vuelta es la misma ruta al revés**.
+    Pedirle salida → punto → salida dejaría a BRouter volver por otra carretera si le sale más corta.
+  - **El punto lejano** empieza a la mitad del objetivo entre 1,3 (cuánto más larga es la carretera que la línea recta)
+    y se acerca o aleja con las distancias obtenidas, como el radio de las vueltas; si no se llega, el rumbo gira (±10°,
+    ±20°, ±40°). Las mismas reglas que una vuelta: asfalto, sin autovías, ±10 % de la distancia, cerca del rumbo. La
+    media vuelta del punto lejano es el destino y la repetición es desde casa: ninguna es un defecto (`DECISIONS.md` 015).
+  - **El desnivel de vuelta** es la bajada de la ida (subida de ida menos lo que sube de la salida al punto lejano).
+- Probado en vivo (2026-10-19, `tools/investigacion/outandback.cs`, BRouter local, 60 km, rumbos 0°, 120°, 240°): 11 de
+  12 válidas, casi todas con 1-2 peticiones; las 3 de Humanes válidas (donde las vueltas solían fallar); falla Tres
+  Cantos hacia el OSO (la distancia salta a 82 km).
+- Alternativas: pedir salida → punto → salida (la vuelta podría ir por otra carretera); varios puntos en línea (más
+  peticiones sin ganar nada).

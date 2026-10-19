@@ -73,4 +73,23 @@ public sealed record Route(
         DistanceKm,
         Points[0].Position.DistanceKmTo(Points[^1].Position) < 0.5 ? AscentMeters : null,
         Attribution);
+
+    /// <summary>
+    /// There and back the same way (DECISIONS 040): this route, from the start to a far point, followed by itself in
+    /// reverse. The climb back is the drop on the way there (climb there minus the rise from start to end), when the
+    /// climb and both elevations are known.
+    /// </summary>
+    public Route ThereAndBack()
+    {
+        var back = Reversed();
+        double? ascent = AscentMeters is { } up && Points[0].ElevationMeters is { } first && Points[^1].ElevationMeters is { } last
+            ? up + Math.Max(0, up - (last - first))
+            : null;
+        return new Route(
+            Points.Concat(back.Points.Skip(1)).ToList(),
+            Segments.Concat(back.Segments.Select(s => new RouteSegment(DistanceKm + s.StartKm, s.LengthKm, s.WayTags))).ToList(),
+            2 * DistanceKm,
+            ascent,
+            Attribution);
+    }
 }

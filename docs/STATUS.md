@@ -1,6 +1,35 @@
 # Estado
 
-**Fase actual: 6 — Mejores rutas** (sin empezar; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+**Fase actual: 6 — Mejores rutas** (en curso: 6a hecho; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+
+## Fase 6
+
+### Qué funciona (fase 6)
+
+- **Ida y vuelta** (`RouteShape.OutAndBack`, `Route.ThereAndBack`; `DECISIONS.md` 040): el generador hace también idas y
+  vueltas: la ida de BRouter hasta un punto en el rumbo y la misma carretera de vuelta, con la distancia ajustada moviendo
+  el punto y las mismas reglas que una vuelta.
+
+### Qué falta (fase 6)
+
+División aceptada por el autor el 2026-10-19:
+
+- [x] 6a. Ida y vuelta en el generador.
+- [ ] 6b. Ida y vuelta en la recomendación: **una por rumbo buscado** (decisión del autor) junto a las vueltas, en el
+  mismo orden (rachas, lluvia, viento); prueba en vivo y el ojo del autor en gpx.studio.
+- [ ] 6c. Medir las ciudades: km por ciudad de cada ruta y si vuelve a pasar cerca de la salida a mitad de camino, en las
+  salidas de prueba, antes de cambiar nada.
+- [ ] 6d. Evitar ciudades (generador y perfil de BRouter) y juez de la fase: antes y después, en números y a ojo; los
+  límites, con los datos del 6c.
+
+### Cómo se ha validado (fase 6)
+
+- Paso 6a (2026-10-19): 5 tests nuevos (580 en total). Ida y vuelta: la misma carretera en los dos sentidos, doble de
+  distancia, acaba en la salida, desnivel de vuelta (50 m de subida con 30 m de diferencia: 20 m de vuelta). Generador:
+  un punto a 60 / 2 / 1,3 ≈ 23 km en el rumbo pedido, una sola petición, válida y repitiendo más del 90 % sin ser ramal;
+  con carreteras más largas mueve el punto hasta encajar la distancia; si no se llega, gira el rumbo; una por rumbo. **En
+  vivo** (`outandback.cs`, BRouter local, 60 km): 11 de 12 válidas en León, La Bañeza, Humanes y Tres Cantos.
+
 
 Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).
 

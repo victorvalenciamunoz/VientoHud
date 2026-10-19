@@ -26,6 +26,16 @@ public enum LoopProblems
     TurnBacks = 16,
 }
 
+/// <summary>The kind of route generated (DECISIONS 040).</summary>
+public enum RouteShape
+{
+    /// <summary>A loop through a fan of waypoints, back to the start.</summary>
+    Loop,
+
+    /// <summary>To a far point and back the same way.</summary>
+    OutAndBack,
+}
+
 /// <summary>Settings for <see cref="LoopGenerator"/>.</summary>
 public sealed record LoopGeneratorOptions
 {
@@ -56,6 +66,12 @@ public sealed record LoopGeneratorOptions
     /// <summary>Points of the fan, start included (see <see cref="LoopWaypoints.Fan"/>).</summary>
     public int FanPoints { get; init; } = LoopWaypoints.DefaultPoints;
 
+    /// <summary>
+    /// Road length per km of straight line from the start to the far point of an out and back, for the first guess of
+    /// how far that point goes: half the target over it. Corrected with the distances obtained, as the loop radius.
+    /// </summary>
+    public double OutAndBackRoadFactor { get; init; } = 1.3;
+
     public RouteAnalysisOptions Analysis { get; init; } = new();
 }
 
@@ -67,6 +83,7 @@ public sealed record LoopGeneratorOptions
 /// <param name="BearingDeviationDegrees">Angle between the requested bearing and the direction to the middle of the route.</param>
 /// <param name="DistanceError">Distance over target minus 1: +0.05 is 5 % too long.</param>
 /// <param name="Problems">What is wrong with it, if anything.</param>
+/// <param name="Shape">Loop, or out and back.</param>
 public sealed record LoopCandidate(
     Route Route,
     IReadOnlyList<Coordinate> Waypoints,
@@ -74,7 +91,8 @@ public sealed record LoopCandidate(
     double FanBearingDegrees,
     double BearingDeviationDegrees,
     double DistanceError,
-    LoopProblems Problems)
+    LoopProblems Problems,
+    RouteShape Shape = RouteShape.Loop)
 {
     public bool IsValid => Problems == LoopProblems.None;
 
@@ -100,8 +118,14 @@ public sealed record LoopCandidate(
 /// Why the route engine stopped answering (network, server, usage limit), if it did; <see cref="Best"/> is then the best
 /// of what it had answered before.
 /// </param>
+/// <param name="Shape">Loop, or out and back.</param>
 public sealed record LoopResult(
-    double BearingDegrees, LoopCandidate? Best, int Requests, IReadOnlyList<LoopCandidate> Attempts, string? EngineFailure = null)
+    double BearingDegrees,
+    LoopCandidate? Best,
+    int Requests,
+    IReadOnlyList<LoopCandidate> Attempts,
+    string? EngineFailure = null,
+    RouteShape Shape = RouteShape.Loop)
 {
     /// <summary>False when there is no acceptable loop towards that bearing (not even turning it ±40°).</summary>
     public bool Found => Best?.IsValid == true;
@@ -130,8 +154,18 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
     /// Generates a loop from <paramref name="start"/> towards <paramref name="bearingDegrees"/> (degrees TOWARDS). If the
     /// engine stops answering, returns what it had with <see cref="LoopResult.EngineFailure"/> set.
     /// </summary>
+    public Task<LoopResult> GenerateAsync(
+        Coordinate start, double bearingDegrees, double targetKm, CancellationToken cancellationToken = default) =>
+        GenerateAsync(start, bearingDegrees, targetKm, RouteShape.Loop, cancellationToken);
+
+    /// <summary>
+    /// Generates a route of <paramref name="shape"/> from <paramref name="start"/> towards <paramref name="bearingDegrees"/>.
+    /// An out and back (DECISIONS 040) asks the engine for the way from the start to a point on the bearing and rides it
+    /// back the same way (<see cref="Route.ThereAndBack"/>); the point moves nearer or farther, and the bearing turns, as the
+    /// loop radius does. Its turn at the far point is its destination, not a fault.
+    /// </summary>
     public async Task<LoopResult> GenerateAsync(
-        Coordinate start, double bearingDegrees, double targetKm, CancellationToken cancellationToken = default)
+        Coordinate start, double bearingDegrees, double targetKm, RouteShape shape, CancellationToken cancellationToken = default)
     {
         if (!double.IsFinite(bearingDegrees))
         {
@@ -153,7 +187,7 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
             {
                 var fanBearing = Normalize(bearingDegrees + turn);
                 var history = new List<(double RadiusKm, double DistanceKm)>();
-                double? radius = StartRadius(everything, targetKm);
+                double? radius = StartRadius(everything, targetKm, shape);
 
                 for (var round = 0; round < _options.MaxRoundsPerBearing && radius is { } r; round++)
                 {
@@ -161,7 +195,9 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
                     {
                         return Result();
                     }
-                    var waypoints = LoopWaypoints.Fan(start, fanBearing, r, _options.FanPoints);
+                    IReadOnlyList<Coordinate> waypoints = shape == RouteShape.Loop
+                        ? LoopWaypoints.Fan(start, fanBearing, r, _options.FanPoints)
+                        : [start, start.Destination(fanBearing, r)];
                     requests++;
                     var candidate = await TryRouteAsync(waypoints, fanBearing);
                     if (candidate is null)
@@ -174,7 +210,9 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
                     }
 
                     var reached = candidate.Route.DistanceKm;
-                    if ((candidate.Problems & (LoopProblems.Spurs | LoopProblems.TurnBacks)) != 0
+                    // An out and back has no waypoint in the middle to move off a dead end.
+                    if (shape == RouteShape.Loop
+                        && (candidate.Problems & (LoopProblems.Spurs | LoopProblems.TurnBacks)) != 0
                         && MoveOffDeadEnds(candidate) is { } moved
                         && requests < _options.MaxRequests)
                     {
@@ -207,7 +245,12 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
             try
             {
                 var route = await engine.RouteAsync(waypoints, cancellationToken);
-                var candidate = Judge(route, waypoints, fanBearing, bearingDegrees, targetKm);
+                var candidate = shape == RouteShape.Loop
+                    ? Judge(route, waypoints, fanBearing, bearingDegrees, targetKm)
+                    : Judge(route.ThereAndBack(), [.. waypoints, start], fanBearing, bearingDegrees, targetKm) with
+                    {
+                        Waypoints = waypoints, Shape = RouteShape.OutAndBack,
+                    };
                 attempts.Add(candidate);
                 return candidate;
             }
@@ -218,7 +261,7 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
         }
 
         LoopResult Result(string? failure = null) =>
-            new(Normalize(bearingDegrees), attempts.MinBy(c => c.Badness), requests, attempts, failure);
+            new(Normalize(bearingDegrees), attempts.MinBy(c => c.Badness), requests, attempts, failure, shape);
     }
 
     /// <summary>
@@ -227,10 +270,20 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
     /// answering, the remaining bearings are not tried: the last result carries <see cref="LoopResult.EngineFailure"/>.
     /// </summary>
     /// <param name="progress">Told about each bearing as soon as it is done, in the order tried.</param>
+    public Task<IReadOnlyList<LoopResult>> GenerateManyAsync(
+        Coordinate start,
+        IReadOnlyList<double> bearingsDegrees,
+        double targetKm,
+        IProgress<LoopResult>? progress = null,
+        CancellationToken cancellationToken = default) =>
+        GenerateManyAsync(start, bearingsDegrees, targetKm, RouteShape.Loop, progress, cancellationToken);
+
+    /// <summary>As <see cref="GenerateManyAsync(Coordinate, IReadOnlyList{double}, double, IProgress{LoopResult}?, CancellationToken)"/>, of one shape.</summary>
     public async Task<IReadOnlyList<LoopResult>> GenerateManyAsync(
         Coordinate start,
         IReadOnlyList<double> bearingsDegrees,
         double targetKm,
+        RouteShape shape,
         IProgress<LoopResult>? progress = null,
         CancellationToken cancellationToken = default)
     {
@@ -238,7 +291,7 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
         var results = new List<LoopResult>();
         foreach (var bearing in bearingsDegrees)
         {
-            var result = await GenerateAsync(start, bearing, targetKm, cancellationToken);
+            var result = await GenerateAsync(start, bearing, targetKm, shape, cancellationToken);
             results.Add(result);
             progress?.Report(result);
             if (result.EngineFailure is not null)
@@ -342,11 +395,13 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
     /// The first radius on a new bearing: from the median km of route per km of radius measured so far (on other
     /// bearings, around the same start), or from the fan's geometry if nothing has been measured yet.
     /// </summary>
-    private double StartRadius(List<(double RadiusKm, double DistanceKm)> measured, double targetKm)
+    private double StartRadius(List<(double RadiusKm, double DistanceKm)> measured, double targetKm, RouteShape shape)
     {
         if (measured.Count == 0)
         {
-            return LoopWaypoints.InitialRadiusKm(targetKm, _options.FanPoints);
+            return shape == RouteShape.Loop
+                ? LoopWaypoints.InitialRadiusKm(targetKm, _options.FanPoints)
+                : targetKm / 2 / _options.OutAndBackRoadFactor;
         }
         var ratios = measured.Select(m => m.DistanceKm / m.RadiusKm).Order().ToList();
         var median = ratios.Count % 2 == 1
