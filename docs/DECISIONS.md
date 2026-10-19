@@ -1162,3 +1162,21 @@ Formato: contexto → decisión → alternativas descartadas.
   el estilo propio llega en .NET 11); un mapa web dentro de la app con MapLibre y las teselas vectoriales de OpenFreeMap
   (sin clave ni límites, fondo oscuro posible, pero un puente C#-JavaScript y un proyecto de una sola persona); solo
   OpenStreetMap estándar (sin relieve ni firme).
+
+## 051 — Las rutas trazadas respetan los puntos: sin el recorte de desvíos de BRouter
+- Contexto: fase 7, paso 7e. El autor (2026-10-19, Arcicóllar y El Coto) vio que al tocar un segundo punto la ruta no
+  pasaba por él. Comprobado en el ordenador con puntos sobre asfalto: `home-A2-home` daba 3,6 km pasando a 3,4 km de
+  A2. La causa es nuestro perfil de la fase 2 (`road-strict.brf`): `correctMisplacedViaPoints = true` sin tope de
+  longitud, que hace que BRouter **recorte las idas a un punto de paso por las que se vuelve por el mismo camino**.
+  Al generador automático le venía bien (sus puntos son suposiciones y los ramales son un defecto); en una ruta
+  trazada por el usuario, ir a ese punto es justo lo que se pide. Con los perfiles de BRouter (`trekking`,
+  `fastbike`) la vuelta pasaba exactamente por los puntos.
+- Decisión (técnica, 2026-10-19): **dos variantes del mismo perfil**. `StrictRoadProfile` (el de siempre) para el
+  planificador, y `StrictRoadProfileKeepingViaPoints` (la misma línea a `false`) para `TracedRideAdvisor` en la app y
+  en `trace`. Medido en el BRouter local: `home-A2-home` 12,4 km pasando por A2; `home-A2-B2-home` 19,7 km pasando por
+  los dos (antes 10,0 km sin pasar por ninguno).
+- Además, la app pinta por dónde pasa de verdad la ruta para cada punto tocado (`TracedRoute.Reached`, punto relleno)
+  unido al tocado (hueco) con una línea discontinua, y el resumen dice "(no hay asfalto más cerca)": un punto tocado
+  donde no hay asfalto se queda a la distancia que BRouter encuentre.
+- Alternativas: quitar el recorte también al planificador (volverían los ramales de la fase 2); un tope de longitud
+  (`correctMisplacedViaPointsDistance`) en vez de apagarlo (cualquier tope cortaría alguna ida que el usuario quiere).

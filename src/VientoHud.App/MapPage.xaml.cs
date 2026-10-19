@@ -36,6 +36,8 @@ public partial class MapPage : ContentPage
     private readonly MemoryLayer _fanLayer = new("Fan") { Style = FanStyle() };
     private readonly MemoryLayer _routeLayer = new("Route") { Style = RouteStyle() };
     private readonly MemoryLayer _viaLayer = new("Via") { Style = ViaStyle() };
+    private readonly MemoryLayer _reachedLayer = new("Reached") { Style = ReachedStyle() };
+    private readonly MemoryLayer _snapLayer = new("Snap") { Style = SnapStyle() };
     private readonly MemoryLayer _homeLayer = new("Home") { Style = HomeStyle() };
     private readonly List<GeoCoordinate> _via = [];
     private GeoCoordinate? _home;
@@ -54,7 +56,9 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(tiles.CreateLayer());
         MapView.Map.Layers.Add(_fanLayer);
         MapView.Map.Layers.Add(_routeLayer);
+        MapView.Map.Layers.Add(_snapLayer);
         MapView.Map.Layers.Add(_viaLayer);
+        MapView.Map.Layers.Add(_reachedLayer);
         MapView.Map.Layers.Add(_homeLayer);
         MapView.Map.Tapped += OnMapTapped;
         // Until the device answers: León, where the author rides. The navigator keeps the call until the map has its size.
@@ -171,6 +175,7 @@ public partial class MapPage : ContentPage
             // A point added or taken away meanwhile: this answer is stale, the next job draws its own.
             cancellationToken.ThrowIfCancellationRequested();
             ShowRoute(traced.Route);
+            ShowReached(traced);
             summary = RideText.TracedSummary(traced) + ". ";
             Status.Text = $"{summary}Pidiendo el viento y la lluvia…";
 
@@ -261,6 +266,31 @@ public partial class MapPage : ContentPage
             ? []
             : [new GeometryFeature(new LineString(route.Points.Select(p => ToNts(p.Position)).ToArray()))];
         _routeLayer.DataHasChanged();
+        if (route is null)
+        {
+            _reachedLayer.Features = [];
+            _snapLayer.Features = [];
+            _reachedLayer.DataHasChanged();
+            _snapLayer.DataHasChanged();
+        }
+        MapView.Map.RefreshGraphics();
+    }
+
+    /// <summary>
+    /// Where the route really passes for each point touched: a solid dot there and, when it is not where the finger
+    /// was (no asphalt nearer), a thin line from the touched point to it.
+    /// </summary>
+    private void ShowReached(TracedRoute traced)
+    {
+        var reached = traced.Reached;
+        _reachedLayer.Features = reached.Select(p => new PointFeature(ToMercator(p))).ToList();
+        _snapLayer.Features = traced.Request.Via
+            .Select((via, i) => (Via: via, Reached: reached[i]))
+            .Where(pair => pair.Via.DistanceKmTo(pair.Reached) >= 0.3)
+            .Select(pair => (IFeature)new GeometryFeature(new LineString([ToNts(pair.Via), ToNts(pair.Reached)])))
+            .ToList();
+        _reachedLayer.DataHasChanged();
+        _snapLayer.DataHasChanged();
         MapView.Map.RefreshGraphics();
     }
 
@@ -296,6 +326,23 @@ public partial class MapPage : ContentPage
         SymbolScale = 0.4,
         Fill = new Mapsui.Styles.Brush(ToMapsui(HudTheme.Background, 255)),
         Outline = new Pen(ToMapsui(HudTheme.Marker, 255), 3),
+    };
+
+    /// <summary>Where the route really passes: a small solid dot in the marker color.</summary>
+    private static SymbolStyle ReachedStyle() => new()
+    {
+        SymbolType = SymbolType.Ellipse,
+        SymbolScale = 0.3,
+        Fill = new Mapsui.Styles.Brush(ToMapsui(HudTheme.Marker, 255)),
+        Outline = new Pen(ToMapsui(HudTheme.Background, 255), 1),
+    };
+
+    /// <summary>From the touched point to where the route passes: thin, in the marker color.</summary>
+    private static VectorStyle SnapStyle() => new()
+    {
+        Line = new Pen(ToMapsui(HudTheme.Marker, 200), 2) { PenStyle = PenStyle.Dash },
+        Fill = null,
+        Outline = null,
     };
 
     private static Mapsui.Styles.Color ToMapsui(Microsoft.Maui.Graphics.Color color, int alpha) =>

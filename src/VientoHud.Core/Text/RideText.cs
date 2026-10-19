@@ -211,7 +211,7 @@ public static class RideText
         }
         if (a.MaxWaypointOffsetKm >= 0.5)
         {
-            parts.Add($"pasa a {Km(a.MaxWaypointOffsetKm)} de un punto");
+            parts.Add($"pasa a {Km(a.MaxWaypointOffsetKm)} de un punto (no hay asfalto más cerca)");
         }
         return string.Join(", ", parts);
     }

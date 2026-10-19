@@ -53,6 +53,14 @@ public sealed class BRouterRouteEngine(HttpClient httpClient, BRouterOptions? op
     /// </summary>
     public static string StrictRoadProfile { get; } = LoadStrictRoadProfile();
 
+    /// <summary>
+    /// The same profile for a ride the rider traced (DECISIONS 051): BRouter's <c>correctMisplacedViaPoints</c> off,
+    /// so a point touched on a road one comes back from (a dead end, an out and back to a village) is reached, not cut
+    /// out as a detour. The planner keeps it on: its waypoints are guesses and the detours are a fault there.
+    /// </summary>
+    public static string StrictRoadProfileKeepingViaPoints { get; } =
+        StrictRoadProfile.Replace("assign correctMisplacedViaPoints = true ", "assign correctMisplacedViaPoints = false ");
+
     public async Task<Route> RouteAsync(IReadOnlyList<Coordinate> waypoints, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(waypoints);

@@ -266,6 +266,11 @@ public class BRouterRouteEngineTests
         // BRouter cuts out going in and out of a dead end to reach a via point, whatever its length.
         Assert.Contains("assign correctMisplacedViaPoints = true ", profile);
         Assert.Contains("assign correctMisplacedViaPointsDistance = 0 ", profile);
+        // For traced rides the detours to the points touched are the point (DECISIONS 051): only that line changes.
+        var keeping = BRouterRouteEngine.StrictRoadProfileKeepingViaPoints;
+        Assert.Contains("assign correctMisplacedViaPoints = false ", keeping);
+        Assert.DoesNotContain("assign correctMisplacedViaPoints = true ", keeping);
+        Assert.Equal(profile.Length + 1, keeping.Length);
         Assert.Contains("switch or highway=proposed or highway=abandoned highway=construction 10000", profile);
         Assert.Contains("switch    explicitlyunpaved                         10000", profile);
         Assert.Contains("   switch ispaved 2.0 10000", profile);

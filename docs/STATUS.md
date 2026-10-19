@@ -168,9 +168,13 @@ visto bueno del autor**:
   quedó colgada y Android la mató (ANR: 5 s sin atender la pantalla, 133 % de CPU). Causa: los cálculos de Core (leer
   los cuadros del radar, su movimiento, puntuar la ruta en 9 salidas y dos sentidos) corrían en el hilo de la pantalla.
   Arreglado: van en un hilo aparte (`Task.Run`). Queda por confirmar en el móvil que el zoom responde mientras calcula.
-- Un punto tocado donde no hay asfalto se mueve (BRouter) a la carretera más cercana, a veces a 3 km: la app lo dice
-  en el resumen, pero el punto se queda donde se tocó. Para 7h: mover el punto dibujado a donde pasa la ruta, o avisar
-  más claro.
+- Un punto tocado donde no hay asfalto se mueve (BRouter) a la carretera más cercana, a veces a 2-3 km (el autor lo
+  vio dos veces el 2026-10-19, en Arcicóllar y El Coto; comprobado desde el ordenador: en El Coto el perfil
+  "trekking" de BRouter remata por un camino de tierra). Desde entonces la app pinta dónde pasa de verdad la ruta
+  (`TracedRoute.Reached`: punto relleno) unido al tocado (hueco) con una línea fina, y el resumen dice "(no hay asfalto
+  más cerca)". **Y la causa de fondo** (`DECISIONS.md` 051): el perfil de la fase 2 recortaba los desvíos a los puntos de
+  paso; las rutas trazadas usan ahora la variante `StrictRoadProfileKeepingViaPoints` y pasan por los puntos. Queda el
+  ojo del autor.
 - Thunderforest "se reserva retirar el plan gratuito": si pasa, la app sigue con OpenStreetMap (sin relieve ni firme)
   hasta cambiar de proveedor; es una línea.
 - Las teselas ya vistas se guardan en la caché del móvil sin límite de tamaño (Mapsui/BruTile `FileCache`); Android

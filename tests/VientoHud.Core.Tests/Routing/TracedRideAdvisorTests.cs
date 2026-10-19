@@ -135,6 +135,22 @@ public class TracedRideAdvisorTests
     }
 
     [Fact]
+    public async Task Says_where_the_route_really_passes_for_each_point_touched()
+    {
+        var far = Leon.Destination(90, 20);
+        var traced = await Advisor(Roads()).RouteAsync(new TracedRequest(Leon, [far], Now));
+        // Straight roads pass through the point itself.
+        Assert.Equal(far, traced.Reached[0]);
+
+        // A point the engine could not reach: the route turns 2 km short of it.
+        var turn = Leon.Destination(90, 18);
+        var route = new Route([new RoutePoint(Leon), new RoutePoint(turn), new RoutePoint(Leon)], [], 36, null, "fake");
+        var moved = new TracedRoute(new TracedRequest(Leon, [far], Now), route, RouteAnalyzer.Analyze(route, [Leon, far, Leon]));
+        Assert.Equal(turn, moved.Reached[0]);
+        Assert.Equal(2, moved.Analysis.MaxWaypointOffsetKm, 0);
+    }
+
+    [Fact]
     public async Task Needs_a_point_and_times_in_UTC()
     {
         Assert.Throws<ArgumentException>(() => new TracedRequest(Leon, [], Now));

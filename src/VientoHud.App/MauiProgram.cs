@@ -42,9 +42,11 @@ public static class MauiProgram
 
         // Core: the ride traced on the map (7e): BRouter (brouter.de, one request a second; a development server when
         // built with VIENTOHUD_APP_BROUTER_URL), the radar kept 3 h on the device, and the rain reused for 10 min (DECISIONS 049).
+        // The points touched are the point: the profile that keeps the detours to them (DECISIONS 051).
         builder.Services.AddSingleton<IRouteEngine>(sp => new BRouterRouteEngine(
             sp.GetRequiredService<HttpClient>(),
-            AppSettings.BRouterUrl is { } url ? new BRouterOptions { BaseUri = url, MinRequestInterval = TimeSpan.Zero } : new BRouterOptions()));
+            (AppSettings.BRouterUrl is { } url ? new BRouterOptions { BaseUri = url, MinRequestInterval = TimeSpan.Zero } : new BRouterOptions())
+                with { ProfileText = BRouterRouteEngine.StrictRoadProfileKeepingViaPoints }));
         builder.Services.AddSingleton<IRadarSource>(sp => new OperaRadarSource(
             sp.GetRequiredService<HttpClient>(),
             new OperaOptions { CacheDirectory = Path.Combine(FileSystem.CacheDirectory, "radar"), CacheMaxAge = TimeSpan.FromHours(3) }));

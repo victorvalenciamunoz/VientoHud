@@ -38,6 +38,13 @@ public sealed record TracedRequest(
 public sealed record TracedRoute(TracedRequest Request, Route Route, RouteAnalysis Analysis)
 {
     public RouteShape Shape => Request.Shape;
+
+    /// <summary>
+    /// Where the route passes closest to each point touched, in the same order. The engine moves a point to the nearest
+    /// road it may use, sometimes kilometres away (no asphalt nearer): the map should show both.
+    /// </summary>
+    public IReadOnlyList<Coordinate> Reached =>
+        Request.Via.Select(via => Route.Points.MinBy(p => p.Position.DistanceKmTo(via)).Position).ToList();
 }
 
 /// <summary>Everything to show for a traced ride: the route, what roads it takes, the rain and when to leave.</summary>

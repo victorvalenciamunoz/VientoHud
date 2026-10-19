@@ -82,8 +82,10 @@ switch (args[0])
         {
             var windProvider = new OpenMeteoWindForecastProvider(http);
             var rainForecasts = new OpenMeteoRainForecastSource(http, OpenMeteoRainOptions.Latest);
+            // The points given are the point: no cutting of the detours to them (DECISIONS 051).
             var advisor = new TracedRideAdvisor(
-                new BRouterRouteEngine(http, traceServer.Options), windProvider,
+                new BRouterRouteEngine(http, traceServer.Options with { ProfileText = BRouterRouteEngine.StrictRoadProfileKeepingViaPoints }),
+                windProvider,
                 RainSource(new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() }), rainForecasts));
             run = () => new TraceCommand(advisor, device, Console.Out, traceServer.Name, OpenMeteoWindForecastProvider.Attribution)
                 .RunAsync(traceOptions, cancellation.Token);
