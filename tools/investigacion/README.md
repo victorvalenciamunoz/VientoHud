@@ -41,3 +41,5 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `outandback.cs` | Fase 6: idas y vueltas del generador (`RouteShape.OutAndBack`) en vivo contra el BRouter local en los sitios de prueba, tres rumbos; validez, distancia, peticiones, tipos de vía y un GPX de cada una. |
 | `urban.cs` | Fase 6: km en ciudad (`RouteUrban`) de las vueltas e idas y vueltas de hoy en tres rumbos desde los sitios de prueba, y km de vuelta cerca de casa; un GPX por ruta con un nombre citable (`humanes-N-iv`). |
 | `ridesurban.cs` | Fase 6: km en ciudad (`RouteUrban`) de las salidas reales del autor, pasándolas por el BRouter local con un punto cada km. |
+| `towns.cs` | Fase 6, paso 6e-1: manchas de pueblo de GHSL (`TownMap`) alrededor de los sitios de prueba: tiempos, número y km² de pueblos; un GPX con el contorno de cada pueblo (para gpx.studio) y una imagen por sitio. Guarda los cuadros de GHSL en `%LOCALAPPDATA%VientoHudghsl`. |
+| `ghslfixture.cs` | Fase 6, paso 6e-1: recorta bloques de un cuadro de GHSL en un BigTIFF pequeño dentro de un zip (la fixture de los tests). |

@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 6 — Mejores rutas** (en curso: 6a a 6c hechos y 6d a falta del ojo del autor; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+**Fase actual: 6 — Mejores rutas** (en curso: 6a a 6c hechos, 6d a falta del ojo del autor, 6e-1 hecho a falta del ojo; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
 
 ## Fase 6
 
@@ -11,6 +11,10 @@
   el punto y las mismas reglas que una vuelta.
 - **En la recomendación** (`RidePlanner`; `DECISIONS.md` 041): una vuelta y una ida y vuelta por rumbo, en el mismo orden;
   `route` las llama "ida y vuelta" en el texto, el GPX y el nombre del fichero.
+- **Zonas construidas** (`Towns/`; `DECISIONS.md` 045): `GhslBuiltUpSource` baja una vez el cuadro de GHSL BUILT-S de la
+  zona (10° × 10°, 26 MB el de Madrid y León), lo guarda y lee solo los bloques de alrededor (BigTIFF con LZW, lector
+  propio); `TownMap` junta las casillas construidas (15 % o más) en pueblos: une huecos de una calle, rellena los
+  parques de dentro, quita las manchas de menos de 0,2 km² y simplifica el contorno. Aún no lo usa la ruta (6e-2, 6e-3).
 
 ### Qué falta (fase 6)
 
@@ -26,6 +30,12 @@ División aceptada por el autor el 2026-10-19:
 - [ ] 6d. Evitar ciudades (generador y perfil de BRouter) y juez de la fase: antes y después, en números y a ojo; los
   límites, con los datos del 6c. Hecho (`DECISIONS.md` 043, **decisión del autor**: la ciudad entre la lluvia y el viento,
   empate por debajo de 10 km); **falta el ojo del autor** y decidir qué hacer cuando todos los rumbos van a ciudad.
+- [ ] 6e. Zonas construidas de GHSL (`DECISIONS.md` 045, aceptado por el autor el 2026-10-19): de los km de ciudad
+  de las 30 salidas, 29 % son salir y volver a casa, 23 % alrededor de un punto de paso y 48 % entre puntos de paso.
+  - [ ] 6e-1. Descargar las zonas (GHSL), guardarlas en fichero y juntarlas en manchas sencillas; el autor las mira
+    en gpx.studio. Hecho (`GhslBuiltUpSource`, `TownMap`); **falta el ojo del autor**.
+  - [ ] 6e-2. Mover los puntos de paso fuera de las zonas; medir las 30 salidas.
+  - [ ] 6e-3. Pasar las zonas a BRouter como zonas con coste; medir, ajustar el peso y ojo del autor.
 
 ### Cómo se ha validado (fase 6)
 
@@ -50,6 +60,17 @@ División aceptada por el autor el 2026-10-19:
 - Paso 6d, segunda parte (2026-10-19, `DECISIONS.md` 044): 2 tests nuevos (591 en total): de las variantes de una ida y
   vuelta gana la de menos ciudad; si la mejor tiene más de la mitad de ciudad, se buscan los rumbos a los lados. En vivo:
   Humanes, primera la ida y vuelta al E (35 %); Fuenlabrada amplía y baja a 54 % (42 % la del SE); León, 10 %.
+- Antes de 6e (2026-10-19): `consider_town` de BRouter probado y descartado (`DECISIONS.md` 043,
+  `docs/verificacion/2026-10-19-fase6-consider-town.txt`); reparto de los km de ciudad por causa (`DECISIONS.md` 045).
+- Paso 6e-1 (2026-10-19): 12 tests nuevos (603 en total). GHSL con una fixture real (4 bloques alrededor de Humanes,
+  idénticos al cuadro entero): Humanes 33 % construido, Fuenlabrada 44 %, el campo de en medio menos del 2 %; una sola
+  descarga y luego la caché; cuadro que no existe (mar) como suelo sin construir, recordado; ventana entre dos cuadros;
+  errores del servidor y zip roto. Pueblos: bloques, unión de huecos, parques dentro, manchas pequeñas fuera, esquina con
+  esquina son dos, contornos simplificados, y en la fixture Humanes, Fuenlabrada y Griñón son pueblo y el campo no. Dos
+  lectores distintos (el de la prueba y el de Core) dan lo mismo en 30 km alrededor de Humanes (564 y 565 km²
+  construidos). **En vivo** (`towns.cs`, 40 km; `docs/verificacion/2026-10-19-fase6-pueblos-ghsl.txt`): leer 40-90 ms
+  y juntar 80-160 ms en el ordenador; el sur de Madrid es una mancha de 367 km²; en León, 66 pueblos (58 km²): la
+  ciudad y pocos pueblos, porque los de la provincia tienen poca superficie construida.
 
 
 Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).

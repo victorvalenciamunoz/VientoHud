@@ -1009,3 +1009,35 @@ Formato: contexto → decisión → alternativas descartadas.
   peticiones a BRouter (Fuenlabrada, 119): sin problema con el local; con brouter.de, a una por segundo, serían ~2 min.
 - Alternativas: variantes también para las vueltas (cada una necesita varias peticiones); buscar siempre los seis rumbos
   (el doble de peticiones en todos los casos).
+
+## 045 — Zonas construidas de GHSL para evitar ciudades
+- Contexto: fase 6, tras 6d. El interruptor `consider_town` de BRouter no ayuda (`DECISIONS.md` 043: solo marca
+  municipios de más de 50.000 habitantes, el término entero). Reparto de los 628 km de ciudad de las 30 salidas de
+  `urban.cs` (2026-10-19): 181 km (29 %) salir y volver a casa, 147 km (23 %) en tramos que contienen un punto de paso
+  (39 de 74 puntos caen en ciudad) y 300 km (48 %) entre puntos de paso, donde BRouter atraviesa pueblos.
+- Decisión (del autor, 2026-10-19, con la recomendación): **GHSL BUILT-S** de la Comisión Europea (Global Human
+  Settlement Layer, versión R2023A, época 2020, WGS84 a 3 segundos de arco, unos 90 m): superficie construida de cada
+  casilla, sacada de imágenes de satélite, igual en todo el mundo y con los pueblos pequeños.
+  - Licencia CC BY 4.0 ("© European Union"): hay que citarla. Sin clave ni cuotas: ficheros fijos en
+    `jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/` (admite descargas parciales, pero los ficheros van en zip
+    comprimido, así que se bajan enteros).
+  - Cuadros de 10° × 10° (`..._R{fila}_C{columna}.zip`; R5_C18 va de 39,1° a 49,1° N y de 10° O a 0°: Madrid y León;
+    26 MB; R6_C18, el de debajo, 14 MB). Cada uno se baja una vez y se guarda sin caducidad (28 MB descomprimido).
+    Dentro hay un BigTIFF de 12.000 × 12.000 casillas de 16 bits (metros cuadrados construidos; 65535 sin dato) en
+    bloques de 256 × 256 comprimidos con LZW: se leen solo los bloques de la zona. Lector propio, sin paquetes.
+  - Medido (2026-10-19): 30 km alrededor de Humanes son 12 bloques y se leen en 44 ms en el ordenador. A ojo (imagen con
+    las rutas de prueba): sale todo el sur de Madrid (Fuenlabrada, Móstoles, Leganés, Getafe, Parla) y en León la ciudad
+    y cada pueblo de las carreteras.
+  - Uso: juntar las casillas en manchas de pueblo sencillas (6e-1), mover fuera los puntos de paso (6e-2) y pasarlas a
+    BRouter como zonas con coste (`polygons=lon,lat,...,peso`: cada metro dentro cuesta `peso` de más; comprobado en el
+    código de BRouter, `RoutingContext.java`), 6e-3. BRouter mira cada tramo contra todas las zonas: pocas y sencillas.
+  - Juez: la medida de `DECISIONS.md` 042 (cruces y calles), que no depende de GHSL, y el ojo del autor.
+  - Límites: casillas de 90 m (sale alguna nave suelta: se quitan las manchas pequeñas), datos de 2020 (faltan las
+    urbanizaciones más nuevas), lo construido incluye polígonos industriales (también conviene evitarlos).
+- Alternativas:
+  - **Overpass** (zonas `landuse` de OpenStreetMap; recomendada primero): gratis y sin clave, pero el 2026-10-19
+    `overpass-api.de` y `overpass.private.coffee` respondieron 502 y 500 casi toda la tarde ("at capacity"), y su aviso
+    dice que el servidor público es para herramientas que maneja una persona y que el uso automático necesita un servidor
+    propio. Alrededor de Humanes, 10.600 zonas, 14 MB, 42 s.
+  - Un extracto de OpenStreetMap descargado: cientos de MB y un paquete para leerlo; malo para el móvil.
+  - Seguir solo con el perfil de BRouter: ya probado, `DECISIONS.md` 043.

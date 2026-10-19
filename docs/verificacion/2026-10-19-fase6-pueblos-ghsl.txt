@@ -1,0 +1,8 @@
+Fase 6, paso 6e-1: manchas de pueblo de GHSL (towns.cs, radio 40 km, opciones por defecto de TownMap). Ordenador del autor.
+
+sitio         casillas    leer   pueblos  pueblos km²  esquinas  el mayor km²  ¿salida en pueblo?
+leon         1174x864     63 ms   108 ms    66         58      1856           23   sí
+labaneza     1168x865     40 ms    78 ms    92         71      2372           23   sí
+humanes      1132x865     89 ms   134 ms   247        829     12152          367   sí
+trescantos   1139x864     59 ms   162 ms   217        801     11290          366   sí
+fuenlabrada  1133x865     68 ms   108 ms   256        853     12582          367   sí
