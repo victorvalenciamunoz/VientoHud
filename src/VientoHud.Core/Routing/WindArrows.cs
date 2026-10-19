@@ -21,7 +21,7 @@ public static class WindArrows
     /// <summary>Spacing and length of the arrows along a ride.</summary>
     public const double DefaultEveryKm = 5;
 
-    public const double DefaultLengthKm = 1.2;
+    public const double DefaultLengthKm = 1.6;
 
     /// <summary>The head's arms, as a share of the length, swept back from the tip.</summary>
     public const double HeadShare = 0.3;

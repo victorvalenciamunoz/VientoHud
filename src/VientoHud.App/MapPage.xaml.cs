@@ -39,14 +39,17 @@ public partial class MapPage : ContentPage
     private readonly MemoryLayer _reachedLayer = new("Reached") { Style = ReachedStyle() };
     private readonly MemoryLayer _snapLayer = new("Snap") { Style = SnapStyle() };
     // The wind: the mean one at home, and along the ride one layer per feel (the color is the layer's).
-    private readonly MemoryLayer _homeWindLayer = new("HomeWind") { Style = ArrowStyle(HudTheme.Text, 4) };
+    // Every arrow has a white halo underneath, so it stands out on the pale map whatever its color.
+    private readonly MemoryLayer _homeWindHaloLayer = new("HomeWindHalo") { Style = ArrowStyle(HudTheme.Text, 9) };
+    private readonly MemoryLayer _homeWindLayer = new("HomeWind") { Style = ArrowStyle(HudTheme.Background, 5) };
+    private readonly MemoryLayer _windHaloLayer = new("WindHalo") { Style = ArrowStyle(HudTheme.Text, 7) };
     private readonly Dictionary<WindFeel, MemoryLayer> _windLayers = new()
     {
-        [WindFeel.Headwind] = new MemoryLayer("WindHead") { Style = ArrowStyle(HudTheme.Alert, 3) },
-        [WindFeel.Tailwind] = new MemoryLayer("WindTail") { Style = ArrowStyle(HudTheme.Good, 3) },
-        [WindFeel.FromLeft] = new MemoryLayer("WindLeft") { Style = ArrowStyle(HudTheme.Marker, 3) },
-        [WindFeel.FromRight] = new MemoryLayer("WindRight") { Style = ArrowStyle(HudTheme.Marker, 3) },
-        [WindFeel.Light] = new MemoryLayer("WindLight") { Style = ArrowStyle(HudTheme.TextMuted, 2) },
+        [WindFeel.Headwind] = new MemoryLayer("WindHead") { Style = ArrowStyle(HudTheme.Alert, 3.5) },
+        [WindFeel.Tailwind] = new MemoryLayer("WindTail") { Style = ArrowStyle(HudTheme.Good, 3.5) },
+        [WindFeel.FromLeft] = new MemoryLayer("WindLeft") { Style = ArrowStyle(HudTheme.Marker, 3.5) },
+        [WindFeel.FromRight] = new MemoryLayer("WindRight") { Style = ArrowStyle(HudTheme.Marker, 3.5) },
+        [WindFeel.Light] = new MemoryLayer("WindLight") { Style = ArrowStyle(HudTheme.Background, 3) },
     };
     private readonly MemoryLayer _homeLayer = new("Home") { Style = HomeStyle() };
     private readonly List<GeoCoordinate> _via = [];
@@ -67,7 +70,9 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(_fanLayer);
         MapView.Map.Layers.Add(_routeLayer);
         MapView.Map.Layers.Add(_snapLayer);
+        MapView.Map.Layers.Add(_homeWindHaloLayer);
         MapView.Map.Layers.Add(_homeWindLayer);
+        MapView.Map.Layers.Add(_windHaloLayer);
         foreach (var layer in _windLayers.Values)
         {
             MapView.Map.Layers.Add(layer);
@@ -298,12 +303,16 @@ public partial class MapPage : ContentPage
     private void ShowHomeWind(WindArrow? arrow)
     {
         _homeWindLayer.Features = arrow is null ? [] : ArrowFeatures(arrow);
+        _homeWindHaloLayer.Features = arrow is null ? [] : ArrowFeatures(arrow);
         _homeWindLayer.DataHasChanged();
+        _homeWindHaloLayer.DataHasChanged();
         MapView.Map.RefreshGraphics();
     }
 
     private void ShowRideWind(IReadOnlyList<WindArrow> arrows)
     {
+        _windHaloLayer.Features = arrows.SelectMany(ArrowFeatures).ToList();
+        _windHaloLayer.DataHasChanged();
         foreach (var (feel, layer) in _windLayers)
         {
             layer.Features = arrows.Where(a => a.Feel == feel).SelectMany(ArrowFeatures).ToList();

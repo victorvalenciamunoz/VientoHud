@@ -16,7 +16,8 @@
   El radar se guarda 3 h en el móvil y la lluvia se reutiliza 10 min.
 - **Flechas del viento** (`WindArrows`, pedido por el autor el 2026-10-19): una grande junto a casa con el viento medio de
   la salida (apunta hacia donde va el viento: un empujón) y, con la ruta trazada, una cada 5 km con el viento que habrá
-  al pasar por ahí, de color según se siente (de cara rojo, a favor verde, de lado ámbar, flojo gris).
+  al pasar por ahí, de color según se siente (de cara rojo, a favor verde, de lado ámbar, flojo azul marino), todas con halo blanco y la de
+  casa en marino: el autor no veía la clara ni las grises sobre el mapa.
 - **Ubicación y dirección en la app** (paso 7d): `GeolocationProvider` (pide el permiso y la posición al móvil, con la
   interfaz de Core) y `DirectionAdvisor` en Core (el viento de las horas de la salida en el sitio, `StartDirection`, y
   el abanico `DirectionFan`: un sector de ±45° hasta donde llega una ida y vuelta de la distancia; `RidePlanner` lo usa
