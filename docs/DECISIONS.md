@@ -988,3 +988,20 @@ Formato: contexto → decisión → alternativas descartadas.
   se buscan con viento del NE van todos hacia Madrid.
 - Alternativas: una regla dura (descartar las de más del 60 % si hay otras; no distingue entre 30 % y 55 %); la ciudad
   antes que la lluvia (mojarse importa más).
+
+## 044 — Buscar rutas con menos ciudad: variantes del rumbo y rumbos a los lados
+- Contexto: el autor (2026-10-19) vio que la ida y vuelta de Humanes al E podía ir un poco más al sur (Torrejón de
+  Velasco) con mucha menos ciudad, y que la de Fuenlabrada al N tenía "muchísima ciudad": "la ciudad, en la medida de lo
+  posible, debemos evitarla". El generador se quedaba con la primera ruta válida del rumbo pedido.
+- Decisión (del autor, 2026-10-19, opción A, con lo técnico):
+  - **Variantes de cada ida y vuelta:** además del rumbo pedido, el mismo girado ±15° y ±30°, y se queda con la válida
+    con menos km de ciudad (las vueltas no: cuestan más peticiones). Giros mayores (±40°) solo si ninguna es válida.
+  - **Rumbos a los lados y hacia atrás:** si la mejor ruta tiene más del 50 % de ciudad, se buscan también los rumbos a
+    ±90° y 180° del viento (vuelta e ida y vuelta) y se ordena todo otra vez.
+- Probado en vivo (2026-10-19, BRouter local, 60 km, viento del NE): Humanes, primera la ida y vuelta al E con 35 % de
+  ciudad (antes 80 % al NE); Fuenlabrada amplía a SE, NO y SO y la primera baja a 54 % (la del SE, 42 %, empata en
+  ciudad y pierde por el viento); León, 10 %. Desde Humanes, las idas y vueltas hacia el ESE y el SE (115°-125°, por
+  Torrejón de Velasco) dan 26-29 %: el suelo de esa zona con esta medida (la salida real del autor, 41 %). Cuesta más
+  peticiones a BRouter (Fuenlabrada, 119): sin problema con el local; con brouter.de, a una por segundo, serían ~2 min.
+- Alternativas: variantes también para las vueltas (cada una necesita varias peticiones); buscar siempre los seis rumbos
+  (el doble de peticiones en todos los casos).

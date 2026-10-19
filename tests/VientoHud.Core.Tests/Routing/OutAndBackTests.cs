@@ -60,14 +60,16 @@ public class OutAndBackTests
         Assert.Equal(RouteShape.OutAndBack, result.Shape);
         var best = result.Best!;
         Assert.Equal(RouteShape.OutAndBack, best.Shape);
-        // One way, from the start to a point 60 / 2 / 1.3 ≈ 23 km away towards 60°.
-        var request = Assert.Single(engine.Requests);
+        // One way, from the start to a point 60 / 2 / 1.3 ≈ 23 km away towards 60°, then the same turned ±15° and ±30°
+        // (DECISIONS 044): one request each, as all are valid.
+        var request = engine.Requests[0];
         Assert.Equal(2, request.Count);
         Assert.Equal(23.1, Leon.DistanceKmTo(request[1]), 1);
         Assert.Equal(60, Leon.BearingTo(request[1]), 1);
+        Assert.Equal([60.0, 75, 45, 90, 30], engine.Requests.Select(r => Math.Round(Leon.BearingTo(r[1]))));
         Assert.Equal(60, best.Route.DistanceKm, 1);
         Assert.True(best.Route.Points[^1].Position.DistanceKmTo(Leon) < 0.01);
-        Assert.Equal([Leon, request[1]], best.Waypoints);
+        Assert.Equal(2, best.Waypoints.Count);
         // All ridden twice, but from home: not a spur, and the turn at the far point is the destination.
         Assert.True(best.Analysis.RepeatedFraction > 0.9);
         Assert.Equal(LoopProblems.None, best.Problems);
@@ -103,8 +105,27 @@ public class OutAndBackTests
 
         Assert.True(result.Found);
         Assert.Equal(70, result.BearingDegrees);
-        // Turns are tried 0, +10, -10, +20…: 70, 80 and 60 are blocked, 90 is the first free one.
-        Assert.Equal(90, result.Best!.FanBearingDegrees, 6);
+        // 70° is blocked; 85°, 55°, 100° and 40° are not.
+        Assert.True(result.Best!.FanBearingDegrees is <= 55 or >= 85);
+    }
+
+    [Fact]
+    public async Task Keeps_the_variant_of_the_bearing_with_least_town()
+    {
+        // Straight to 60° the road runs on streets; turned 15° to the left (45°) it does not.
+        var engine = new FakeRouteEngine(w =>
+        {
+            var road = Road(w);
+            return Math.Abs(Leon.BearingTo(w[1]) - 45) < 1
+                ? road
+                : road with { Segments = [new RouteSegment(0, road.DistanceKm, new Dictionary<string, string> { ["highway"] = "residential" })] };
+        });
+
+        var result = await new LoopGenerator(engine).GenerateAsync(Leon, 60, 60, RouteShape.OutAndBack);
+
+        Assert.True(result.Found);
+        Assert.Equal(45, result.Best!.FanBearingDegrees, 6);
+        Assert.Equal(0, RouteUrban.Measure(result.Best.Route).UrbanKm);
     }
 
     [Fact]

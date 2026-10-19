@@ -126,6 +126,23 @@ public class RidePlannerTests
     }
 
     [Fact]
+    public async Task Looks_to_the_sides_when_the_best_route_is_mostly_in_town()
+    {
+        // Within 85° of the wind (194°) every road is a town street, out and back variants included; elsewhere,
+        // country roads.
+        var engine = new FakeRouteEngine(w => FakeRouteEngine.Straight(
+            w, roadFactor: 1.5, highway: Compass.AngleBetween(FakeRouteEngine.FanBearing(w), 194) < 85 ? "residential" : "tertiary"));
+        var planner = new RidePlanner(new LoopGenerator(engine), Wind(15, 194));
+
+        var plan = await planner.PlanAsync(Leon, 60, Eight);
+
+        // The three into the wind, then the sides and behind (DECISIONS 044).
+        Assert.Equal([194.0, 239, 149, 284, 104, 14], plan.Bearings);
+        Assert.True(plan.Ranked[0].Urban.UrbanFraction < 0.5);
+        Assert.Contains(plan.Ranked, o => o.Urban.UrbanFraction > 0.5);
+    }
+
+    [Fact]
     public async Task Does_not_widen_the_bearings_the_rider_chose()
     {
         var engine = new FakeRouteEngine(w => FakeRouteEngine.Straight(w, roadFactor: 1.5, highway: "motorway"));

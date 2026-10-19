@@ -47,6 +47,9 @@ División aceptada por el autor el 2026-10-19:
   empate y decide el viento; la lluvia va antes que la ciudad. Perfil nuevo: media de ciudad 42 → 37 % en las mismas 30
   salidas. En vivo: Humanes, primera la ida y vuelta al E (28 %) en vez de la del NE (80 %); León, la ida y vuelta al
   ESE (15 %); Fuenlabrada, todas 61-90 % (los rumbos contra el viento del NE van a Madrid).
+- Paso 6d, segunda parte (2026-10-19, `DECISIONS.md` 044): 2 tests nuevos (591 en total): de las variantes de una ida y
+  vuelta gana la de menos ciudad; si la mejor tiene más de la mitad de ciudad, se buscan los rumbos a los lados. En vivo:
+  Humanes, primera la ida y vuelta al E (35 %); Fuenlabrada amplía y baja a 54 % (42 % la del SE); León, 10 %.
 
 
 Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).
@@ -157,8 +160,8 @@ División aceptada por el autor el 2026-10-17:
 - **Fase 5: lluvia que nadie prevé** (juez 5e): en 6 de 24 casos se mojó 10 km o más con 0 km de lluvia probable prevista
   (tormentas que nacen en el sitio; más allá de 2 h, AROME no afina). Y con lluvia en toda la zona ninguna vuelta ni
   espera de 2 h la evita: la app podría decirlo ("lloverá en cualquier vuelta") en vez de ordenar.
-- **Todos los rumbos hacia la ciudad** (fase 6): los rumbos se eligen por el viento; si todos van hacia una ciudad
-  (Fuenlabrada con viento del NE, hacia Madrid), el orden solo elige la menos mala.
+- **Todos los rumbos hacia la ciudad** (fase 6): resuelto en parte (`DECISIONS.md` 044): con más del 50 % de ciudad se
+  buscan también los rumbos a los lados. Más peticiones a BRouter (hasta ~120 con viento claro en Fuenlabrada).
 - **Humanes sin vuelta válida** en 4 de 14 casos: el generador de la fase 2 en el suroeste de Madrid.
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el

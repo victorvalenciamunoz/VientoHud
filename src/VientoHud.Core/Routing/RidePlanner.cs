@@ -30,6 +30,12 @@ public sealed record RidePlan(
 /// </summary>
 public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider forecasts)
 {
+    /// <summary>
+    /// When the best route has more than this share in town, the bearings to the sides and behind are searched too
+    /// (DECISIONS 044).
+    /// </summary>
+    public const double MaxUrbanShareBeforeWidening = 0.5;
+
     /// <param name="start">Where the ride starts and ends.</param>
     /// <param name="targetKm">How long the loops should be.</param>
     /// <param name="departure">When the ride starts, in UTC.</param>
@@ -85,17 +91,37 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
         // Ranked as the generator ranks them: valid routes first, best first.
         loops = loops.OrderBy(l => l.Found ? 0 : 1).ThenBy(l => l.Best?.Badness ?? double.MaxValue).ToList();
 
-        var found = Enumerable.Range(0, loops.Count).Where(i => loops[i].Found).ToList();
-        var ranked = found.Count == 0
-            ? []
-            : RideRanking.BestWayRound(await RideRanking.RankAsync(
-                    forecasts, found.Select(i => loops[i].Best!.Route).ToList(), departure, averageSpeedKmh,
-                    rain: rain, cancellationToken: cancellationToken))
-                // Point back to the loop each option comes from.
-                .Select(o => o with { RouteIndex = found[o.RouteIndex] })
-                .ToList();
+        var ranked = await RankFoundAsync();
+
+        // The best one mostly in town (all the bearings into the wind lead to a city): look also to the sides and behind,
+        // and rank again (the author's choice, DECISIONS 044). Not when the rider chose the bearings or there is no wind.
+        if (firstBearing is null && wind.StartBearingDegrees is { } windward && ranked.Count > 0
+            && ranked[0].Urban.UrbanFraction > MaxUrbanShareBeforeWidening && loops.All(l => l.EngineFailure is null))
+        {
+            var sides = RideBearings.Wider(windward, bearings).ToList();
+            if (sides.Count > 0)
+            {
+                bearings.AddRange(sides);
+                loops.AddRange(await GenerateBothAsync(sides));
+                loops = loops.OrderBy(l => l.Found ? 0 : 1).ThenBy(l => l.Best?.Badness ?? double.MaxValue).ToList();
+                ranked = await RankFoundAsync();
+            }
+        }
 
         return new RidePlan(departure, wind, bearings, loops, ranked);
+
+        async Task<List<RideOption>> RankFoundAsync()
+        {
+            var found = Enumerable.Range(0, loops.Count).Where(i => loops[i].Found).ToList();
+            return found.Count == 0
+                ? []
+                : RideRanking.BestWayRound(await RideRanking.RankAsync(
+                        forecasts, found.Select(i => loops[i].Best!.Route).ToList(), departure, averageSpeedKmh,
+                        rain: rain, cancellationToken: cancellationToken))
+                    // Point back to the loop each option comes from.
+                    .Select(o => o with { RouteIndex = found[o.RouteIndex] })
+                    .ToList();
+        }
 
         async Task<IReadOnlyList<LoopResult>> GenerateBothAsync(IReadOnlyList<double> towards)
         {

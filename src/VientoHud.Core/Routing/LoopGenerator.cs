@@ -72,6 +72,15 @@ public sealed record LoopGeneratorOptions
     /// </summary>
     public double OutAndBackRoadFactor { get; init; } = 1.3;
 
+    /// <summary>
+    /// Bearings an out and back tries, as turns from the requested one (DECISIONS 044): it does not stop at the first valid
+    /// one, it tries them all up to <see cref="OutAndBackVariantDegrees"/> and keeps the valid one with fewest km in town
+    /// (a road a little to one side may skip a town). Wider turns only while none is valid.
+    /// </summary>
+    public IReadOnlyList<double> OutAndBackTurns { get; init; } = [0, 15, -15, 30, -30, 40, -40];
+
+    public double OutAndBackVariantDegrees { get; init; } = 30;
+
     public RouteAnalysisOptions Analysis { get; init; } = new();
 }
 
@@ -181,10 +190,17 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
         // Every radius tried and the distance it gave, on any bearing: how long the roads around here are.
         var everything = new List<(double RadiusKm, double DistanceKm)>();
 
+        // Valid out and backs found so far (one per bearing tried): the least urban wins.
+        var validOutAndBacks = new List<LoopCandidate>();
+
         try
         {
-            foreach (var turn in _options.BearingTurns)
+            foreach (var turn in shape == RouteShape.Loop ? _options.BearingTurns : _options.OutAndBackTurns)
             {
+                if (validOutAndBacks.Count > 0 && Math.Abs(turn) > _options.OutAndBackVariantDegrees)
+                {
+                    break;
+                }
                 var fanBearing = Normalize(bearingDegrees + turn);
                 var history = new List<(double RadiusKm, double DistanceKm)>();
                 double? radius = StartRadius(everything, targetKm, shape);
@@ -206,7 +222,12 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
                     }
                     if (candidate.IsValid)
                     {
-                        return Result();
+                        if (shape == RouteShape.Loop)
+                        {
+                            return Result();
+                        }
+                        validOutAndBacks.Add(candidate);
+                        break; // The next variant of the bearing.
                     }
 
                     var reached = candidate.Route.DistanceKm;
@@ -261,7 +282,11 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
         }
 
         LoopResult Result(string? failure = null) =>
-            new(Normalize(bearingDegrees), attempts.MinBy(c => c.Badness), requests, attempts, failure, shape);
+            new(Normalize(bearingDegrees),
+                validOutAndBacks.Count > 0
+                    ? validOutAndBacks.OrderBy(c => RouteUrban.Measure(c.Route).UrbanKm).ThenBy(c => c.Badness).First()
+                    : attempts.MinBy(c => c.Badness),
+                requests, attempts, failure, shape);
     }
 
     /// <summary>
