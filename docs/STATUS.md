@@ -10,7 +10,8 @@
   Java 17, SDK de Android 35-37, emulador con móviles virtuales (Android 12-14) y la virtualización activa; la app de
   CieloHud se compiló para Android en este ordenador el 2026-10-14.
 - Móvil del autor: OPPO CPH2699, Android 16 (API 36), arm64, conectado por USB con depuración. Tiene la app de
-  Hammerhead (1.56.0), que acepta ficheros `application/gpx+xml` desde el botón de compartir.
+  Hammerhead (1.56.0), que acepta ficheros `application/gpx+xml` desde el botón de compartir, y Garmin Connect (5.30.1),
+  que no sale al compartir un GPX pero sí lo abre ("Abrir con").
 
 ### Qué falta (fase 7)
 
@@ -23,13 +24,14 @@ División aceptada por el autor el 2026-10-19 (`DECISIONS.md` 047):
 - [ ] 7b. Preparar Core para el móvil (borrar las imágenes viejas del radar) y medir con brouter.de desde el ordenador
   en los 5 sitios de prueba: tiempo, peticiones a BRouter, llamadas a Open-Meteo y MB descargados. Con eso el autor
   decide cómo llevar la espera.
-- [ ] 7c. Esqueleto de la app (como CieloHud: solo Android, colores de la familia); arranca en el emulador y en el móvil.
-- [ ] 7d. Ubicación del móvil y recomendación en texto, con avance, cancelar y la pantalla encendida mientras busca. Juez:
-  en el mismo sitio y a la misma hora, la app dice lo mismo que la consola.
-- [ ] 7e. Elegir duración o distancia con un toque (valores y velocidad media, decisión del autor).
-- [ ] 7f. Compartir o guardar el GPX; juez: llega al Karoo (por la app de Hammerhead del móvil o por el panel web).
-- [ ] 7g. Mapa de la ruta (opciones comprobadas en su fuente; decisión del autor).
-- [ ] 7h. Pantalla definitiva con estética HUD y versión instalable firmada.
+- [ ] 7c. Esqueleto de la app (como CieloHud: solo Android, con su estética); arranca en el emulador y en el móvil.
+- [ ] 7d. Ubicación del móvil y recomendación en texto, con avance, cancelar y la pantalla encendida mientras busca; la
+  duración fija hasta 7g. Juez: en el mismo sitio y a la misma hora, la app dice lo mismo que la consola.
+- [ ] 7e. **Ver la ruta en el móvil:** mapa de la ruta (opciones comprobadas en su fuente; decisión del autor).
+- [ ] 7f. **Mandarla al aparato**, sea cual sea: "Compartir" (Hammerhead y la mayoría) y "Abrir con" (Garmin Connect),
+  quizá también guardarla en Descargas. Juez: llega al Karoo y al Fenix 5 del autor.
+- [ ] 7g. Elegir duración o distancia con un toque (valores y velocidad media, decisión del autor).
+- [ ] 7h. Pantalla definitiva con la estética de CieloHud y versión instalable firmada.
 - [ ] 7i. Juez de la fase: salidas reales usando solo la app (tiempo, datos gastados, GPX en el Karoo, ojo del autor).
 
 ### Cómo se ha validado (fase 7)

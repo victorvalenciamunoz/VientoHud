@@ -1079,12 +1079,17 @@ Formato: contexto → decisión → alternativas descartadas.
     cambia.
   - **Medir antes de la app** (7b): con brouter.de desde el ordenador, tiempo, peticiones, llamadas y MB; y borrar las
     imágenes viejas del radar.
-  - **Después la app**, paso a paso: esqueleto (7c), ubicación y recomendación en texto (7d), duración o distancia con un
-    toque (7e), GPX al Karoo (7f), mapa (7g), pantalla HUD e instalable (7h) y juez con salidas reales (7i).
+  - **Después la app**, paso a paso, con lo primero lo que pide el autor (2026-10-19): **ver la ruta en el móvil y luego
+    mandarla al aparato de la bici**, sea un Karoo, un Garmin (el autor tiene un Fenix 5) o cualquier otro. Esqueleto
+    (7c), ubicación y recomendación en texto (7d), mapa de la ruta (7e), mandarla al aparato (7f), duración o distancia
+    con un toque (7g), pantalla definitiva e instalable (7h) y juez con salidas reales (7i).
+  - **Estética de CieloHud** (decisión del autor): sus colores por función (fondo `#0B1218`, texto claro en cuatro
+    niveles, verde, cian, ámbar y rojo de aviso) y sus letras (Chakra Petch y Open Sans, con su licencia dentro de la app).
   - Técnica: proyecto `VientoHud.App` como el de CieloHud (solo Android, `net10.0-android`, Android 8 o superior),
     dentro de la solución para que `dotnet build` avise si un cambio de Core la rompe. Pruebas rápidas en el emulador y
     las de verdad en el móvil del autor (OPPO, Android 16).
-- Comprobado (2026-10-19): la app de Hammerhead del móvil (1.56.0) acepta `application/gpx+xml` al compartir, así que el
-  GPX puede ir directo sin pasar por el panel web (se prueba en 7f).
+- Comprobado (2026-10-19) en el móvil del autor: la app de Hammerhead (1.56.0) acepta `application/gpx+xml` al
+  compartir, así que el GPX puede ir directo sin pasar por el panel web; Garmin Connect (5.30.1) no sale al compartir un
+  GPX, pero sí lo abre ("Abrir con"). La app necesita las dos cosas (se prueba en 7f).
 - Alternativas: copiar en la app lo que hace la consola (dos sitios con la misma lógica); empezar por la app y mover a
   Core después (la app nacería con lógica dentro).
