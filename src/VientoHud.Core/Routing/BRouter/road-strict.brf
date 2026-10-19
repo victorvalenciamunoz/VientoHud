@@ -11,6 +11,9 @@
 #  - consider_traffic raised from 0.1 to 0.3 to prefer quieter roads.
 #  - correctMisplacedViaPoints on, with no length limit: when the route reaches a via point and leaves it the way it
 #    came, BRouter cuts that back-and-forth out (dead ends to waypoints, see docs/STATUS.md).
+#  - Towns avoided where possible (docs/DECISIONS.md 043; the map data have no estimated_town_class): residential,
+#    living and service streets cost 2.5 (fastbike 1.2); each crossing or stop/give way adds 30, traffic signals 60
+#    (fastbike: signals 20, crossings nothing).
 #
 #
 # A fastbike could be a racing bike or a speed pedelec.
@@ -271,8 +274,8 @@ assign costfactor
   switch    route=ferry                               switch allow_ferries 5.67 10000
   switch    highway=bridleway                         10000
   switch    highway=cycleway                          1.3
-  switch    isresidentialorliving                     switch isunpaved 10 1.2
-  switch    highway=service                           switch isunpaved 10000 1.2
+  switch    isresidentialorliving                     switch isunpaved 10 2.5
+  switch    highway=service                           switch isunpaved 10000 2.5
   switch or highway=track or highway=road or highway=path highway=footway
    switch ispaved 2.0 10000
   10.0
@@ -357,7 +360,8 @@ assign footaccess
                         1
 
 assign initialcost
-    switch or highway=traffic_signals and highway=crossing crossing=traffic_signals 20
+    switch or highway=traffic_signals and highway=crossing crossing=traffic_signals 60
+    switch or highway=crossing or highway=stop highway=give_way 30
        switch bikeaccess
               0
               switch footaccess

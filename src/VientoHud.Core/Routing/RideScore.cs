@@ -61,6 +61,9 @@ public sealed record RideOption(
 {
     /// <summary>Km where rain is likely; 0 when the rain was not looked at.</summary>
     public double LikelyRainKm => Rain?.LikelyKm ?? 0;
+
+    /// <summary>How much of the route is in town (DECISIONS 042-043).</summary>
+    public UrbanMeasure Urban { get; } = RouteUrban.Measure(Route);
 }
 
 /// <summary>Scores rides for the wind and ranks routes ridden both ways (DECISIONS 022 and 035).</summary>
@@ -73,29 +76,38 @@ public static class RideRanking
     public const double RainTieKm = 5;
 
     /// <summary>
-    /// Best first, in the order the author chose (DECISIONS 035): fewer km with dangerous gusts across; then fewer km
-    /// with likely rain, where differences under <see cref="RainTieKm"/> are a tie; then the larger wind advantage.
+    /// Rides whose km in town differ by less than this count as equally urban, and the wind decides (the author's choice,
+    /// DECISIONS 043).
+    /// </summary>
+    public const double UrbanTieKm = 10;
+
+    /// <summary>
+    /// Best first, in the order the author chose (DECISIONS 035 and 043): fewer km with dangerous gusts across; then fewer
+    /// km with likely rain, where differences under <see cref="RainTieKm"/> are a tie; then fewer km in town, where
+    /// differences under <see cref="UrbanTieKm"/> are a tie; then the larger wind advantage.
     /// </summary>
     /// <remarks>
-    /// Ties in rain are not compared pair by pair (0, 4 and 8 km would be a tie two by two but not all three): among
-    /// rides with the same gusty km, sorted by rain, each group takes the driest left and every ride within
-    /// <see cref="RainTieKm"/> of it.
+    /// Ties are not compared pair by pair (0, 4 and 8 km would be a tie two by two but not all three): sorted by the
+    /// amount, each group takes the lowest left and every ride within the tie of it.
     /// </remarks>
-    public static IReadOnlyList<RideOption> Order(IEnumerable<RideOption> options)
+    public static IReadOnlyList<RideOption> Order(IEnumerable<RideOption> options) =>
+        options.GroupBy(o => o.Score.GustyKm).OrderBy(g => g.Key)
+            .SelectMany(sameGusts => Ties(sameGusts, o => o.LikelyRainKm, RainTieKm))
+            .SelectMany(sameRain => Ties(sameRain, o => o.Urban.UrbanKm, UrbanTieKm))
+            .SelectMany(sameTown => sameTown.OrderByDescending(o => o.Score.WindAdvantageKmh))
+            .ToList();
+
+    // Groups of rides tied in `amount`, lowest first: each takes the lowest left and every ride within `tie` of it.
+    private static IEnumerable<List<RideOption>> Ties(IEnumerable<RideOption> options, Func<RideOption, double> amount, double tie)
     {
-        var ordered = new List<RideOption>();
-        foreach (var sameGusts in options.GroupBy(o => o.Score.GustyKm).OrderBy(g => g.Key))
+        var left = options.OrderBy(amount).ToList();
+        while (left.Count > 0)
         {
-            var left = sameGusts.OrderBy(o => o.LikelyRainKm).ToList();
-            while (left.Count > 0)
-            {
-                var driest = left[0].LikelyRainKm;
-                var group = left.TakeWhile(o => o.LikelyRainKm < driest + RainTieKm).ToList();
-                ordered.AddRange(group.OrderByDescending(o => o.Score.WindAdvantageKmh));
-                left.RemoveRange(0, group.Count);
-            }
+            var lowest = amount(left[0]);
+            var group = left.TakeWhile(o => amount(o) < lowest + tie).ToList();
+            yield return group;
+            left.RemoveRange(0, group.Count);
         }
-        return ordered;
     }
 
     /// <summary>Gust across the road the rider is not comfortable with (the author's choice, DECISIONS 022).</summary>

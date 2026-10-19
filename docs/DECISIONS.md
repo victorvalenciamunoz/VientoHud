@@ -968,3 +968,23 @@ Formato: contexto → decisión → alternativas descartadas.
   del 40 % (pueblos y polígonos seguidos): lo que sobra es el exceso (77-97 %), no cualquier travesía.
 - Alternativas: polígonos de zonas urbanas de OpenStreetMap (otra fuente externa, más trabajo); datos de BRouter con la
   estimación de ciudad (otros mapas; sin comprobar si existen).
+
+## 043 — Evitar ciudades: el perfil las esquiva y la ciudad cuenta en el orden
+- Contexto: fase 6, paso 6d, con la medida de `DECISIONS.md` 042.
+- Decisión (del autor, 2026-10-19, opción A con la recomendación):
+  - **Perfil de BRouter** (técnica): calles residenciales y de servicio cuestan 2,5 (antes 1,2) y cada paso de peatones,
+    stop o ceda el paso añade 30, cada semáforo 60 (antes 20). Así, entre dos caminos parecidos, BRouter toma el de
+    fuera. El interruptor de BRouter para evitar ciudades (`consider_town`) no sirve: nuestros mapas no traen la
+    estimación de ciudad.
+  - **Orden de las rutas:** rachas de lado peligrosas, lluvia probable (empate por debajo de 5 km), **km en ciudad
+    (empate por debajo de 10 km)** y, al final, ventaja de viento. Una ruta muy urbana pierde aunque tenga mejor viento;
+    dos parecidas en ciudad se deciden por el viento.
+  - `route` dice la ciudad de cada ruta ("Ciudad: 15,9 km (28 %) por calles o travesías"), también en el GPX.
+- Medida (2026-10-19, `urban.cs`, las mismas 30 salidas de `DECISIONS.md` 042; `docs/verificacion/2026-10-19-fase6-
+  ciudad-despues.txt`): con el perfil nuevo la media baja del 42 % al 37 % (Humanes 62 → 51 %, Fuenlabrada 70 → 58 %,
+  León 27 %, Tres Cantos 37 → 38 %, La Bañeza 15 → 13 %); ruta a ruta varía mucho porque el generador acaba en otras
+  carreteras. En vivo con `route` (viento del NE): en Humanes pasa a primera la ida y vuelta al E (28 %) y la del NE
+  (80 %, mejor viento) baja a la cuarta. En Fuenlabrada todas las candidatas tienen 61-90 % de ciudad: los rumbos que
+  se buscan con viento del NE van todos hacia Madrid.
+- Alternativas: una regla dura (descartar las de más del 60 % si hay otras; no distingue entre 30 % y 55 %); la ciudad
+  antes que la lluvia (mojarse importa más).

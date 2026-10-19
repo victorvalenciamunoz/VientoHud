@@ -197,14 +197,52 @@ public class RideRankingTests
     }
 
     // An option with the wind advantage, km of dangerous gusts across and km of likely rain given.
-    private static RideOption Option(int index, double advantage, double gustyKm = 0, int likelyRainKm = 0)
+    private static RideOption Option(int index, double advantage, double gustyKm = 0, int likelyRainKm = 0, double urbanKm = 0)
     {
         var legs = Enumerable.Range(0, Math.Max(1, likelyRainKm))
             .Select(i => new RouteLeg(i, i, 1, Leon, Leon, Leon, 0, 1, null, Eight, Eight.AddMinutes(2.4)))
             .Select(l => new LegRain(l, new PlaceRain(likelyRainKm == 0 ? 0 : 0.9, RainSourceKind.Radar)))
             .ToList();
         GustyStretch[] gusts = gustyKm > 0 ? [new GustyStretch(0, gustyKm, 50)] : [];
-        return new RideOption(index, Rectangle(), false, [], new RideScore(advantage, 0, gusts, true), new RideRain(legs, null));
+        // The rectangle (16 km) with its first `urbanKm` on residential streets.
+        var rectangle = Rectangle();
+        RouteSegment[] segments = urbanKm > 0
+            ?
+            [
+                new RouteSegment(0, urbanKm, new Dictionary<string, string> { ["highway"] = "residential" }),
+                new RouteSegment(urbanKm, rectangle.DistanceKm - urbanKm, new Dictionary<string, string> { ["highway"] = "tertiary" }),
+            ]
+            : [new RouteSegment(0, rectangle.DistanceKm, new Dictionary<string, string> { ["highway"] = "tertiary" })];
+        return new RideOption(index, rectangle with { Segments = segments }, false, [],
+            new RideScore(advantage, 0, gusts, true), new RideRain(legs, null));
+    }
+
+    [Fact]
+    public void Less_town_comes_before_a_better_wind()
+    {
+        var urban = Option(1, advantage: 20, urbanKm: 12);
+        var rural = Option(2, advantage: 5);
+
+        Assert.Equal(12, urban.Urban.UrbanKm);
+        Assert.Equal([rural, urban], RideRanking.Order([urban, rural]));
+    }
+
+    [Fact]
+    public void Less_than_ten_km_of_town_apart_is_a_tie_and_the_wind_decides()
+    {
+        var urban = Option(1, advantage: 20, urbanKm: 8);
+        var rural = Option(2, advantage: 5);
+
+        Assert.Equal([urban, rural], RideRanking.Order([rural, urban]));
+    }
+
+    [Fact]
+    public void Rain_comes_before_town()
+    {
+        var dryInTown = Option(1, advantage: 0, urbanKm: 14);
+        var wetInTheCountry = Option(2, advantage: 0, likelyRainKm: 8);
+
+        Assert.Equal([dryInTown, wetInTheCountry], RideRanking.Order([wetInTheCountry, dryInTown]));
     }
 
     [Fact]

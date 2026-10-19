@@ -118,6 +118,7 @@ internal sealed class RouteCommand(
                 lines.Add("Sin previsión de rachas para alguna hora: no se puede avisar de las de lado.");
             }
             lines.AddRange(RainLines(option, noRain));
+            lines.Add($"Ciudad: {Km(option.Urban.UrbanKm)} ({Percent(option.Urban.UrbanFraction)}) por calles o travesías.");
             lines.Add($"{Summary(loop.Best!)}. Llegada hacia las {Local(arrival, "HH:mm")}.");
 
             var alerts = RideAlerts.For(option);

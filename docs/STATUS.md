@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 6 — Mejores rutas** (en curso: 6a, 6b y la medida del 6c hechos; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+**Fase actual: 6 — Mejores rutas** (en curso: 6a a 6c hechos y 6d a falta del ojo del autor; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
 
 ## Fase 6
 
@@ -20,11 +20,12 @@ División aceptada por el autor el 2026-10-19:
 - [x] 6b. Ida y vuelta en la recomendación: **una por rumbo buscado** (decisión del autor, `DECISIONS.md` 041) junto a
   las vueltas, en el mismo orden (rachas, lluvia, viento). **Ojo del autor** (2026-10-19): la de León está bien; la de
   Humanes hacia el NE va casi toda por ciudad o cerca de ciudades (Fuenlabrada, Getafe): es lo que deben arreglar 6c y 6d.
-- [ ] 6c (medida hecha; **falta el ojo del autor para ajustar la medida**). Medir las ciudades: km por ciudad de cada
+- [x] 6c. Medir las ciudades: km por ciudad de cada
   ruta y si vuelve a pasar cerca de la salida a mitad de camino, en las salidas de prueba, antes de cambiar nada
   (`DECISIONS.md` 042).
 - [ ] 6d. Evitar ciudades (generador y perfil de BRouter) y juez de la fase: antes y después, en números y a ojo; los
-  límites, con los datos del 6c.
+  límites, con los datos del 6c. Hecho (`DECISIONS.md` 043, **decisión del autor**: la ciudad entre la lluvia y el viento,
+  empate por debajo de 10 km); **falta el ojo del autor** y decidir qué hacer cuando todos los rumbos van a ciudad.
 
 ### Cómo se ha validado (fase 6)
 
@@ -41,6 +42,11 @@ División aceptada por el autor el 2026-10-19:
   seguidos; etiquetas `crossing` solas; un ocho que pasa por casa a mitad (6 km); los nodos de la vuelta de León grabada
   (más del 30 % en ciudad) y al dar la vuelta a la ruta. **Medida en vivo** (`urban.cs`): Humanes 31-97 %, Fuenlabrada
   48-90 %, Tres Cantos 14-59 %, León 17-36 %, La Bañeza 10-30 %.
+  Ojo del autor en Fuenlabrada: la medida ordena bien; sus salidas reales dan 4-56 % (Humanes 73 km, 41 %).
+- Paso 6d (2026-10-19): 3 tests nuevos (589 en total): menos ciudad gana a mejor viento; menos de 10 km de diferencia es
+  empate y decide el viento; la lluvia va antes que la ciudad. Perfil nuevo: media de ciudad 42 → 37 % en las mismas 30
+  salidas. En vivo: Humanes, primera la ida y vuelta al E (28 %) en vez de la del NE (80 %); León, la ida y vuelta al
+  ESE (15 %); Fuenlabrada, todas 61-90 % (los rumbos contra el viento del NE van a Madrid).
 
 
 Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).
@@ -151,6 +157,8 @@ División aceptada por el autor el 2026-10-17:
 - **Fase 5: lluvia que nadie prevé** (juez 5e): en 6 de 24 casos se mojó 10 km o más con 0 km de lluvia probable prevista
   (tormentas que nacen en el sitio; más allá de 2 h, AROME no afina). Y con lluvia en toda la zona ninguna vuelta ni
   espera de 2 h la evita: la app podría decirlo ("lloverá en cualquier vuelta") en vez de ordenar.
+- **Todos los rumbos hacia la ciudad** (fase 6): los rumbos se eligen por el viento; si todos van hacia una ciudad
+  (Fuenlabrada con viento del NE, hacia Madrid), el orden solo elige la menos mala.
 - **Humanes sin vuelta válida** en 4 de 14 casos: el generador de la fase 2 en el suroeste de Madrid.
 
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el

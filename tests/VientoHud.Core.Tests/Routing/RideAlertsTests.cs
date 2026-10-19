@@ -19,7 +19,8 @@ public class RideAlertsTests
         var legRain = legs.Select((l, i) => new LegRain(l, rain[i] is { } p
             ? new PlaceRain(p, RainSourceKind.Radar)
             : new PlaceRain(null, RainSourceKind.BeyondHorizon))).ToList();
-        return new RideOption(0, null!, false, winds, new RideScore(0, 0, gusts ?? [], true), new RideRain(legRain, warning));
+        var route = new Route([new RoutePoint(Leon), new RoutePoint(Leon.Destination(0, rain.Length))], [], rain.Length, null, "test");
+        return new RideOption(0, route, false, winds, new RideScore(0, 0, gusts ?? [], true), new RideRain(legRain, warning));
     }
 
     [Fact]
