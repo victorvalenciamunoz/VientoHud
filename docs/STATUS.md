@@ -103,6 +103,13 @@ División aceptada por el autor el 2026-10-17:
   rachas y el aviso para la zona en orden de marcha; "puede" no marca nada; con demasiados, primero las rachas y la lluvia
   más larga.
 
+### Riesgos y pendientes (fase 5)
+
+- **Fase 5: lluvia que nadie prevé** (juez 5e): en 6 de 24 casos se mojó 10 km o más con 0 km de lluvia probable prevista
+  (tormentas que nacen en el sitio; más allá de 2 h, AROME no afina). Y con lluvia en toda la zona ninguna vuelta ni
+  espera de 2 h la evita: la app podría decirlo ("lloverá en cualquier vuelta") en vez de ordenar.
+- **Humanes sin vuelta válida** en 4 de 14 casos: el generador de la fase 2 en el suroeste de Madrid.
+
 Fase 4 — Radar y lluvia a corto plazo: terminada el 2026-10-17 (pasos 4a a 4e hechos y el juez ejecutado; el autor elige el
 círculo de la previsión; 4f no hace falta).
 
@@ -301,10 +308,6 @@ División aceptada por el autor el 2026-10-16:
 - **La caché no se limpia sola:** ~2 MB por imagen; hará falta antes del juez.
 - **RATE sale más seco que la reflectividad** (0,24 frente a 1,0 mm/h en Barajas el 3 oct.): no se sabe aún cuál
   acierta más.
-- **Fase 5: lluvia que nadie prevé** (juez 5e): en 6 de 24 casos se mojó 10 km o más con 0 km de lluvia probable prevista
-  (tormentas que nacen en el sitio; más allá de 2 h, AROME no afina). Y con lluvia en toda la zona ninguna vuelta ni
-  espera de 2 h la evita: la app podría decirlo ("lloverá en cualquier vuelta") en vez de ordenar.
-- **Humanes sin vuelta válida** en 4 de 14 casos: el generador de la fase 2 en el suroeste de Madrid.
 - **Paquete de una sola persona** (PureHDF): si se abandona, el lector queda aislado en `OdimComposite`.
 - **`radar` tarda ~20 s** con el movimiento (cuatro imágenes de reflectividad de 1-4 s cada una, más la descarga).
 - **Lluvia que nace en el sitio:** mover la lluvia no ve las tormentas que se forman encima (Barajas, 6 oct. 14:06 UTC).
