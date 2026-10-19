@@ -14,7 +14,7 @@ using VientoHud.Core.Wind.Verification;
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 const string Usage = "Uso:\n  " + WindOptions.Usage + "\n  " + VerifyOptions.Usage + "\n  " + RouteOptions.Usage
-                     + "\n  " + RadarOptions.Usage;
+                     + "\n  " + TraceOptions.Usage + "\n  " + RadarOptions.Usage;
 
 if (args.Length == 0 || args[0] is "-h" or "--help")
 {
@@ -73,6 +73,19 @@ switch (args[0])
             run = () => new RouteCommand(
                     advisor, device, Console.Out, brouter.Name, OpenMeteoWindForecastProvider.Attribution)
                 .RunAsync(routeOptions, cancellation.Token);
+        }
+        break;
+
+    case "trace":
+        if (TraceOptions.Parse(args[1..], out error) is { } traceOptions && BRouterServer(out error) is { } traceServer)
+        {
+            var windProvider = new OpenMeteoWindForecastProvider(http);
+            var rainForecasts = new OpenMeteoRainForecastSource(http, OpenMeteoRainOptions.Latest);
+            var advisor = new TracedRideAdvisor(
+                new BRouterRouteEngine(http, traceServer.Options), windProvider,
+                new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() }), rainForecasts, rainForecasts);
+            run = () => new TraceCommand(advisor, device, Console.Out, traceServer.Name, OpenMeteoWindForecastProvider.Attribution)
+                .RunAsync(traceOptions, cancellation.Token);
         }
         break;
 

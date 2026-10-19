@@ -155,7 +155,7 @@ internal sealed class RouteCommand(
         return chosen.Ranked.Count > 0 ? 0 : 1;
     }
 
-    private static async Task<string> WriteGpxAsync(
+    internal static async Task<string> WriteGpxAsync(
         string directory, string name, Route route, string title, DateTimeOffset time, string description,
         IReadOnlyList<GpxWaypoint> waypoints, CancellationToken cancellationToken)
     {
@@ -166,10 +166,10 @@ internal sealed class RouteCommand(
         return file;
     }
 
-    private const string OperaRadarSourceAttribution = VientoHud.Core.Rain.Opera.OperaRadarSource.AttributionText;
+    internal const string OperaRadarSourceAttribution = VientoHud.Core.Rain.Opera.OperaRadarSource.AttributionText;
 
     /// <summary>The first line: leave now or wait, and why.</summary>
-    private static string Recommendation(DepartureAdvice advice, bool fromNow)
+    internal static string Recommendation(DepartureAdvice advice, bool fromNow)
     {
         if (advice.Chosen.Best is null)
         {
@@ -194,7 +194,7 @@ internal sealed class RouteCommand(
     }
 
     /// <summary>What the rain does on the ride: stretches with likely rain, possible rain and the warning for the area.</summary>
-    private static IEnumerable<string> RainLines(RideOption option, string? noRain)
+    internal static IEnumerable<string> RainLines(RideOption option, string? noRain)
     {
         if (option.Rain is not { } rain)
         {
@@ -227,7 +227,7 @@ internal sealed class RouteCommand(
         }
     }
 
-    private static IEnumerable<string> Attributions(Route route, RainOutlook? outlook)
+    internal static IEnumerable<string> Attributions(Route route, RainOutlook? outlook)
     {
         if (route.Attribution is { } attribution)
         {
@@ -241,7 +241,7 @@ internal sealed class RouteCommand(
     }
 
     /// <summary>A point on the way for the GPX: short name for the GPS screen, details in the description.</summary>
-    private static GpxWaypoint Waypoint(RideAlert alert)
+    internal static GpxWaypoint Waypoint(RideAlert alert)
     {
         var km = $"km {alert.StartKm.ToString("0", Spanish)}";
         var stretch = $"km {alert.StartKm.ToString("0", Spanish)}-{alert.EndKm.ToString("0", Spanish)}";
@@ -256,20 +256,20 @@ internal sealed class RouteCommand(
         };
     }
 
-    private static string Percent(double fraction) => $"{(fraction * 100).ToString("0", Spanish)} %";
+    internal static string Percent(double fraction) => $"{(fraction * 100).ToString("0", Spanish)} %";
 
-    private static string Local(DateTimeOffset utc, string format) =>
+    internal static string Local(DateTimeOffset utc, string format) =>
         TimeZoneInfo.ConvertTime(utc, TimeZoneInfo.Local).ToString(format, Spanish);
 
-    private static string Heading(double bearing) => $"hacia el {Point(bearing)} ({bearing.ToString("0", Spanish)}°)";
+    internal static string Heading(double bearing) => $"hacia el {Point(bearing)} ({bearing.ToString("0", Spanish)}°)";
 
-    private static string Capitalized(string text) => char.ToUpper(text[0], Spanish) + text[1..];
+    internal static string Capitalized(string text) => char.ToUpper(text[0], Spanish) + text[1..];
 
-    private static string Km(double km) => $"{km.ToString("0.#", Spanish)} km";
+    internal static string Km(double km) => $"{km.ToString("0.#", Spanish)} km";
 
-    private static string Signed(double kmh) => $"{kmh.ToString("+0;-0;0", Spanish)} km/h";
+    internal static string Signed(double kmh) => $"{kmh.ToString("+0;-0;0", Spanish)} km/h";
 
-    private static string Describe(StartDirectionAdvice wind) => wind.Kind switch
+    internal static string Describe(StartDirectionAdvice wind) => wind.Kind switch
     {
         StartAdviceKind.HeadIntoWind =>
             $"Viento durante la salida: del {Point(wind.MeanWindFromDegrees!.Value)} " +
@@ -283,19 +283,19 @@ internal sealed class RouteCommand(
         _ => throw new ArgumentOutOfRangeException(nameof(wind), wind.Kind, null),
     };
 
-    private static string Advantage(RideScore score) =>
+    internal static string Advantage(RideScore score) =>
         $"ventaja de viento {Signed(score.WindAdvantageKmh)} " +
         $"({Along(score.FirstHalfHeadwindKmh)} en la 1.ª mitad, {Along(score.SecondHalfHeadwindKmh)} en la 2.ª)";
 
     // Wind along the road as it feels: in the face or from behind.
-    private static string Along(double headwindKmh) => Math.Round(headwindKmh) switch
+    internal static string Along(double headwindKmh) => Math.Round(headwindKmh) switch
     {
         > 0 => $"de cara {Kmh(headwindKmh)}",
         < 0 => $"a favor {Kmh(-headwindKmh)}",
         _ => "sin viento de cara ni a favor",
     };
 
-    private static string Stretch(WindStretch s)
+    internal static string Stretch(WindStretch s)
     {
         var feel = s.Feel switch
         {
@@ -308,12 +308,12 @@ internal sealed class RouteCommand(
         return $"km {s.StartKm.ToString("0", Spanish)}-{s.EndKm.ToString("0", Spanish)}: {feel} {Kmh(s.MeanKmh)}";
     }
 
-    private static string Kind(LoopResult r) => r.Shape == RouteShape.OutAndBack ? "Ida y vuelta" : "Vuelta";
+    internal static string Kind(LoopResult r) => r.Shape == RouteShape.OutAndBack ? "Ida y vuelta" : "Vuelta";
 
     // Hammerhead shows the file name, not the one inside the GPX (DECISIONS 037).
-    private static string FileKind(LoopResult r) => r.Shape == RouteShape.OutAndBack ? "ida-y-vuelta" : "vuelta";
+    internal static string FileKind(LoopResult r) => r.Shape == RouteShape.OutAndBack ? "ida-y-vuelta" : "vuelta";
 
-    private static string Outcome(LoopResult r) => r switch
+    internal static string Outcome(LoopResult r) => r switch
     {
         { Found: true, Best: { } best } => $"{Km(best.Route.DistanceKm)} ({r.Requests} peticiones)",
         { EngineFailure: { } failure } => $"BRouter dejó de responder: {failure}",
@@ -322,7 +322,7 @@ internal sealed class RouteCommand(
     };
 
     /// <summary>One line: distance, climb and what kind of roads; also the GPX description.</summary>
-    private static string Summary(LoopCandidate c)
+    internal static string Summary(LoopCandidate c)
     {
         var a = c.Analysis;
         var parts = new List<string>
@@ -342,7 +342,7 @@ internal sealed class RouteCommand(
         return string.Join(", ", parts);
     }
 
-    private static readonly (LoopProblems Problem, string Name)[] ProblemNames =
+    internal static readonly (LoopProblems Problem, string Name)[] ProblemNames =
     [
         (LoopProblems.Distance, "distancia"),
         (LoopProblems.Spurs, "ramales (forma de estrella)"),
@@ -351,7 +351,7 @@ internal sealed class RouteCommand(
         (LoopProblems.Bearing, "se aleja del rumbo"),
     ];
 
-    private static string Problems(LoopProblems problems) =>
+    internal static string Problems(LoopProblems problems) =>
         string.Join(", ", ProblemNames.Where(p => problems.HasFlag(p.Problem)).Select(p => p.Name));
 
     /// <summary>Writes each report at once, on the generator's thread, so lines come out as each bearing finishes.</summary>

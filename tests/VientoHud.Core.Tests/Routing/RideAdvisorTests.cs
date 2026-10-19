@@ -125,18 +125,4 @@ public class RideAdvisorTests
         await Assert.ThrowsAsync<ArgumentException>(() =>
             advisor.AdviseAsync(new RideRequest(Leon, 60, Now), Now.ToOffset(TimeSpan.FromHours(2))));
     }
-
-    private sealed class FailingRadarSource : IRadarSource
-    {
-        public TimeSpan FrameInterval => TimeSpan.FromMinutes(5);
-
-        public string Attribution => "Fake radar";
-
-        public Task<DateTimeOffset> GetLatestFrameTimeAsync(CancellationToken cancellationToken = default) =>
-            throw new RadarException("Radar down");
-
-        public Task<RainGrid?> GetFrameAsync(
-            DateTimeOffset time, Coordinate center, double radiusKm, CancellationToken cancellationToken = default) =>
-            throw new RadarException("Radar down");
-    }
 }

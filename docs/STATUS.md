@@ -6,6 +6,10 @@
 
 ### Qué funciona (fase 7)
 
+- **Ruta trazada por el usuario** (`TracedRideAdvisor`, `TracedRequest`, `TracedRide`; paso 7a-2, `DECISIONS.md` 048):
+  un punto es una ida y vuelta hasta él, dos o más una vuelta por ellos; **una petición** a BRouter y el mismo juicio
+  que el planificador (viento en los dos sentidos, lluvia, salir ahora o esperar, ciudad), más los tramos prohibidos y
+  a qué distancia pasa de cada punto. En la consola, `vientohud trace --via lat,lon[;lat,lon] ...` con un GPX.
 - **La recomendación entera en Core** (`RideAdvisor`, `RideRequest`, `RideAdvice`; paso 7a-1): rutas, lluvia y hora de
   salida en una sola llamada, con avance por rumbo y cancelar; si la lluvia falla, sigue sin ella y dice por qué.
   `route` la usa.
@@ -24,13 +28,15 @@ visto bueno del autor**:
 
 - [ ] 7a. Core para la app:
   - [x] 7a-1. La recomendación automática entera en Core (`RideAdvisor`); se queda para la consola.
-  - [ ] 7a-2. **Ruta trazada por el usuario**: de unos puntos (uno: ida y vuelta hasta ahí; dos o más: vuelta por ahí) a
+  - [x] 7a-2. **Ruta trazada por el usuario**: de unos puntos (uno: ida y vuelta hasta ahí; dos o más: vuelta por ahí) a
     la ruta por BRouter en una petición, con las reglas de carretera, la distancia, el viento por tramos en los dos
     sentidos, la lluvia, salir ahora o esperar, la ciudad y la llegada. Todo son piezas que ya existen, enlazadas.
     Juez: tests con el motor falso, y en vivo desde la consola (un comando que recibe los puntos) en los sitios de
     prueba: segundos y el ojo del autor.
   - [ ] 7a-3. Los textos en Core (recomendación, resumen de la ruta, nombre y descripción del GPX y del fichero).
-- [ ] 7b. Preparar Core para el móvil: borrar las imágenes viejas del radar (~2 MB cada una, hoy sin límite).
+- [ ] 7b. Preparar Core para el móvil: borrar las imágenes viejas del radar (~2 MB cada una, hoy sin límite) y
+  reintentar una vez las respuestas pasajeras de Open-Meteo (503 "sobrecargado", 429): el 2026-10-19 un 503 del viento
+  tiró una recomendación entera.
 - [ ] 7c. **Elegir el mapa** (opciones comprobadas en su fuente: licencia, mapas de fondo y sus normas de uso, clave,
   mantenimiento; decisión del autor) y esqueleto de la app con el mapa y la estética de CieloHud; arranca en el
   emulador y en el móvil.
@@ -54,6 +60,14 @@ visto bueno del autor**:
   UTC. **Antes y después** con el BRouter local (60 km, salida a las 17:00, las dos versiones seguidas): León y
   Fuenlabrada dan el mismo texto y los mismos GPX, byte a byte (6 y 12 ficheros). Fuenlabrada busca a los lados: 121
   peticiones y 220-250 s incluso con el BRouter local.
+- Paso 7a-2 (2026-10-19): 6 tests nuevos (602 en total): un punto hace una ida y vuelta con una sola petición (solo la
+  ida; 20 km × 1,5 × 2 = 60 km, acaba en casa), 9 salidas y la lluvia pedida una vez; dos puntos hacen una vuelta
+  casa-A-B-casa en una petición, recorrida como se trazó o al revés; las autovías se miden (km prohibidos), no se
+  rechazan; sin radar, aconseja y dice por qué; un punto que BRouter no puede unir sale como `Unreachable`; hace falta un
+  punto y las horas en UTC. **En vivo** con `trace` y el BRouter local: León ida y vuelta hacia el E (65 km, 20 % de
+  ciudad) en **14 s** en total; Humanes vuelta por Griñón y Navalcarnero (49 km, 35 %, sentido horario por el viento);
+  La Bañeza ida y vuelta hasta Astorga (56 km, 21 %). Una pasada cayó por un 503 pasajero de Open-Meteo en el viento
+  (sin reintento; va a 7b). Los GPX quedan para el ojo del autor.
 - Paso 7b, medida (2026-10-19; `brouterspeed.cs`, `requests.cs`, `raintime.cs`;
   `docs/verificacion/2026-10-19-fase7-peticiones.txt`): una petición a brouter.de tarda lo mismo que al local
   (0,2-2,5 s). El tiempo es el número de peticiones: 40 (La Bañeza), 43 (León), 56 (Humanes, Tres Cantos), 121

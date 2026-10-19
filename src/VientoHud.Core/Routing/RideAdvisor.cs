@@ -76,26 +76,9 @@ public sealed class RideAdvisor(
         // The valid routes, ridden at each departure up to 2 h later with the wind and the rain (DECISIONS 035-036).
         var found = Enumerable.Range(0, plan.Loops.Count).Where(i => plan.Loops[i].Found).ToList();
         var routes = found.Select(i => plan.Loops[i].Best!.Route).ToList();
-        var departures = DepartureChoice.Times(request.Departure);
-        RainOutlook? outlook = null;
-        string? rainFailure = null;
-        if (routes.Count > 0)
-        {
-            var reach = routes.SelectMany(r => r.Points).Max(p => p.Position.DistanceKmTo(request.Start));
-            var last = routes.Max(r => RouteLegs.Split(r, departures[^1], request.AverageSpeedKmh)[^1].EndTime);
-            try
-            {
-                outlook = await RainOutlook.ForecastAsync(
-                    radar, rainModel, rainFallback, request.Start, reach,
-                    now < request.Departure ? now : request.Departure, last, cancellationToken: cancellationToken);
-            }
-            catch (Exception ex) when (ex is RadarException or RainForecastException)
-            {
-                rainFailure = ex.Message;
-            }
-        }
-        var advice = await DepartureChoice.ChooseAsync(
-            winds, routes, departures, outlook, request.AverageSpeedKmh, cancellationToken: cancellationToken);
+        var (advice, outlook, rainFailure) = await RideForecast.ChooseAsync(
+            winds, radar, rainModel, rainFallback, routes, request.Start, request.Departure, request.AverageSpeedKmh, now,
+            cancellationToken);
         return new RideAdvice(request, plan, advice, found, outlook, rainFailure);
     }
 }

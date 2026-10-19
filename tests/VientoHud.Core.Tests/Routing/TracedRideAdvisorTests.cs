@@ -1,0 +1,127 @@
+using VientoHud.Core.Rain;
+using VientoHud.Core.Routing;
+using VientoHud.Core.Tests.Support;
+using VientoHud.Core.Wind;
+
+namespace VientoHud.Core.Tests.Routing;
+
+public class TracedRideAdvisorTests
+{
+    private static readonly LambertAzimuthalEqualArea Opera =
+        LambertAzimuthalEqualArea.FromProj("+proj=laea +lat_0=55 +lon_0=10 +x_0=1950000 +y_0=-2100000 +ellps=WGS84");
+
+    private static readonly Coordinate Leon = new(42.5987, -5.5671);
+    private static readonly DateTimeOffset Now = new(2026, 9, 30, 8, 0, 0, TimeSpan.Zero);
+
+    // The same wind for the next 12 hours.
+    private static FakeWindForecastProvider Wind(double speed, double from) =>
+        new(Enumerable.Range(0, 12).Select(h => new WindSample(Now.AddHours(h), speed, speed + 10, from, "fake")).ToList());
+
+    // A radar frame of 201 × 201 km around León at `time`, dry.
+    private static FakeRadarSource DryRadar()
+    {
+        var (x, y) = Opera.Forward(Leon);
+        return new(TimeSpan.FromMinutes(5),
+            new RainGrid(Now.AddMinutes(-5), Opera, x - 100_500, y + 100_500, 1000, 201, 201, new float[201 * 201]));
+    }
+
+    private static TracedRideAdvisor Advisor(IRouteEngine roads, IRadarSource? radar = null, FakeRainForecastSource? model = null)
+    {
+        model ??= new FakeRainForecastSource((_, _) => 0);
+        return new(roads, Wind(15, 194), radar ?? DryRadar(), model, model);
+    }
+
+    // Roads 1.5 times as long as the straight line between the points.
+    private static FakeRouteEngine Roads(string highway = "tertiary") =>
+        new(w => FakeRouteEngine.Straight(w, roadFactor: 1.5, highway: highway));
+
+    [Fact]
+    public async Task One_point_makes_an_out_and_back_in_one_request()
+    {
+        var roads = Roads();
+        var radar = DryRadar();
+        var model = new FakeRainForecastSource((_, _) => 0);
+        var far = Leon.Destination(90, 20);
+
+        var ride = await Advisor(roads, radar, model).AdviseAsync(new TracedRequest(Leon, [far], Now), Now);
+
+        Assert.Equal(RouteShape.OutAndBack, ride.Shape);
+        // Only the way there is asked for; the route is there and back: 20 km × 1.5 × 2.
+        Assert.Single(roads.Requests);
+        Assert.Equal([Leon, far], roads.Requests[0]);
+        Assert.Equal(60, ride.Route.DistanceKm, 6);
+        Assert.Equal(Leon, ride.Route.Points[^1].Position);
+        Assert.Equal(0, ride.Analysis.ForbiddenKm);
+        // The ride in its better way round at the chosen departure, with the wind along it.
+        Assert.Single(ride.Departure.Chosen.Ranked);
+        Assert.Equal(60, ride.Ride.Route.DistanceKm, 6);
+        Assert.NotEmpty(ride.Ride.Winds);
+        // Leave now or every quarter of an hour up to 2 h later; dry and steady wind: now.
+        Assert.Equal(9, ride.Departure.Options.Count);
+        Assert.False(ride.Departure.Wait);
+        // The rain, asked once from now; the ride goes beyond 2 h (up to 2 h later), so AROME too.
+        Assert.NotNull(ride.Rain);
+        Assert.Null(ride.RainFailure);
+        Assert.Single(model.ModelRequests);
+        Assert.Equal(1, model.ProbabilityRequests);
+    }
+
+    [Fact]
+    public async Task Two_or_more_points_make_a_loop_back_to_the_start()
+    {
+        var roads = Roads();
+        var south = Leon.Destination(180, 10);
+        var east = Leon.Destination(90, 10);
+
+        var ride = await Advisor(roads).AdviseAsync(new TracedRequest(Leon, [south, east], Now), Now);
+
+        Assert.Equal(RouteShape.Loop, ride.Shape);
+        Assert.Single(roads.Requests);
+        Assert.Equal([Leon, south, east, Leon], roads.Requests[0]);
+        Assert.Equal(1.5 * (10 + south.DistanceKmTo(east) + 10), ride.Route.DistanceKm, 6);
+        // Ridden the way traced or the other way round, whichever the wind prefers.
+        var second = ride.Ride.Route.Points[1].Position;
+        Assert.True(second == ride.Route.Points[1].Position || second == ride.Route.Points[^2].Position);
+        Assert.Equal(ride.Route.DistanceKm, ride.Ride.Route.DistanceKm, 6);
+    }
+
+    [Fact]
+    public async Task Forbidden_roads_are_measured_not_refused()
+    {
+        var ride = await Advisor(Roads("motorway")).AdviseAsync(new TracedRequest(Leon, [Leon.Destination(0, 20)], Now), Now);
+
+        Assert.Equal(ride.Route.DistanceKm, ride.Analysis.ForbiddenKm, 6);
+        Assert.NotNull(ride.Departure.Chosen.Best);
+    }
+
+    [Fact]
+    public async Task Without_the_rain_still_advises_and_says_why()
+    {
+        var ride = await Advisor(Roads(), new FailingRadarSource()).AdviseAsync(new TracedRequest(Leon, [Leon.Destination(0, 20)], Now), Now);
+
+        Assert.Null(ride.Rain);
+        Assert.Equal("Radar down", ride.RainFailure);
+        Assert.NotNull(ride.Departure.Chosen.Best);
+    }
+
+    [Fact]
+    public async Task A_point_the_engine_cannot_reach_is_reported_as_such()
+    {
+        var roads = new FakeRouteEngine(_ => throw new RouteException(RouteFailure.Unreachable, "target island"));
+
+        var ex = await Assert.ThrowsAsync<RouteException>(() =>
+            Advisor(roads).AdviseAsync(new TracedRequest(Leon, [Leon.Destination(0, 20)], Now), Now));
+
+        Assert.Equal(RouteFailure.Unreachable, ex.Failure);
+    }
+
+    [Fact]
+    public async Task Needs_a_point_and_times_in_UTC()
+    {
+        Assert.Throws<ArgumentException>(() => new TracedRequest(Leon, [], Now));
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            Advisor(Roads()).AdviseAsync(new TracedRequest(Leon, [Leon.Destination(0, 20)], Now), Now.ToOffset(TimeSpan.FromHours(2))));
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            Advisor(Roads()).AdviseAsync(new TracedRequest(Leon, [Leon.Destination(0, 20)], Now.ToOffset(TimeSpan.FromHours(2))), Now));
+    }
+}
