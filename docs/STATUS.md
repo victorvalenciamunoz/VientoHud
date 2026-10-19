@@ -53,8 +53,7 @@ visto bueno del autor**:
   (`DECISIONS.md` 049).
 - [x] 7c. **Elegir el mapa** (opciones comprobadas en su fuente: licencia, mapas de fondo y sus normas de uso, clave,
   mantenimiento; decisión del autor: Mapsui con OpenCycleMap, `DECISIONS.md` 050) y esqueleto de la app con el mapa y
-  la estética de CieloHud; arranca en el emulador. **Pendiente: arrancarla en el móvil del autor** (no estaba
-  conectado al acabar el paso).
+  la estética de CieloHud; arranca en el emulador y en el móvil del autor.
 - [ ] 7d. Ubicación del móvil y la dirección: "hacia el oeste", el viento de las próximas horas y un abanico en el
   mapa. Una llamada a Open-Meteo: segundos.
 - [ ] 7e. **Tocar el mapa**: un punto, ida y vuelta; dos o tres, vuelta. Distancia al momento, la ruta dibujada, y
@@ -95,7 +94,9 @@ visto bueno del autor**:
   proyecto nuevo dentro). **En el emulador** (Pixel, Android 14): pantalla de arranque con el icono, y el mapa de
   OpenCycleMap centrado en León con relieve, pueblos y la EuroVelo 3, la cabecera "VIENTOHUD · OPENCYCLEMAP" y la
   atribución en el pie; estable (dos capturas iguales con 10 s entre ellas). Captura en
-  `docs/verificacion/2026-10-19-fase7-7c-emulador.png`. Una tesela de prueba pedida con la clave desde el ordenador:
+  `docs/verificacion/2026-10-19-fase7-7c-emulador.png`. **En el móvil del autor** (OPPO, Android 16): lo mismo, estable
+  (`docs/verificacion/2026-10-19-fase7-7c-movil.png`); la app se abre detrás de la pantalla de bloqueo si el móvil
+  está dormido, como cualquier otra. Una tesela de prueba pedida con la clave desde el ordenador:
   HTTP 200, PNG de 22 KB. En la primera instalación el mapa se fue solo hacia el este; tras cerrar y abrir la app no
   volvió a pasar (lanzador `monkey` durante la instalación); se vigila en el móvil. La atribución salía dos veces
   (la caja blanca de Mapsui y la nuestra): se apaga la de Mapsui y queda la nuestra, con enlace al tocarla.
