@@ -1,5 +1,3 @@
-using VientoHud.Core.Towns;
-
 namespace VientoHud.Core.Routing;
 
 /// <summary>What keeps a loop from being acceptable (DECISIONS 015, 016 and phase 2 of the plan).</summary>
@@ -84,9 +82,6 @@ public sealed record LoopGeneratorOptions
     public double OutAndBackVariantDegrees { get; init; } = 30;
 
     public RouteAnalysisOptions Analysis { get; init; } = new();
-
-    /// <summary>How waypoints are moved out of towns, when the generator has a town map (DECISIONS 045).</summary>
-    public TownAvoidanceOptions TownAvoidance { get; init; } = new();
 }
 
 /// <summary>A routed loop and how it measures against the request.</summary>
@@ -149,8 +144,7 @@ public sealed record LoopResult(
 /// Generates a road-bike loop from a start, towards a bearing, of about a target distance (phase 2, step 4c; DECISIONS
 /// 013 and 015-017). The route engine joins the waypoints; this class places them and judges the result:
 /// <list type="number">
-/// <item>Waypoints in a fan (<see cref="LoopWaypoints"/>) with a first radius for the target distance; with a town map,
-/// those in a town are moved out (<see cref="TownAvoidance"/>).</item>
+/// <item>Waypoints in a fan (<see cref="LoopWaypoints"/>) with a first radius for the target distance.</item>
 /// <item>If the route has spurs (in and out of a dead end to reach a waypoint), each waypoint causing one moves to where
 /// its spur leaves the route, and the route is asked again.</item>
 /// <item>The radius is corrected from the distances obtained: between a radius that fell short and one that went too
@@ -161,15 +155,9 @@ public sealed record LoopResult(
 /// </list>
 /// It stops at the first valid loop or after <see cref="LoopGeneratorOptions.MaxRequests"/> requests.
 /// </summary>
-public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? options = null, TownMap? towns = null)
+public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? options = null)
 {
     private readonly LoopGeneratorOptions _options = options ?? new LoopGeneratorOptions();
-
-    /// <summary>The towns waypoints are moved out of, if any.</summary>
-    public TownMap? Towns => towns;
-
-    /// <summary>The same generator, moving waypoints out of <paramref name="townMap"/> (none if null).</summary>
-    public LoopGenerator WithTowns(TownMap? townMap) => new(engine, _options, townMap);
 
     /// <summary>
     /// Generates a loop from <paramref name="start"/> towards <paramref name="bearingDegrees"/> (degrees TOWARDS). If the
@@ -226,10 +214,6 @@ public sealed class LoopGenerator(IRouteEngine engine, LoopGeneratorOptions? opt
                     IReadOnlyList<Coordinate> waypoints = shape == RouteShape.Loop
                         ? LoopWaypoints.Fan(start, fanBearing, r, _options.FanPoints)
                         : [start, start.Destination(fanBearing, r)];
-                    if (towns is not null)
-                    {
-                        waypoints = TownAvoidance.MoveOut(waypoints, towns, _options.TownAvoidance);
-                    }
                     requests++;
                     var candidate = await TryRouteAsync(waypoints, fanBearing);
                     if (candidate is null)

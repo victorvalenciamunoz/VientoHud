@@ -1043,6 +1043,11 @@ Formato: contexto → decisión → alternativas descartadas.
     sin mejora; en la zona de Madrid se mueven todos los que caen en pueblo (20-30 %), pero las carreteras para llegar
     siguen cruzando pueblos, y en León no cae ninguno. Se deja porque lo necesita 6e-3 (un punto dentro de una zona con
     coste obliga a BRouter a entrar).
+  - Paso 6e-3 (2026-10-19): con polígonos con peso, BRouter 1.7.10 (y la versión en desarrollo) solo cobra el tramo que
+    cruza el borde (`OsmNogoPolygon.intersects`), no lo recorrido dentro: 632 km de ciudad. Con el contorno como línea
+    cerrada cobra un peaje fijo por cruce y funciona (prohibida: 12 → 26 km para no cruzar), pero casi nunca hay rodeo
+    razonable: 620 km (peaje de 3000), unas rutas mejor y otras peor, y cada pasada tarda ~1.700 s en vez de ~145 s.
+    `docs/verificacion/2026-10-19-fase6-pueblos-en-brouter.txt`.
 - Alternativas:
   - **Overpass** (zonas `landuse` de OpenStreetMap; recomendada primero): gratis y sin clave, pero el 2026-10-19
     `overpass-api.de` y `overpass.private.coffee` respondieron 502 y 500 casi toda la tarde ("at capacity"), y su aviso
@@ -1050,3 +1055,16 @@ Formato: contexto → decisión → alternativas descartadas.
     propio. Alrededor de Humanes, 10.600 zonas, 14 MB, 42 s.
   - Un extracto de OpenStreetMap descargado: cientos de MB y un paquete para leerlo; malo para el móvil.
   - Seguir solo con el perfil de BRouter: ya probado, `DECISIONS.md` 043.
+
+## 046 — Cerrar la fase 6 sin las zonas construidas
+- Contexto: fase 6, tras 6e (`DECISIONS.md` 045). Ni mover los puntos de paso fuera de los pueblos ni pasar los pueblos a
+  BRouter como zonas con coste o con peaje bajan la ciudad de las 30 salidas (628, 626, 632 y 620 km); en el sur de
+  Madrid las carreteras pasan por dentro de los pueblos y casi no hay rodeos razonables.
+- Decisión (del autor, 2026-10-19, con la recomendación): cerrar la fase 6 con lo de 6a-6d y **retirar 6e** de la ruta y
+  del código (el móvil tendría que bajar 26 MB de GHSL sin mejora medible). El código queda en el historial de git
+  (commits del paso 6e-1 y 6e-2, `74d3e30` y `e3fceb9`), por si sirve más adelante.
+- Juez de la fase (`docs/verificacion/2026-10-19-fase6-juez.txt`): en las mismas 30 salidas, 769 km de ciudad (42 %) al
+  empezar y 628 km (34 %) al acabar; la vuelta por casa a mitad de camino, de 8,7 a 2,5 km; en vivo, la primera opción
+  de Humanes de 80 % a 35 %.
+- Alternativas: usar GHSL para escoger de antemano los rumbos y variantes con menos pueblo (más trabajo, las carreteras
+  serían las mismas); seguir con el peaje de BRouter (sin mejora y 12 veces más lento).

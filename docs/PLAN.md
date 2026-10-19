@@ -1,6 +1,6 @@
 # Plan
 
-**Fase actual: 6**
+**Fase actual: 7**
 
 ---
 

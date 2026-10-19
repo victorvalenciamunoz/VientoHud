@@ -1,6 +1,9 @@
 # Estado
 
-**Fase actual: 6 — Mejores rutas** (en curso: 6a a 6c hechos, 6d a falta del ojo del autor, 6e-1 hecho; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+**Fase actual: 7 — App MAUI (Android)** (por empezar)
+
+Fase 6 — Mejores rutas: terminada el 2026-10-19 (pasos 6a a 6d hechos, 6e probado y retirado, juez ejecutado; el autor la
+cierra, `DECISIONS.md` 046).
 
 ## Fase 6
 
@@ -11,14 +14,6 @@
   el punto y las mismas reglas que una vuelta.
 - **En la recomendación** (`RidePlanner`; `DECISIONS.md` 041): una vuelta y una ida y vuelta por rumbo, en el mismo orden;
   `route` las llama "ida y vuelta" en el texto, el GPX y el nombre del fichero.
-- **Zonas construidas** (`Towns/`; `DECISIONS.md` 045): `GhslBuiltUpSource` baja una vez el cuadro de GHSL BUILT-S de la
-  zona (10° × 10°, 26 MB el de Madrid y León), lo guarda y lee solo los bloques de alrededor (BigTIFF con LZW, lector
-  propio); `TownMap` junta las casillas construidas (15 % o más) en pueblos: une huecos de una calle, rellena los
-  parques de dentro, quita las manchas de menos de 0,2 km² y simplifica el contorno.
-- **Puntos de paso fuera de los pueblos** (`TownAvoidance`; `DECISIONS.md` 045): con el mapa de pueblos (`route` lo pide
-  a GHSL para 0,4 de la distancia más 5 km alrededor de casa), cada punto de paso en un pueblo se mueve al sitio más
-  cercano a 300 m o más de cualquier pueblo (como mucho 4 km), a la misma distancia de casa si puede; casa no se mueve.
-  Si GHSL falla, `route` lo dice y hace las rutas como antes. Cita GHSL en la salida y en el GPX.
 
 ### Qué falta (fase 6)
 
@@ -31,11 +26,13 @@ División aceptada por el autor el 2026-10-19:
 - [x] 6c. Medir las ciudades: km por ciudad de cada
   ruta y si vuelve a pasar cerca de la salida a mitad de camino, en las salidas de prueba, antes de cambiar nada
   (`DECISIONS.md` 042).
-- [ ] 6d. Evitar ciudades (generador y perfil de BRouter) y juez de la fase: antes y después, en números y a ojo; los
+- [x] 6d. Evitar ciudades (generador y perfil de BRouter) y juez de la fase: antes y después, en números y a ojo; los
   límites, con los datos del 6c. Hecho (`DECISIONS.md` 043, **decisión del autor**: la ciudad entre la lluvia y el viento,
-  empate por debajo de 10 km); **falta el ojo del autor** y decidir qué hacer cuando todos los rumbos van a ciudad.
-- [ ] 6e. Zonas construidas de GHSL (`DECISIONS.md` 045, aceptado por el autor el 2026-10-19): de los km de ciudad
-  de las 30 salidas, 29 % son salir y volver a casa, 23 % alrededor de un punto de paso y 48 % entre puntos de paso.
+  empate por debajo de 10 km) y búsqueda a los lados cuando la mejor tiene más de la mitad de ciudad (`DECISIONS.md` 044);
+  el autor cierra la fase sin mirar las últimas rutas a ojo.
+- [x] 6e. Zonas construidas de GHSL (`DECISIONS.md` 045, aceptado por el autor el 2026-10-19), **probado y retirado**
+  (`DECISIONS.md` 046). De los km de ciudad de las 30 salidas, 29 % son salir y volver a casa, 23 % alrededor de un
+  punto de paso y 48 % entre puntos de paso.
   - [x] 6e-1. Descargar las zonas (GHSL), guardarlas en fichero y juntarlas en manchas sencillas; el autor las mira
     en gpx.studio. Hecho (`GhslBuiltUpSource`, `TownMap`). **Ojo del autor** (2026-10-19): "bastante bien"; une
     Griñón y Cubas de la Sagra (franja de menos de 200 m: se deja); los pueblos pequeños no hay que evitarlos ("un
@@ -44,7 +41,9 @@ División aceptada por el autor el 2026-10-19:
     GHSL): **no mejora por sí solo** (628 → 626 km de ciudad): los puntos en pueblo (20-30 % en Madrid, ninguno en León)
     se mueven, pero las carreteras para llegar siguen cruzando pueblos. Se deja porque lo necesita 6e-3: con zonas que
     BRouter debe rodear, un punto dentro le obliga a entrar.
-  - [ ] 6e-3. Pasar las zonas a BRouter como zonas con coste; medir, ajustar el peso y ojo del autor.
+  - [x] 6e-3. Pasar las zonas a BRouter como zonas con coste: **no mejora** (632 km con polígonos de peso 2, 620 con un
+    peaje de 3000 por cruzar el borde, frente a 628) y BRouter tarda 7-12 veces más. Con esto se retira todo 6e de la
+    ruta y del código (queda en el historial de git).
 
 ### Cómo se ha validado (fase 6)
 
@@ -85,6 +84,22 @@ División aceptada por el autor el 2026-10-19:
   el mapa una vez (0,4 × 60 + 5 = 29 km) y lo cita; sin mapa hace las rutas como antes y dice por qué. **Medida**
   (`urban.cs ... pueblos`; `docs/verificacion/2026-10-19-fase6-puntos-fuera-de-pueblos.txt`): 628 → 626 km de ciudad
   en las 30 salidas, sin mejora.
+- Paso 6e-3 (2026-10-19; `docs/verificacion/2026-10-19-fase6-pueblos-en-brouter.txt`): BRouter 1.7.10 solo cobra el
+  coste de un polígono en el tramo que cruza su borde (`OsmNogoPolygon.intersects`), no lo recorrido dentro: con peso 2
+  o 10 las rutas no cambian. Con el contorno como línea cobra un peaje fijo por cruce (comprobado: prohibida, 12 → 26 km
+  para no cruzar), pero apenas hay rodeos razonables: 620 km de ciudad frente a 628, unas mejor (Humanes ESE ida y
+  vuelta 27 → 18 %) y otras peor (León OSO vuelta 22 → 39 %), y cada pasada tarda ~1.700 s en vez de ~145 s.
+- **Juez de la fase 6** (2026-10-19; `docs/verificacion/2026-10-19-fase6-juez.txt`): en las mismas 30 salidas, la ciudad
+  baja de 769 km (42 %) al empezar la fase a 628 km (34 %), y la vuelta por casa a mitad de camino de 8,7 a 2,5 km.
+  Humanes 62 → 42 %, Fuenlabrada 70 → 59 %, León 27 → 20 %, Tres Cantos 37 %, La Bañeza 15 → 9 %. En vivo, la primera
+  opción de Humanes baja de 80 % a 35 %. Además hay idas y vueltas (6a-6b), que antes no existían.
+
+### Riesgos y pendientes (fase 6)
+
+- En la zona sur de Madrid (Fuenlabrada, 54-59 %) la ciudad que queda es casi toda inevitable con este método: las
+  carreteras pasan por dentro de los pueblos (`DECISIONS.md` 045-046).
+- Buscar a los lados cuesta más peticiones a BRouter (hasta ~120): bien con el local; con brouter.de, ~2 min.
+- Las vueltas de Humanes a menudo no son válidas (límite del generador de la fase 2).
 
 
 Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).

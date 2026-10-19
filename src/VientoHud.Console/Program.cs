@@ -5,7 +5,6 @@ using VientoHud.Core.Rain.Forecasts;
 using VientoHud.Core.Rain.Opera;
 using VientoHud.Core.Routing;
 using VientoHud.Core.Routing.BRouter;
-using VientoHud.Core.Towns.Ghsl;
 using VientoHud.Core.Wind;
 using VientoHud.Core.Wind.Observations;
 using VientoHud.Core.Wind.Observations.Iem;
@@ -67,11 +66,7 @@ switch (args[0])
         if (RouteOptions.Parse(args[1..], out error) is { } routeOptions && BRouterServer(out error) is { } brouter)
         {
             var windProvider = new OpenMeteoWindForecastProvider(http);
-            // GHSL tiles are 15-30 MB, downloaded once: more time than the other requests get.
-            var ghslHttp = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
-            ghslHttp.DefaultRequestHeaders.UserAgent.ParseAdd("VientoHud/0.1");
-            var towns = new GhslBuiltUpSource(ghslHttp, new GhslOptions { CacheDirectory = TownsCache() });
-            var planner = new RidePlanner(new LoopGenerator(new BRouterRouteEngine(http, brouter.Options)), windProvider, towns);
+            var planner = new RidePlanner(new LoopGenerator(new BRouterRouteEngine(http, brouter.Options)), windProvider);
             var radarSource = new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() });
             var rainForecasts = new OpenMeteoRainForecastSource(http, OpenMeteoRainOptions.Latest);
             run = () => new RouteCommand(
@@ -137,6 +132,3 @@ static (BRouterOptions Options, string Name)? BRouterServer(out string? error)
 // Downloaded radar frames are kept (~2 MB each) so that looking again at the same time does not download again.
 static string RadarCache() =>
     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VientoHud", "radar");
-
-static string TownsCache() =>
-    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VientoHud", "ghsl");
