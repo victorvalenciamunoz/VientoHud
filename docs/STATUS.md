@@ -14,6 +14,9 @@
   BRouter mueve un punto a la carretera asfaltada más cercana) y la llegada. BRouter es brouter.de (una petición por
   segundo); con `VIENTOHUD_APP_BROUTER_URL` al compilar, otro (el local desde el emulador: `http://10.0.2.2:17777/`).
   El radar se guarda 3 h en el móvil y la lluvia se reutiliza 10 min.
+- **Flechas del viento** (`WindArrows`, pedido por el autor el 2026-10-19): una grande junto a casa con el viento medio de
+  la salida (apunta hacia donde va el viento: un empujón) y, con la ruta trazada, una cada 5 km con el viento que habrá
+  al pasar por ahí, de color según se siente (de cara rojo, a favor verde, de lado ámbar, flojo gris).
 - **Ubicación y dirección en la app** (paso 7d): `GeolocationProvider` (pide el permiso y la posición al móvil, con la
   interfaz de Core) y `DirectionAdvisor` en Core (el viento de las horas de la salida en el sitio, `StartDirection`, y
   el abanico `DirectionFan`: un sector de ±45° hasta donde llega una ida y vuelta de la distancia; `RidePlanner` lo usa
@@ -106,6 +109,11 @@ visto bueno del autor**:
   vuelta) y `route` en León dan el mismo texto y los mismos GPX, salvo un km contado de más en una lluvia por el minuto
   que pasa entre las dos pasadas (el horizonte de 3 h se mueve con la hora). Open-Meteo dio 503 a ratos toda la tarde y
   hubo que repetir la comparación tres veces: razón de más para el reintento de 7b.
+- Flechas del viento (2026-10-19): 3 tests nuevos (629 en total): la flecha apunta hacia donde va el viento, con la
+  cabeza echada hacia atrás 150° y 0,3 del largo; en casa, el viento medio o nada si se anula; a lo largo de una salida,
+  una cada 5 km (km 2,5, 7,5…) con el viento del tramo y cómo se siente. En el emulador: la de casa en claro y las de la
+  ruta en gris (viento flojo), `…7e-emulador-flecha-casa.png` y `…7e-emulador-flechas-ruta.png`, donde además se ve
+  la vuelta pasando por Garavalles exacto con el perfil de `DECISIONS.md` 051.
 - Paso 7e (2026-10-19): 1 test nuevo (625 en total): la ruta sola es una petición y no pide tiempo; el juicio encima
   da lo mismo que todo de una vez. **En el emulador** contra **brouter.de** (posición en La Bañeza): un toque cerca de
   Garavalles → ida y vuelta de 13 km dibujada en 2-3 s (`…7e-emulador-ida-y-vuelta.png`); un segundo toque al oeste →

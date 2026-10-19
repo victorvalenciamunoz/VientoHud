@@ -111,7 +111,8 @@ public static class WindStretches
         }).ToList();
     }
 
-    private static WindFeel FeelOf(LegWind wind)
+    /// <summary>How the wind on one leg feels: in the face, from behind, from a side, or light.</summary>
+    public static WindFeel FeelOf(LegWind wind)
     {
         var head = wind.HeadwindKmh;
         var cross = wind.CrosswindKmh;

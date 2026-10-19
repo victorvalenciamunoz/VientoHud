@@ -38,6 +38,16 @@ public partial class MapPage : ContentPage
     private readonly MemoryLayer _viaLayer = new("Via") { Style = ViaStyle() };
     private readonly MemoryLayer _reachedLayer = new("Reached") { Style = ReachedStyle() };
     private readonly MemoryLayer _snapLayer = new("Snap") { Style = SnapStyle() };
+    // The wind: the mean one at home, and along the ride one layer per feel (the color is the layer's).
+    private readonly MemoryLayer _homeWindLayer = new("HomeWind") { Style = ArrowStyle(HudTheme.Text, 4) };
+    private readonly Dictionary<WindFeel, MemoryLayer> _windLayers = new()
+    {
+        [WindFeel.Headwind] = new MemoryLayer("WindHead") { Style = ArrowStyle(HudTheme.Alert, 3) },
+        [WindFeel.Tailwind] = new MemoryLayer("WindTail") { Style = ArrowStyle(HudTheme.Good, 3) },
+        [WindFeel.FromLeft] = new MemoryLayer("WindLeft") { Style = ArrowStyle(HudTheme.Marker, 3) },
+        [WindFeel.FromRight] = new MemoryLayer("WindRight") { Style = ArrowStyle(HudTheme.Marker, 3) },
+        [WindFeel.Light] = new MemoryLayer("WindLight") { Style = ArrowStyle(HudTheme.TextMuted, 2) },
+    };
     private readonly MemoryLayer _homeLayer = new("Home") { Style = HomeStyle() };
     private readonly List<GeoCoordinate> _via = [];
     private GeoCoordinate? _home;
@@ -57,6 +67,11 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(_fanLayer);
         MapView.Map.Layers.Add(_routeLayer);
         MapView.Map.Layers.Add(_snapLayer);
+        MapView.Map.Layers.Add(_homeWindLayer);
+        foreach (var layer in _windLayers.Values)
+        {
+            MapView.Map.Layers.Add(layer);
+        }
         MapView.Map.Layers.Add(_viaLayer);
         MapView.Map.Layers.Add(_reachedLayer);
         MapView.Map.Layers.Add(_homeLayer);
@@ -147,6 +162,8 @@ public partial class MapPage : ContentPage
             Show(RideText.DirectionHeadline(advice.Wind), RideText.Wind(advice.Wind),
                 $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.");
             ShowFan(advice.Fan);
+            ShowHomeWind(WindArrows.AtHome(advice.Wind, _home.Value));
+            ShowRideWind([]);
         }
         catch (OperationCanceledException)
         {
@@ -182,8 +199,9 @@ public partial class MapPage : ContentPage
             var ride = await Task.Run(() => _rides.AdviseAsync(traced, DateTimeOffset.UtcNow, cancellationToken), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             var option = ride.Ride;
-            // The way round the wind prefers: the route is redrawn in riding order.
+            // The way round the wind prefers: the route is redrawn in riding order, with the wind it meets.
             ShowRoute(option.Route);
+            ShowRideWind(WindArrows.AlongRide(option.Winds));
             var lines = new List<string> { $"{SpanishText.Capitalized(RideText.Turn(option, ride.Shape))}: {RideText.Advantage(option.Score)}" };
             lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone));
             Show(RideText.Recommendation(ride.Departure, fromNow: true, Zone), string.Join("\n", lines),
@@ -272,9 +290,41 @@ public partial class MapPage : ContentPage
             _snapLayer.Features = [];
             _reachedLayer.DataHasChanged();
             _snapLayer.DataHasChanged();
+            ShowRideWind([]);
         }
         MapView.Map.RefreshGraphics();
     }
+
+    private void ShowHomeWind(WindArrow? arrow)
+    {
+        _homeWindLayer.Features = arrow is null ? [] : ArrowFeatures(arrow);
+        _homeWindLayer.DataHasChanged();
+        MapView.Map.RefreshGraphics();
+    }
+
+    private void ShowRideWind(IReadOnlyList<WindArrow> arrows)
+    {
+        foreach (var (feel, layer) in _windLayers)
+        {
+            layer.Features = arrows.Where(a => a.Feel == feel).SelectMany(ArrowFeatures).ToList();
+            layer.DataHasChanged();
+        }
+        MapView.Map.RefreshGraphics();
+    }
+
+    /// <summary>The shaft and the head of an arrow, as two lines.</summary>
+    private static IEnumerable<IFeature> ArrowFeatures(WindArrow arrow) =>
+    [
+        new GeometryFeature(new LineString([ToNts(arrow.Tail), ToNts(arrow.Tip)])),
+        new GeometryFeature(new LineString([ToNts(arrow.HeadLeft), ToNts(arrow.Tip), ToNts(arrow.HeadRight)])),
+    ];
+
+    private static VectorStyle ArrowStyle(Microsoft.Maui.Graphics.Color color, double width) => new()
+    {
+        Line = new Pen(ToMapsui(color, 230), width),
+        Fill = null,
+        Outline = null,
+    };
 
     /// <summary>
     /// Where the route really passes for each point touched: a solid dot there and, when it is not where the finger
