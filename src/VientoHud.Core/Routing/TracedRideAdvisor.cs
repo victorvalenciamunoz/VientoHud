@@ -52,15 +52,19 @@ public sealed record TracedRoute(TracedRequest Request, Route Route, RouteAnalys
 /// <param name="Route">The route as the engine joined the points: there and back for one point, a loop otherwise.</param>
 /// <param name="Analysis">As in <see cref="TracedRoute.Analysis"/>.</param>
 /// <param name="Departure">When to leave, with the ride in its better way round for each departure.</param>
-/// <param name="Rain">The rain to come; null when it could not be asked for.</param>
+/// <param name="Rain">The rain to come; null when it could not be asked for, or not yet (<see cref="RainPending"/>).</param>
 /// <param name="RainFailure">Why the rain could not be asked for; null otherwise.</param>
+/// <param name="Field">The wind the judgement used, to judge again with the rain without asking for it twice.</param>
+/// <param name="RainPending">The rain was not asked for yet: the judgement is on the wind alone, for now.</param>
 public sealed record TracedRide(
     TracedRequest Request,
     Route Route,
     RouteAnalysis Analysis,
     DepartureAdvice Departure,
     RainOutlook? Rain,
-    string? RainFailure)
+    string? RainFailure,
+    WindField? Field = null,
+    bool RainPending = false)
 {
     public RouteShape Shape => Request.Shape;
 
@@ -97,23 +101,49 @@ public sealed class TracedRideAdvisor(IRouteEngine engine, IWindForecastProvider
         return new TracedRoute(request, route, RouteAnalyzer.Analyze(route, judged));
     }
 
-    /// <summary>The weather and the departure for a route already at hand.</summary>
-    /// <param name="now">The current time, in UTC: the rain is forecast from it (or from the departure, if earlier).</param>
+    /// <summary>
+    /// The wind along the route (one request) and the judgement on it alone: the way round, the gusts and a first
+    /// departure. Enough to draw the wind and say most of it while the rain is on its way.
+    /// </summary>
     /// <exception cref="WindForecastException">The wind forecast failed.</exception>
-    public async Task<TracedRide> AdviseAsync(TracedRoute traced, DateTimeOffset now, CancellationToken cancellationToken = default)
+    public async Task<TracedRide> JudgeWindAsync(TracedRoute traced, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(traced);
+        var request = traced.Request;
+        var departures = DepartureChoice.Times(request.Departure);
+        var field = await RideForecast.WindAsync(winds, [traced.Route], departures, request.AverageSpeedKmh, cancellationToken);
+        var departure = DepartureChoice.Choose(field, [traced.Route], departures, null, request.AverageSpeedKmh);
+        return new TracedRide(request, traced.Route, traced.Analysis, departure, null, null, field, RainPending: true);
+    }
+
+    /// <summary>The rain on top of <see cref="JudgeWindAsync"/>: the judgement again with it, the wind as it was.</summary>
+    /// <param name="now">The current time, in UTC: the rain is forecast from it (or from the departure, if earlier).</param>
+    public async Task<TracedRide> JudgeRainAsync(TracedRide windOnly, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(windOnly);
+        if (windOnly.Field is not { } field)
+        {
+            throw new ArgumentException("The ride must come from JudgeWindAsync.", nameof(windOnly));
+        }
         if (now.Offset != TimeSpan.Zero)
         {
             throw new ArgumentException("Now must be in UTC.", nameof(now));
         }
-        var request = traced.Request;
-        var (departure, outlook, rainFailure) = await RideForecast.ChooseAsync(
-            winds, rain, [traced.Route], request.Start, request.Departure, request.AverageSpeedKmh, now, cancellationToken);
-        return new TracedRide(request, traced.Route, traced.Analysis, departure, outlook, rainFailure);
+        var request = windOnly.Request;
+        var departures = DepartureChoice.Times(request.Departure);
+        var (outlook, rainFailure) = await RideForecast.RainAsync(
+            rain, [windOnly.Route], request.Start, request.Departure, departures, request.AverageSpeedKmh, now, cancellationToken);
+        var departure = DepartureChoice.Choose(field, [windOnly.Route], departures, outlook, request.AverageSpeedKmh);
+        return windOnly with { Departure = departure, Rain = outlook, RainFailure = rainFailure, RainPending = false };
     }
 
-    /// <summary>Both steps at once.</summary>
+    /// <summary>The weather and the departure for a route already at hand: wind, then rain.</summary>
+    /// <param name="now">The current time, in UTC: the rain is forecast from it (or from the departure, if earlier).</param>
+    /// <exception cref="WindForecastException">The wind forecast failed.</exception>
+    public async Task<TracedRide> AdviseAsync(TracedRoute traced, DateTimeOffset now, CancellationToken cancellationToken = default) =>
+        await JudgeRainAsync(await JudgeWindAsync(traced, cancellationToken), now, cancellationToken);
+
+    /// <summary>Every step at once.</summary>
     /// <exception cref="RouteException">The engine could not join the points (move them) or failed.</exception>
     /// <exception cref="WindForecastException">The wind forecast failed.</exception>
     public async Task<TracedRide> AdviseAsync(TracedRequest request, DateTimeOffset now, CancellationToken cancellationToken = default) =>

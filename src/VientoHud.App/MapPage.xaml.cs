@@ -199,18 +199,16 @@ public partial class MapPage : ContentPage
             ShowRoute(traced.Route);
             ShowReached(traced);
             summary = RideText.TracedSummary(traced) + ". ";
-            Status.Text = $"{summary}Pidiendo el viento y la lluvia…";
+            Status.Text = $"{summary}Pidiendo el viento…";
 
-            var ride = await Task.Run(() => _rides.AdviseAsync(traced, DateTimeOffset.UtcNow, cancellationToken), cancellationToken);
+            // The wind first (one request): the arrows, the way round and most of the panel; then the rain.
+            var windOnly = await Task.Run(() => _rides.JudgeWindAsync(traced, cancellationToken), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            var option = ride.Ride;
-            // The way round the wind prefers: the route is redrawn in riding order, with the wind it meets.
-            ShowRoute(option.Route);
-            ShowRideWind(WindArrows.AlongRide(option.Winds));
-            var lines = new List<string> { $"{SpanishText.Capitalized(RideText.Turn(option, ride.Shape))}: {RideText.Advantage(option.Score)}" };
-            lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone));
-            Show(RideText.Recommendation(ride.Departure, fromNow: true, Zone), string.Join("\n", lines),
-                $"{RideText.TracedSummary(ride)}. {RideText.Arrival(option, Zone)}");
+            ShowRide(windOnly, "Pidiendo la lluvia…");
+
+            var ride = await Task.Run(() => _rides.JudgeRainAsync(windOnly, DateTimeOffset.UtcNow, cancellationToken), cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            ShowRide(ride, null);
         }
         catch (OperationCanceledException)
         {
@@ -227,6 +225,19 @@ public partial class MapPage : ContentPage
         {
             Fail($"{summary}Sin previsión de viento: {ex.Message}");
         }
+    }
+
+    /// <summary>The ride as judged so far: the route in its better way round, the wind along it and the panel.</summary>
+    /// <param name="doing">What is still on its way, for the status; null when nothing is.</param>
+    private void ShowRide(TracedRide ride, string? doing)
+    {
+        var option = ride.Ride;
+        ShowRoute(option.Route);
+        ShowRideWind(WindArrows.AlongRide(option.Winds));
+        var lines = new List<string> { $"{SpanishText.Capitalized(RideText.Turn(option, ride.Shape))}: {RideText.Advantage(option.Score)}" };
+        lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone, ride.RainPending));
+        Show(RideText.Recommendation(ride.Departure, fromNow: true, Zone), string.Join("\n", lines),
+            $"{RideText.TracedSummary(ride)}. {RideText.Arrival(option, Zone)}{(doing is null ? "" : $" {doing}")}");
     }
 
     /// <summary>Cancels what was running and clears the panel for the next job.</summary>

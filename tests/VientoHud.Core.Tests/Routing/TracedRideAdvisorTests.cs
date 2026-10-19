@@ -135,6 +135,34 @@ public class TracedRideAdvisorTests
     }
 
     [Fact]
+    public async Task The_wind_is_judged_first_and_the_rain_on_top_without_asking_for_the_wind_again()
+    {
+        var wind = Wind(15, 194);
+        var model = new FakeRainForecastSource((_, _) => 0);
+        var advisor = new TracedRideAdvisor(Roads(), wind, new RainOutlookSource(DryRadar(), model, model));
+        var traced = await advisor.RouteAsync(new TracedRequest(Leon, [Leon.Destination(90, 20)], Now));
+
+        var windOnly = await advisor.JudgeWindAsync(traced);
+
+        Assert.True(windOnly.RainPending);
+        Assert.Null(windOnly.Rain);
+        Assert.NotNull(windOnly.Field);
+        Assert.Equal(9, windOnly.Departure.Options.Count);
+        Assert.NotEmpty(windOnly.Ride.Winds);
+        Assert.Empty(model.ModelRequests);
+        Assert.Single(wind.Requests);
+
+        var ride = await advisor.JudgeRainAsync(windOnly, Now);
+
+        Assert.False(ride.RainPending);
+        Assert.NotNull(ride.Rain);
+        Assert.NotNull(ride.Ride.Rain);
+        Assert.Single(model.ModelRequests);
+        Assert.Single(wind.Requests);
+        await Assert.ThrowsAsync<ArgumentException>(() => advisor.JudgeRainAsync(ride with { Field = null }, Now));
+    }
+
+    [Fact]
     public async Task Says_where_the_route_really_passes_for_each_point_touched()
     {
         var far = Leon.Destination(90, 20);

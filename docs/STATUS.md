@@ -14,6 +14,10 @@
   BRouter mueve un punto a la carretera asfaltada más cercana) y la llegada. BRouter es brouter.de (una petición por
   segundo); con `VIENTOHUD_APP_BROUTER_URL` al compilar, otro (el local desde el emulador: `http://10.0.2.2:17777/`).
   El radar se guarda 3 h en el móvil y la lluvia se reutiliza 10 min.
+- **El viento antes que la lluvia** (`TracedRideAdvisor.JudgeWindAsync` y `JudgeRainAsync`): la app juzga primero con
+  el viento (una petición: flechas, sentido, rachas y una primera salida, con "Lluvia: pidiendo la previsión…") y
+  después con la lluvia, que en el móvil la primera vez tarda (4 cuadros de radar, ~9 MB); el campo de viento se
+  reutiliza. El autor no veía las flechas porque miraba antes de que llegara la lluvia.
 - **Flechas del viento** (`WindArrows`, pedido por el autor el 2026-10-19): una grande junto a casa con el viento medio de
   la salida (apunta hacia donde va el viento: un empujón) y, con la ruta trazada, una cada 5 km con el viento que habrá
   al pasar por ahí, de color según se siente (de cara rojo, a favor verde, de lado ámbar, flojo azul marino), todas con halo blanco y la de

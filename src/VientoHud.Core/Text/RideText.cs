@@ -105,11 +105,13 @@ public static class RideText
 
     /// <summary>What the rain does on the ride: stretches with likely rain, possible rain and the warning for the area.</summary>
     /// <param name="rainFailure">Why the rain could not be asked for, when it could not.</param>
-    public static IEnumerable<string> RainLines(RideOption option, string? rainFailure, TimeZoneInfo zone)
+    /// <param name="rainPending">The rain was not asked for yet (the app shows the wind first).</param>
+    public static IEnumerable<string> RainLines(RideOption option, string? rainFailure, TimeZoneInfo zone, bool rainPending = false)
     {
         if (option.Rain is not { } rain)
         {
-            yield return rainFailure is null ? "Lluvia: sin previsión." : "Lluvia: sin previsión (no se pudo pedir).";
+            yield return rainPending ? "Lluvia: pidiendo la previsión…"
+                : rainFailure is null ? "Lluvia: sin previsión." : "Lluvia: sin previsión (no se pudo pedir).";
             yield break;
         }
         var likely = RideAlerts.For(option, int.MaxValue).Where(a => a.Kind == RideAlertKind.Rain).ToList();
@@ -148,14 +150,14 @@ public static class RideText
     /// The lines every ride shows after its heading: the wind stretch by stretch, the gusts if any, the rain and the
     /// town. The caller adds the heading before and the summary and arrival after.
     /// </summary>
-    public static IReadOnlyList<string> Lines(RideOption option, string? rainFailure, TimeZoneInfo zone)
+    public static IReadOnlyList<string> Lines(RideOption option, string? rainFailure, TimeZoneInfo zone, bool rainPending = false)
     {
         var lines = new List<string> { Stretches(option.Winds) };
         if (Gusts(option.Score) is { } gusts)
         {
             lines.Add(gusts);
         }
-        lines.AddRange(RainLines(option, rainFailure, zone));
+        lines.AddRange(RainLines(option, rainFailure, zone, rainPending));
         lines.Add(Urban(option.Urban));
         return lines;
     }
