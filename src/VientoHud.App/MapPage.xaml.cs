@@ -18,7 +18,9 @@ namespace VientoHud.App;
 /// <summary>
 /// The one screen: where the rider is, which way to head (phase 7d) and the ride traced by touching the map (7e):
 /// one point is an out and back, two or more a loop. Layout only: the position comes from the device and every
-/// route, judgement and sentence from Core.
+/// route, judgement and sentence from Core. Core's work runs on a background thread (<see cref="Task.Run(Func{Task})"/>):
+/// reading radar frames and ranking a ride take seconds on a phone, and on the UI thread that froze the map until
+/// Android killed the app (ANR, 2026-10-19).
 /// </summary>
 public partial class MapPage : ContentPage
 {
@@ -135,7 +137,7 @@ public partial class MapPage : ContentPage
             }
             Status.Text = "Pidiendo el viento…";
             var targetKm = RideDistance.FromDuration(DefaultDuration);
-            var advice = await _direction.AdviseAsync(_home.Value, targetKm, DateTimeOffset.UtcNow, cancellationToken: cancellationToken);
+            var advice = await Task.Run(() => _direction.AdviseAsync(_home.Value, targetKm, DateTimeOffset.UtcNow, cancellationToken: cancellationToken), cancellationToken);
             Show(RideText.DirectionHeadline(advice.Wind), RideText.Wind(advice.Wind),
                 $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.");
             ShowFan(advice.Fan);
@@ -163,12 +165,12 @@ public partial class MapPage : ContentPage
         {
             var request = new TracedRequest(_home!.Value, _via.ToList(), DateTimeOffset.UtcNow);
             Status.Text = request.Shape == RouteShape.OutAndBack ? "Buscando la ida y vuelta…" : "Buscando la vuelta…";
-            var traced = await _rides.RouteAsync(request, cancellationToken);
+            var traced = await Task.Run(() => _rides.RouteAsync(request, cancellationToken), cancellationToken);
             ShowRoute(traced.Route);
             summary = RideText.TracedSummary(traced) + ". ";
             Status.Text = $"{summary}Pidiendo el viento y la lluvia…";
 
-            var ride = await _rides.AdviseAsync(traced, DateTimeOffset.UtcNow, cancellationToken);
+            var ride = await Task.Run(() => _rides.AdviseAsync(traced, DateTimeOffset.UtcNow, cancellationToken), cancellationToken);
             var option = ride.Ride;
             // The way round the wind prefers: the route is redrawn in riding order.
             ShowRoute(option.Route);

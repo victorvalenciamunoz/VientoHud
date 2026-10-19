@@ -112,7 +112,9 @@ visto bueno del autor**:
   vuelta de 10 km que no llega al segundo punto (`…7e-emulador-vuelta.png`): desde el ordenador brouter.de da lo mismo
   ("pasa a 2,96 km de un punto"): el punto cayó donde no hay asfalto y BRouter lo movió a la carretera más cercana. La
   app lo dice en el resumen de la ruta, que ahora se queda aunque el tiempo falle. El viento y la lluvia fallaron por
-  el cupo de Open-Meteo; el panel entero (recomendación, tramos, lluvia, llegada) queda para verlo en vivo.
+  el cupo de Open-Meteo. Más tarde volvió el cupo y, con los cálculos ya en un hilo aparte, el panel entero salió en
+  vivo en el emulador ("Sal ahora (15:14)", ida y vuelta +6 km/h, km 0-11 flojo, lluvia no se espera, ciudad 46 %,
+  11,1 km, llegada 15:41; `…7e-emulador-panel.png`) mientras se arrastraba el mapa sin que se bloqueara.
 - Paso 7d (2026-10-19): 7 tests nuevos (624 en total): el abanico (25 puntos a 23 km de casa para 60 km, de 225° a
   315° alrededor de 270°, bien alrededor del norte, ninguno con viento flojo o variable); `DirectionAdvisor` pide las
   horas de la salida en el sitio (3 para 60 km a las 8:00, 4 desde las 8:50) y da rumbo y abanico, o ninguno con
@@ -162,6 +164,10 @@ visto bueno del autor**:
 - Las imágenes del radar (~2 MB cada una) se guardan sin límite: en el móvil hay que borrar las viejas (7b).
 - Android puede cortar una búsqueda larga si la pantalla se apaga o se cambia de app (ColorOS de OPPO es estricto).
   Menos grave desde `DECISIONS.md` 048: una ruta trazada son segundos.
+- **Ojo del autor en el móvil** (2026-10-19, punto cerca de Arcicóllar): la ruta se pintó, pero al hacer zoom la app se
+  quedó colgada y Android la mató (ANR: 5 s sin atender la pantalla, 133 % de CPU). Causa: los cálculos de Core (leer
+  los cuadros del radar, su movimiento, puntuar la ruta en 9 salidas y dos sentidos) corrían en el hilo de la pantalla.
+  Arreglado: van en un hilo aparte (`Task.Run`). Queda por confirmar en el móvil que el zoom responde mientras calcula.
 - Un punto tocado donde no hay asfalto se mueve (BRouter) a la carretera más cercana, a veces a 3 km: la app lo dice
   en el resumen, pero el punto se queda donde se tocó. Para 7h: mover el punto dibujado a donde pasa la ruta, o avisar
   más claro.
