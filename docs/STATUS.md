@@ -17,8 +17,9 @@
 División aceptada por el autor el 2026-10-19:
 
 - [x] 6a. Ida y vuelta en el generador.
-- [ ] 6b (hecho; **falta el ojo del autor en gpx.studio**). Ida y vuelta en la recomendación: **una por rumbo buscado**
-  (decisión del autor, `DECISIONS.md` 041) junto a las vueltas, en el mismo orden (rachas, lluvia, viento).
+- [x] 6b. Ida y vuelta en la recomendación: **una por rumbo buscado** (decisión del autor, `DECISIONS.md` 041) junto a
+  las vueltas, en el mismo orden (rachas, lluvia, viento). **Ojo del autor** (2026-10-19): la de León está bien; la de
+  Humanes hacia el NE va casi toda por ciudad o cerca de ciudades (Fuenlabrada, Getafe): es lo que deben arreglar 6c y 6d.
 - [ ] 6c. Medir las ciudades: km por ciudad de cada ruta y si vuelve a pasar cerca de la salida a mitad de camino, en las
   salidas de prueba, antes de cambiar nada.
 - [ ] 6d. Evitar ciudades (generador y perfil de BRouter) y juez de la fase: antes y después, en números y a ojo; los
