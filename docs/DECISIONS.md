@@ -961,5 +961,10 @@ Formato: contexto → decisión → alternativas descartadas.
   `docs/verificacion/2026-10-19-fase6-ciudad-antes.txt`): Humanes 31-97 % en ciudad (la ida y vuelta al N, 97 %),
   Fuenlabrada 48-90 %, Tres Cantos 14-59 %, León 17-36 %, La Bañeza 10-30 %. Volver a casa casi siempre 0: los lazos
   que el autor vio cruzan la ciudad o sus alrededores más allá de 3 km, no vuelven al centro.
+- Ojo del autor (2026-10-19) en Fuenlabrada: N vuelta (90 %) e ida y vuelta (77 %) "casi todo urbano"; ESE ida y vuelta
+  (53 %) "gran porcentaje urbano"; OSO ida y vuelta (48 %) "la que más se parece a las que hago": la medida ordena bien.
+  Sus salidas reales (`tools/investigacion/ridesurban.cs`; `docs/verificacion/2026-10-19-fase6-ciudad-salidas-autor.txt`):
+  Humanes 73 km, 41 %; Humanes 21 km, 56 %; La Bañeza 95 km, 6 %; otras tres, 4-13 %. Alrededor de Humanes casi nada baja
+  del 40 % (pueblos y polígonos seguidos): lo que sobra es el exceso (77-97 %), no cualquier travesía.
 - Alternativas: polígonos de zonas urbanas de OpenStreetMap (otra fuente externa, más trabajo); datos de BRouter con la
   estimación de ciudad (otros mapas; sin comprobar si existen).
