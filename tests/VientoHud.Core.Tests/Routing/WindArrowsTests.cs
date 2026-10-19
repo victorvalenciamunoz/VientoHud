@@ -28,27 +28,17 @@ public class WindArrowsTests
     }
 
     [Fact]
-    public void At_home_the_mean_wind_or_nothing_when_it_cancels_out()
-    {
-        var steady = new StartDirectionAdvice(StartAdviceKind.HeadIntoWind, 270, 270, 18, 18, 1, 3);
-        var cancelled = new StartDirectionAdvice(StartAdviceKind.Variable, null, null, 0, 15, 0, 3);
-
-        Assert.Equal(90, Leon.BearingTo(WindArrows.AtHome(steady, Leon)!.Tip), 0);
-        Assert.Null(WindArrows.AtHome(cancelled, Leon));
-    }
-
-    [Fact]
     public void Along_a_ride_one_arrow_every_five_km_with_the_wind_of_the_leg_as_it_feels()
     {
-        // 12 legs of 1 km heading north; wind from the north for the first 6 km, from the south after.
-        var winds = Enumerable.Range(0, 12).Select(i => new LegWind(
+        // 17 legs of 1 km heading north; wind from the north for the first 6 km, from the south up to km 12, light after.
+        var winds = Enumerable.Range(0, 17).Select(i => new LegWind(
                 new RouteLeg(i, i, 1, Leon, Leon.Destination(0, 1), Leon.Destination(0, i + 0.5), 0, 1, null, Eight, Eight.AddMinutes(2.4)),
-                new LocalWind(20, null, i < 6 ? 0 : 180, "fake")))
+                new LocalWind(i < 12 ? 20 : 2, null, i < 6 ? 0 : 180, "fake")))
             .ToList();
 
         var arrows = WindArrows.AlongRide(winds);
 
-        // At km 2,5 and 7,5: legs 2 and 7.
+        // At km 2,5 and 7,5: legs 2 and 7; none at km 12,5, where the wind is light.
         Assert.Equal(2, arrows.Count);
         Assert.Equal(WindFeel.Headwind, arrows[0].Feel);
         Assert.Equal(WindFeel.Tailwind, arrows[1].Feel);

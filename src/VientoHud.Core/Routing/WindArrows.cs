@@ -8,16 +8,13 @@ namespace VientoHud.Core.Routing;
 /// <paramref name="HeadRight"/>.
 /// </summary>
 /// <param name="SpeedKmh">The wind's speed, for the stroke.</param>
-/// <param name="Feel">How it feels to the rider there, for the color; null for the wind at home, before any route.</param>
+/// <param name="Feel">How it feels to the rider there, for the color; null when it is not part of a ride.</param>
 public sealed record WindArrow(
     Coordinate Tail, Coordinate Tip, Coordinate HeadLeft, Coordinate HeadRight, double SpeedKmh, WindFeel? Feel);
 
-/// <summary>Wind arrows for the map (phase 7e): one at home for the mean wind, and one every few km along a ride.</summary>
+/// <summary>Wind arrows along a ride (phase 7e): one every few km where the wind is felt.</summary>
 public static class WindArrows
 {
-    /// <summary>Length of the arrow at home.</summary>
-    public const double HomeLengthKm = 3;
-
     /// <summary>Spacing and length of the arrows along a ride.</summary>
     public const double DefaultEveryKm = 5;
 
@@ -42,13 +39,9 @@ public static class WindArrows
             speedKmh, feel);
     }
 
-    /// <summary>The mean wind of the ride at home; null when the hourly winds cancel out (no direction to show).</summary>
-    public static WindArrow? AtHome(StartDirectionAdvice wind, Coordinate home, double lengthKm = HomeLengthKm) =>
-        wind.MeanWindFromDegrees is { } from ? At(home, from, wind.MeanVectorSpeedKmh, lengthKm) : null;
-
     /// <summary>
-    /// One arrow every <paramref name="everyKm"/> along a ride (at km 2.5, 7.5…), with the wind the rider meets there
-    /// at the time they pass, colored by how it feels.
+    /// One arrow every <paramref name="everyKm"/> along a ride (at km 2.5, 7.5…) with the wind the rider meets there at
+    /// the time they pass, colored by how it feels; none where it is light (its direction would be noise).
     /// </summary>
     public static IReadOnlyList<WindArrow> AlongRide(
         IReadOnlyList<LegWind> winds, double everyKm = DefaultEveryKm, double lengthKm = DefaultLengthKm)
@@ -64,7 +57,11 @@ public static class WindArrows
         {
             var at = km;
             var leg = winds.First(w => w.Leg.EndKm >= at);
-            arrows.Add(At(leg.Leg.Middle, leg.Wind.DirectionFromDegrees, leg.Wind.SpeedKmh, lengthKm, WindStretches.FeelOf(leg)));
+            var feel = WindStretches.FeelOf(leg);
+            if (feel != WindFeel.Light)
+            {
+                arrows.Add(At(leg.Leg.Middle, leg.Wind.DirectionFromDegrees, leg.Wind.SpeedKmh, lengthKm, feel));
+            }
         }
         return arrows;
     }

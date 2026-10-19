@@ -40,8 +40,6 @@ public partial class MapPage : ContentPage
     private readonly MemoryLayer _snapLayer = new("Snap") { Style = SnapStyle() };
     // The wind: the mean one at home, and along the ride one layer per feel (the color is the layer's).
     // Every arrow has a white halo underneath, so it stands out on the pale map whatever its color.
-    private readonly MemoryLayer _homeWindHaloLayer = new("HomeWindHalo") { Style = ArrowStyle(HudTheme.Text, 9) };
-    private readonly MemoryLayer _homeWindLayer = new("HomeWind") { Style = ArrowStyle(HudTheme.Background, 5) };
     private readonly MemoryLayer _windHaloLayer = new("WindHalo") { Style = ArrowStyle(HudTheme.Text, 7) };
     private readonly Dictionary<WindFeel, MemoryLayer> _windLayers = new()
     {
@@ -49,7 +47,6 @@ public partial class MapPage : ContentPage
         [WindFeel.Tailwind] = new MemoryLayer("WindTail") { Style = ArrowStyle(HudTheme.Good, 3.5) },
         [WindFeel.FromLeft] = new MemoryLayer("WindLeft") { Style = ArrowStyle(HudTheme.Marker, 3.5) },
         [WindFeel.FromRight] = new MemoryLayer("WindRight") { Style = ArrowStyle(HudTheme.Marker, 3.5) },
-        [WindFeel.Light] = new MemoryLayer("WindLight") { Style = ArrowStyle(HudTheme.Background, 3) },
     };
     private readonly MemoryLayer _homeLayer = new("Home") { Style = HomeStyle() };
     private readonly List<GeoCoordinate> _via = [];
@@ -70,8 +67,6 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(_fanLayer);
         MapView.Map.Layers.Add(_routeLayer);
         MapView.Map.Layers.Add(_snapLayer);
-        MapView.Map.Layers.Add(_homeWindHaloLayer);
-        MapView.Map.Layers.Add(_homeWindLayer);
         MapView.Map.Layers.Add(_windHaloLayer);
         foreach (var layer in _windLayers.Values)
         {
@@ -167,7 +162,6 @@ public partial class MapPage : ContentPage
             Show(RideText.DirectionHeadline(advice.Wind), RideText.Wind(advice.Wind),
                 $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.");
             ShowFan(advice.Fan);
-            ShowHomeWind(WindArrows.AtHome(advice.Wind, _home.Value));
             ShowRideWind([]);
         }
         catch (OperationCanceledException)
@@ -308,15 +302,6 @@ public partial class MapPage : ContentPage
             _snapLayer.DataHasChanged();
             ShowRideWind([]);
         }
-        MapView.Map.RefreshGraphics();
-    }
-
-    private void ShowHomeWind(WindArrow? arrow)
-    {
-        _homeWindLayer.Features = arrow is null ? [] : ArrowFeatures(arrow);
-        _homeWindHaloLayer.Features = arrow is null ? [] : ArrowFeatures(arrow);
-        _homeWindLayer.DataHasChanged();
-        _homeWindHaloLayer.DataHasChanged();
         MapView.Map.RefreshGraphics();
     }
 
