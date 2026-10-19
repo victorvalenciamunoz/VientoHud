@@ -25,7 +25,9 @@ Lee `docs/VISION.md` para el porqué y `docs/PLAN.md` para las fases. El estado 
 - `VientoHud.Core`: librería sin dependencias de UI (se reutilizará en MAUI).
 - `VientoHud.Console`: app de consola para validar cálculos y generar GPX.
 - `VientoHud.Core.Tests`: xUnit.
-- Fase 6: .NET MAUI (Android-first), estética HUD de la familia.
+- `VientoHud.App`: app .NET MAUI (solo Android), con la estética de CieloHud (fase 7). `dotnet build src/VientoHud.App`;
+  la clave de Thunderforest se lee de la variable de entorno `VIENTOHUD_THUNDERFOREST_KEY` al compilar (sin ella, el
+  mapa es OpenStreetMap). Nada de lógica en la app: solo muestra lo que devuelve Core.
 
 ## Convenciones
 

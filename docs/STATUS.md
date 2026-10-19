@@ -6,6 +6,11 @@
 
 ### Qué funciona (fase 7)
 
+- **Esqueleto de la app** (`src/VientoHud.App`, paso 7c, `DECISIONS.md` 050): .NET MAUI solo Android, con las letras y
+  la paleta de CieloHud (`HudTheme`), un mapa de Mapsui a pantalla completa con las teselas de OpenCycleMap
+  (Thunderforest, clave leída al compilar de `VIENTOHUD_THUNDERFOREST_KEY`; sin ella, OpenStreetMap y la cabecera lo
+  dice), la atribución con enlace en el pie, el cliente HTTP con reintentos de Core y los avisos de terceros dentro de
+  la app. Arranca en el emulador (Android 14). Centrado en León hasta que llegue la ubicación (7d).
 - **Core preparado para el móvil** (paso 7b, `DECISIONS.md` 049): `ResilientHttp.CreateClient()` reintenta los fallos
   pasajeros (5xx, 408, red) hasta 3 veces con esperas de 2-8 s, no los 429; `CachedRainOutlookSource` reutiliza la
   lluvia 10 min para el mismo sitio (cada punto nuevo cuesta ~25 llamadas a Open-Meteo en vez de ~250);
@@ -46,9 +51,10 @@ visto bueno del autor**:
   reintentar una vez las respuestas pasajeras de Open-Meteo (503 "sobrecargado", 429): el 2026-10-19 un 503 del viento
   tiró una recomendación entera. Hecho con Microsoft.Extensions.Http.Resilience y la lluvia reutilizada
   (`DECISIONS.md` 049).
-- [ ] 7c. **Elegir el mapa** (opciones comprobadas en su fuente: licencia, mapas de fondo y sus normas de uso, clave,
-  mantenimiento; decisión del autor) y esqueleto de la app con el mapa y la estética de CieloHud; arranca en el
-  emulador y en el móvil.
+- [x] 7c. **Elegir el mapa** (opciones comprobadas en su fuente: licencia, mapas de fondo y sus normas de uso, clave,
+  mantenimiento; decisión del autor: Mapsui con OpenCycleMap, `DECISIONS.md` 050) y esqueleto de la app con el mapa y
+  la estética de CieloHud; arranca en el emulador. **Pendiente: arrancarla en el móvil del autor** (no estaba
+  conectado al acabar el paso).
 - [ ] 7d. Ubicación del móvil y la dirección: "hacia el oeste", el viento de las próximas horas y un abanico en el
   mapa. Una llamada a Open-Meteo: segundos.
 - [ ] 7e. **Tocar el mapa**: un punto, ida y vuelta; dos o tres, vuelta. Distancia al momento, la ruta dibujada, y
@@ -85,6 +91,14 @@ visto bueno del autor**:
   vuelta) y `route` en León dan el mismo texto y los mismos GPX, salvo un km contado de más en una lluvia por el minuto
   que pasa entre las dos pasadas (el horizonte de 3 h se mueve con la hora). Open-Meteo dio 503 a ratos toda la tarde y
   hubo que repetir la comparación tres veces: razón de más para el reintento de 7b.
+- Paso 7c (2026-10-19): sin tests (no hay lógica en la app; la solución entera compila y los 617 de Core pasan con el
+  proyecto nuevo dentro). **En el emulador** (Pixel, Android 14): pantalla de arranque con el icono, y el mapa de
+  OpenCycleMap centrado en León con relieve, pueblos y la EuroVelo 3, la cabecera "VIENTOHUD · OPENCYCLEMAP" y la
+  atribución en el pie; estable (dos capturas iguales con 10 s entre ellas). Captura en
+  `docs/verificacion/2026-10-19-fase7-7c-emulador.png`. Una tesela de prueba pedida con la clave desde el ordenador:
+  HTTP 200, PNG de 22 KB. En la primera instalación el mapa se fue solo hacia el este; tras cerrar y abrir la app no
+  volvió a pasar (lanzador `monkey` durante la instalación); se vigila en el móvil. La atribución salía dos veces
+  (la caja blanca de Mapsui y la nuestra): se apaga la de Mapsui y queda la nuestra, con enlace al tocarla.
 - Paso 7b (2026-10-19): 9 tests nuevos (617 en total). Reintentos: un 503 y un 502 seguidos de un 200 no se notan
   (3 peticiones); tras 3 reintentos el fallo vuelve tal cual (4 peticiones); un 403 (brouter.de) y un 429 (cupo de
   Open-Meteo) no se reintentan; el cliente lleva el agente y los 60 s. Lluvia reutilizada: a menos de 1 km, menos de
@@ -114,6 +128,11 @@ visto bueno del autor**:
   pruebas en vivo el mismo día. Pendiente: probar `trace` con el cliente nuevo (7b) en cuanto vuelva el cupo.
 - Las imágenes del radar (~2 MB cada una) se guardan sin límite: en el móvil hay que borrar las viejas (7b).
 - Android puede cortar una búsqueda larga si la pantalla se apaga o se cambia de app (ColorOS de OPPO es estricto).
+  Menos grave desde `DECISIONS.md` 048: una ruta trazada son segundos.
+- Thunderforest "se reserva retirar el plan gratuito": si pasa, la app sigue con OpenStreetMap (sin relieve ni firme)
+  hasta cambiar de proveedor; es una línea.
+- Las teselas ya vistas se guardan en la caché del móvil sin límite de tamaño (Mapsui/BruTile `FileCache`); Android
+  puede vaciarla. Si crece, ponerle tope.
 
 Fase 6 — Mejores rutas: terminada el 2026-10-19 (pasos 6a a 6d hechos, 6e probado y retirado, juez ejecutado; el autor la
 cierra, `DECISIONS.md` 046).

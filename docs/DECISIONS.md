@@ -1142,3 +1142,23 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: Polly directo (BSD-3; desde el 2026-11-16 cobra una cuota a empresas que ganen más de 20.000 $ con un
   producto que lo use; no aplica); un reintento a mano (unas 15 líneas, sin azar ni `Retry-After`, probado por
   nosotros).
+
+## 050 — El mapa de la app: Mapsui con OpenCycleMap (Thunderforest), OpenStreetMap de reserva
+- Contexto: fase 7, paso 7c. La ruta la traza el usuario tocando el mapa (`DECISIONS.md` 048): el mapa es el centro de
+  la app. Dos piezas: el control que lo dibuja y de dónde salen las teselas (las imágenes de fondo).
+- Decisión (del autor, 2026-10-19, con la recomendación; comprobado en las fuentes ese día):
+  - **Control: Mapsui** (`Mapsui.Maui` 5.1.0 del 2026-05-27, MIT, activo; dibuja con SkiaSharp). Sin clave. La ruta, el
+    abanico del viento y los puntos se pintan con los colores de CieloHud. El estilo de las teselas es el que sea.
+  - **Teselas: OpenCycleMap de Thunderforest**, plan gratuito (150.000 teselas al mes, de sobra: una pantalla son
+    15-20). Hecho para ciclistas: asfalto en línea continua y tierra en discontinua, curvas de nivel y sombreado,
+    rutas señalizadas. Sus condiciones: agente de usuario honesto, atribución a Thunderforest y a OpenStreetMap
+    visible, nada de descargar zonas enteras de antemano (no lo hacemos: solo se piden las teselas en pantalla; las
+    vistas se pueden guardar en el móvil). Se reservan retirar el plan gratuito.
+  - **La clave** va en la variable de entorno del usuario `VIENTOHUD_THUNDERFOREST_KEY`, se lee al compilar y queda
+    dentro de la app instalada (inevitable para una clave de mapas en un cliente; Thunderforest lo asume). Nunca en el
+    repo. Sin clave, la app usa las **teselas estándar de OpenStreetMap** (sin clave; su política admite apps con un
+    agente de usuario propio y atribución; "sin garantía") y lo dice.
+- Alternativas: el control de mapas de MAUI (en Android es Google Maps: clave de Google, sus condiciones y su aspecto;
+  el estilo propio llega en .NET 11); un mapa web dentro de la app con MapLibre y las teselas vectoriales de OpenFreeMap
+  (sin clave ni límites, fondo oscuro posible, pero un puente C#-JavaScript y un proyecto de una sola persona); solo
+  OpenStreetMap estándar (sin relieve ni firme).

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mapsui="clr-namespace:Mapsui.UI.Maui;assembly=Mapsui.UI.Maui"
+             x:Class="VientoHud.App.MapPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource HudBackground}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Header in the family's look: the name, and which map is on. -->
+        <Grid Grid.Row="0" Padding="16,44,16,8" ColumnDefinitions="*,Auto">
+            <Label Text="VIENTOHUD" FontFamily="ChakraPetchBold" FontSize="18" CharacterSpacing="2"
+                   TextColor="{DynamicResource HudGuide}" VerticalOptions="Center" />
+            <Label Grid.Column="1" x:Name="MapName" FontFamily="ChakraPetch" FontSize="11" CharacterSpacing="1"
+                   TextColor="{DynamicResource HudTextMuted}" VerticalOptions="Center" />
+        </Grid>
+
+        <!-- The map (DECISIONS 050). Phase 7e: the points the rider touches go here. -->
+        <mapsui:MapControl Grid.Row="1" x:Name="MapView" />
+
+        <!-- The credit the tiles' licences ask for, always in view; a tap opens the provider's page. -->
+        <Label Grid.Row="2" x:Name="Attribution" Padding="16,6,16,10" FontFamily="OpenSansRegular" FontSize="11"
+               TextColor="{DynamicResource HudTextMuted}">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnAttributionTapped" />
+            </Label.GestureRecognizers>
+        </Label>
+
+    </Grid>
+</ContentPage>

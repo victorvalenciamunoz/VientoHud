@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/VientoHud.App/VientoHud.App.csproj" />
     <Project Path="src/VientoHud.Console/VientoHud.Console.csproj" />
     <Project Path="src/VientoHud.Core/VientoHud.Core.csproj" />
   </Folder>
