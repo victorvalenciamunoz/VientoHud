@@ -28,10 +28,17 @@ internal sealed class FakeRouteEngine(Func<IReadOnlyList<Coordinate>, Route> rou
             "fake");
     }
 
-    /// <summary>The bearing a fan of waypoints is centred on: halfway between its two middle points.</summary>
+    /// <summary>
+    /// The bearing a fan of waypoints is centred on: halfway between its two middle points; for an out and back (start and
+    /// far point), the bearing to the far point.
+    /// </summary>
     public static double FanBearing(IReadOnlyList<Coordinate> waypoints)
     {
         var start = waypoints[0];
+        if (waypoints.Count == 2)
+        {
+            return start.BearingTo(waypoints[1]);
+        }
         var a = start.BearingTo(waypoints[2]);
         var b = start.BearingTo(waypoints[3]);
         var half = ((b - a + 540) % 360 - 180) / 2;

@@ -26,10 +26,14 @@ public class RidePlannerTests
 
         Assert.Equal(StartAdviceKind.HeadIntoWind, plan.Wind.Kind);
         Assert.Equal([194.0, 239, 149], plan.Bearings);
-        Assert.Equal(3, plan.Ranked.Count);
-        Assert.Equal(3, plan.Ranked.Select(o => o.RouteIndex).Distinct().Count());
-        Assert.Equal(194, plan.Loops[plan.Ranked[0].RouteIndex].BearingDegrees);
-        Assert.True(plan.Ranked[0].Score.WindAdvantageKmh > plan.Ranked[2].Score.WindAdvantageKmh);
+        // A loop and an out and back for each bearing (DECISIONS 041).
+        Assert.Equal(6, plan.Ranked.Count);
+        Assert.Equal(6, plan.Ranked.Select(o => o.RouteIndex).Distinct().Count());
+        Assert.Equal(3, plan.Ranked.Count(o => plan.Loops[o.RouteIndex].Shape == RouteShape.OutAndBack));
+        // Straight into the wind and back with it: the out and back towards 194° is the best for the wind.
+        var first = plan.Loops[plan.Ranked[0].RouteIndex];
+        Assert.Equal((194.0, RouteShape.OutAndBack), (first.BearingDegrees, first.Shape));
+        Assert.True(plan.Ranked[0].Score.WindAdvantageKmh > plan.Ranked[^1].Score.WindAdvantageKmh);
         // One forecast for the start (60 km at 25 km/h: 3 hours) and one for all the loops.
         Assert.Equal(2, wind.Requests.Count);
         Assert.Equal([Leon], wind.Requests[0]);
@@ -44,7 +48,7 @@ public class RidePlannerTests
 
         Assert.Equal(StartAdviceKind.Calm, plan.Wind.Kind);
         Assert.Equal([0.0, 120, 240], plan.Bearings);
-        Assert.Equal(3, plan.Ranked.Count);
+        Assert.Equal(6, plan.Ranked.Count);
     }
 
     [Fact]
@@ -68,8 +72,8 @@ public class RidePlannerTests
         var plan = await planner.PlanAsync(Leon, 60, Eight, count: 1);
 
         Assert.Empty(plan.Ranked);
-        // The one bearing into the wind and the three of the wider fan.
-        Assert.Equal(4, plan.Loops.Count);
+        // A loop and an out and back for the one bearing into the wind and the three of the wider fan.
+        Assert.Equal(8, plan.Loops.Count);
         Assert.Single(wind.Requests);
     }
 
@@ -83,8 +87,8 @@ public class RidePlannerTests
 
         var plan = await planner.PlanAsync(Leon, 60, Eight);
 
-        Assert.False(plan.Loops.Single(l => l.BearingDegrees == 239).Found);
-        Assert.Equal(2, plan.Ranked.Count);
+        Assert.All(plan.Loops.Where(l => l.BearingDegrees == 239), l => Assert.False(l.Found));
+        Assert.Equal(4, plan.Ranked.Count);
         Assert.All(plan.Ranked, o => Assert.True(plan.Loops[o.RouteIndex].Found));
         Assert.All(plan.Ranked, o => Assert.Equal(
             plan.Loops[o.RouteIndex].Best!.Route.Points[1].Position,
@@ -103,8 +107,9 @@ public class RidePlannerTests
         var plan = await planner.PlanAsync(Leon, 60, Eight);
 
         Assert.Equal([194.0, 239, 149, 284], plan.Bearings);
-        Assert.Equal(4, plan.Loops.Count);
-        Assert.Equal(284, plan.Loops[Assert.Single(plan.Ranked).RouteIndex].BearingDegrees);
+        Assert.Equal(8, plan.Loops.Count);
+        Assert.Equal(2, plan.Ranked.Count);
+        Assert.All(plan.Ranked, o => Assert.Equal(284, plan.Loops[o.RouteIndex].BearingDegrees));
         Assert.True(plan.Loops[0].Found);
     }
 

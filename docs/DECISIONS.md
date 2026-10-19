@@ -933,3 +933,16 @@ Formato: contexto → decisión → alternativas descartadas.
   Cantos hacia el OSO (la distancia salta a 82 km).
 - Alternativas: pedir salida → punto → salida (la vuelta podría ir por otra carretera); varios puntos en línea (más
   peticiones sin ganar nada).
+
+## 041 — Una ida y vuelta por rumbo, en el mismo orden que las vueltas
+- Contexto: fase 6, paso 6b: las idas y vueltas (`DECISIONS.md` 040) entran en la recomendación.
+- Decisión (del autor, 2026-10-19): **una ida y vuelta por cada rumbo buscado**, además de la vuelta (hoy, 3 + 3), y
+  compiten en el mismo orden (rachas de lado, lluvia probable, ventaja de viento: `DECISIONS.md` 035). Si al ampliar el
+  abanico (`DECISIONS.md` 023) se añade un rumbo, también lleva las dos.
+- Técnica: en la consola salen como "ida y vuelta" (en el progreso, en cada opción, en el nombre del GPX y en el del
+  fichero, que es el que muestra Hammerhead: `1-ida-y-vuelta-60km-NE-…gpx`).
+- Probado en vivo (2026-10-19, BRouter local, 60 km): en Humanes con viento del NE a 18 km/h, la primera es la ida y
+  vuelta hacia el NE con +20 km/h de ventaja (10 de cara a la ida, 10 a favor a la vuelta), frente a +4 de la mejor
+  vuelta; dos de las tres vueltas no eran válidas y las tres idas y vueltas sí. En León con viento flojo gana una ida y
+  vuelta por poco (+5 frente a +2).
+- Alternativas: una sola ida y vuelta, contra el viento (menos peticiones; con brouter.de importaría más).

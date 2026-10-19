@@ -41,7 +41,7 @@ internal sealed class RouteCommand(
 
         var plan = await planner.PlanAsync(
             start, targetKm, departure, options.SpeedKmh, options.Count, options.Bearing,
-            new LineProgress(r => output.WriteLine($"  {Heading(r.BearingDegrees)}: {Outcome(r)}")),
+            new LineProgress(r => output.WriteLine($"  {Kind(r)} {Heading(r.BearingDegrees)}: {Outcome(r)}")),
             cancellationToken: cancellationToken);
         // The progress lines come after the planner has looked at the wind; say what it saw first.
         output.WriteLine();
@@ -99,7 +99,8 @@ internal sealed class RouteCommand(
         {
             var option = chosen.Ranked[i];
             var loop = plan.Loops[found[option.RouteIndex]];
-            var turn = option.Route.TurnsClockwise() ? "sentido horario" : "sentido antihorario";
+            var outAndBack = loop.Shape == RouteShape.OutAndBack;
+            var turn = outAndBack ? "ida y vuelta" : option.Route.TurnsClockwise() ? "sentido horario" : "sentido antihorario";
             var arrival = option.Winds[^1].Leg.EndTime;
             var lines = new List<string>
             {
@@ -120,13 +121,14 @@ internal sealed class RouteCommand(
             lines.Add($"{Summary(loop.Best!)}. Llegada hacia las {Local(arrival, "HH:mm")}.");
 
             var alerts = RideAlerts.For(option);
-            var name = $"Sal {Local(chosen.Departure, "HH:mm")} · {option.Route.DistanceKm.ToString("0", Spanish)} km {Point(loop.BearingDegrees)}";
+            var name = $"Sal {Local(chosen.Departure, "HH:mm")} · {option.Route.DistanceKm.ToString("0", Spanish)} km {Point(loop.BearingDegrees)}" +
+                       (outAndBack ? " ida y vuelta" : "");
             var description = string.Join("\n",
-                new[] { recommendation, $"{i + 1}.ª opción. Vuelta {Km(option.Route.DistanceKm)}, {turn}." }
+                new[] { recommendation, $"{i + 1}.ª opción. {(outAndBack ? "Ida y vuelta" : "Vuelta")} {Km(option.Route.DistanceKm)}{(outAndBack ? "" : $", {turn}")}." }
                     .Concat(lines)
                     .Concat(Attributions(option.Route, outlook)));
             var file = await WriteGpxAsync(
-                options.OutputDirectory, $"{i + 1}-vuelta-{targetKm:0}km-{Point(loop.BearingDegrees)}-{stamp}.gpx",
+                options.OutputDirectory, $"{i + 1}-{FileKind(loop)}-{targetKm:0}km-{Point(loop.BearingDegrees)}-{stamp}.gpx",
                 option.Route, name, chosen.Departure, description, alerts.Select(Waypoint).ToList(), cancellationToken);
 
             output.WriteLine($"{i + 1}. {lines[0]}");
@@ -147,11 +149,11 @@ internal sealed class RouteCommand(
                 continue;
             }
             var file = await WriteGpxAsync(
-                options.OutputDirectory, $"vuelta-{targetKm:0}km-{Point(loop.BearingDegrees)}-{stamp}-descartada.gpx",
-                best.Route, $"Vuelta {Km(best.Route.DistanceKm)} hacia el {Point(loop.BearingDegrees)}", departure,
+                options.OutputDirectory, $"{FileKind(loop)}-{targetKm:0}km-{Point(loop.BearingDegrees)}-{stamp}-descartada.gpx",
+                best.Route, $"{Kind(loop)} {Km(best.Route.DistanceKm)} hacia el {Point(loop.BearingDegrees)}", departure,
                 Summary(best), [], cancellationToken);
             output.WriteLine(
-                $"{Capitalized(Heading(loop.BearingDegrees))}: sin vuelta válida. La más cercana: {Summary(best)}. " +
+                $"{Kind(loop)} {Heading(loop.BearingDegrees)}: no válida. La más cercana: {Summary(best)}. " +
                 $"Falla: {Problems(best.Problems)}.");
             output.WriteLine($"   GPX (descartada): {file}");
         }
@@ -328,11 +330,16 @@ internal sealed class RouteCommand(
         return $"km {s.StartKm.ToString("0", Spanish)}-{s.EndKm.ToString("0", Spanish)}: {feel} {Kmh(s.MeanKmh)}";
     }
 
+    private static string Kind(LoopResult r) => r.Shape == RouteShape.OutAndBack ? "Ida y vuelta" : "Vuelta";
+
+    // Hammerhead shows the file name, not the one inside the GPX (DECISIONS 037).
+    private static string FileKind(LoopResult r) => r.Shape == RouteShape.OutAndBack ? "ida-y-vuelta" : "vuelta";
+
     private static string Outcome(LoopResult r) => r switch
     {
-        { Found: true, Best: { } best } => $"vuelta de {Km(best.Route.DistanceKm)} ({r.Requests} peticiones)",
+        { Found: true, Best: { } best } => $"{Km(best.Route.DistanceKm)} ({r.Requests} peticiones)",
         { EngineFailure: { } failure } => $"BRouter dejó de responder: {failure}",
-        { Best: { } best } => $"sin vuelta válida ({r.Requests} peticiones; la más cercana falla por {Problems(best.Problems)})",
+        { Best: { } best } => $"no válida ({r.Requests} peticiones; la más cercana falla por {Problems(best.Problems)})",
         _ => $"BRouter no pudo unir los puntos en ningún rumbo cercano ({r.Requests} peticiones)",
     };
 

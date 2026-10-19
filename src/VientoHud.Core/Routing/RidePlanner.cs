@@ -66,7 +66,8 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
             ? LoopGenerator.SpreadBearings(count, bearing)
             : RideBearings.For(wind, count)).ToList();
 
-        var loops = (await generator.GenerateManyAsync(start, bearings, targetKm, progress, cancellationToken)).ToList();
+        // A loop and an out and back for each bearing (the author's choice, DECISIONS 041); the ranking decides.
+        var loops = (await GenerateBothAsync(bearings)).ToList();
         // Nothing valid into the wind: widen the fan, one bearing at a time, until one is (the author's choice,
         // DECISIONS 023). Not when the rider chose the bearing, nor when the bearings already go all round.
         if (firstBearing is null && wind.StartBearingDegrees is { } intoWind)
@@ -78,11 +79,11 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
                     break;
                 }
                 bearings.Add(wider);
-                loops.AddRange(await generator.GenerateManyAsync(start, [wider], targetKm, progress, cancellationToken));
+                loops.AddRange(await GenerateBothAsync([wider]));
             }
-            // Ranked as the generator ranks them: valid loops first, best first.
-            loops = loops.OrderBy(l => l.Found ? 0 : 1).ThenBy(l => l.Best?.Badness ?? double.MaxValue).ToList();
         }
+        // Ranked as the generator ranks them: valid routes first, best first.
+        loops = loops.OrderBy(l => l.Found ? 0 : 1).ThenBy(l => l.Best?.Badness ?? double.MaxValue).ToList();
 
         var found = Enumerable.Range(0, loops.Count).Where(i => loops[i].Found).ToList();
         var ranked = found.Count == 0
@@ -95,6 +96,18 @@ public sealed class RidePlanner(LoopGenerator generator, IWindForecastProvider f
                 .ToList();
 
         return new RidePlan(departure, wind, bearings, loops, ranked);
+
+        async Task<IReadOnlyList<LoopResult>> GenerateBothAsync(IReadOnlyList<double> towards)
+        {
+            var both = (await generator.GenerateManyAsync(start, towards, targetKm, RouteShape.Loop, progress, cancellationToken)).ToList();
+            // Not when the engine has just stopped answering.
+            if (both.All(l => l.EngineFailure is null))
+            {
+                both.AddRange(await generator.GenerateManyAsync(
+                    start, towards, targetKm, RouteShape.OutAndBack, progress, cancellationToken));
+            }
+            return both;
+        }
     }
 }
 

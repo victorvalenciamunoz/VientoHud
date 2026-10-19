@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 6 — Mejores rutas** (en curso: 6a hecho; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+**Fase actual: 6 — Mejores rutas** (en curso: 6a y 6b hechos; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
 
 ## Fase 6
 
@@ -9,14 +9,16 @@
 - **Ida y vuelta** (`RouteShape.OutAndBack`, `Route.ThereAndBack`; `DECISIONS.md` 040): el generador hace también idas y
   vueltas: la ida de BRouter hasta un punto en el rumbo y la misma carretera de vuelta, con la distancia ajustada moviendo
   el punto y las mismas reglas que una vuelta.
+- **En la recomendación** (`RidePlanner`; `DECISIONS.md` 041): una vuelta y una ida y vuelta por rumbo, en el mismo orden;
+  `route` las llama "ida y vuelta" en el texto, el GPX y el nombre del fichero.
 
 ### Qué falta (fase 6)
 
 División aceptada por el autor el 2026-10-19:
 
 - [x] 6a. Ida y vuelta en el generador.
-- [ ] 6b. Ida y vuelta en la recomendación: **una por rumbo buscado** (decisión del autor) junto a las vueltas, en el
-  mismo orden (rachas, lluvia, viento); prueba en vivo y el ojo del autor en gpx.studio.
+- [ ] 6b (hecho; **falta el ojo del autor en gpx.studio**). Ida y vuelta en la recomendación: **una por rumbo buscado**
+  (decisión del autor, `DECISIONS.md` 041) junto a las vueltas, en el mismo orden (rachas, lluvia, viento).
 - [ ] 6c. Medir las ciudades: km por ciudad de cada ruta y si vuelve a pasar cerca de la salida a mitad de camino, en las
   salidas de prueba, antes de cambiar nada.
 - [ ] 6d. Evitar ciudades (generador y perfil de BRouter) y juez de la fase: antes y después, en números y a ojo; los
@@ -29,6 +31,10 @@ División aceptada por el autor el 2026-10-19:
   un punto a 60 / 2 / 1,3 ≈ 23 km en el rumbo pedido, una sola petición, válida y repitiendo más del 90 % sin ser ramal;
   con carreteras más largas mueve el punto hasta encajar la distancia; si no se llega, gira el rumbo; una por rumbo. **En
   vivo** (`outandback.cs`, BRouter local, 60 km): 11 de 12 válidas en León, La Bañeza, Humanes y Tres Cantos.
+- Paso 6b (2026-10-19): los tests del planificador cuentan ya vuelta e ida y vuelta por rumbo (580 en total); la ida y
+  vuelta contra el viento sale primera con viento claro. **En vivo** con `route` (BRouter local, 60 km): Humanes, viento
+  del NE a 18 km/h, primera la ida y vuelta al NE (+20 km/h de ventaja frente a +4 de la mejor vuelta; dos vueltas no
+  válidas, las tres idas y vueltas sí); León, viento flojo, gana una ida y vuelta al N por poco.
 
 
 Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).
