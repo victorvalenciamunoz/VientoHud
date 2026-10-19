@@ -116,12 +116,30 @@ public class TracedRideAdvisorTests
     }
 
     [Fact]
+    public async Task The_route_alone_comes_first_without_asking_for_any_weather()
+    {
+        var roads = Roads();
+        var model = new FakeRainForecastSource((_, _) => 0);
+        var advisor = Advisor(roads, model: model);
+
+        var traced = await advisor.RouteAsync(new TracedRequest(Leon, [Leon.Destination(90, 20)], Now));
+
+        Assert.Single(roads.Requests);
+        Assert.Equal(60, traced.Route.DistanceKm, 6);
+        Assert.Equal(RouteShape.OutAndBack, traced.Shape);
+        Assert.Empty(model.ModelRequests);
+        // The weather on top of it: the same result as asking for everything at once.
+        var ride = await advisor.AdviseAsync(traced, Now);
+        Assert.Same(traced.Route, ride.Route);
+        Assert.Equal(9, ride.Departure.Options.Count);
+    }
+
+    [Fact]
     public async Task Needs_a_point_and_times_in_UTC()
     {
         Assert.Throws<ArgumentException>(() => new TracedRequest(Leon, [], Now));
+        Assert.Throws<ArgumentException>(() => new TracedRequest(Leon, [Leon.Destination(0, 20)], Now.ToOffset(TimeSpan.FromHours(2))));
         await Assert.ThrowsAsync<ArgumentException>(() =>
             Advisor(Roads()).AdviseAsync(new TracedRequest(Leon, [Leon.Destination(0, 20)], Now), Now.ToOffset(TimeSpan.FromHours(2))));
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            Advisor(Roads()).AdviseAsync(new TracedRequest(Leon, [Leon.Destination(0, 20)], Now.ToOffset(TimeSpan.FromHours(2))), Now));
     }
 }

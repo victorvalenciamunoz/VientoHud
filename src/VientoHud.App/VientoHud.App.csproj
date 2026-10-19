@@ -28,6 +28,10 @@
 	<ItemGroup Condition="'$(VIENTOHUD_THUNDERFOREST_KEY)' != ''">
 		<AssemblyMetadata Include="ThunderforestKey" Value="$(VIENTOHUD_THUNDERFOREST_KEY)" />
 	</ItemGroup>
+	<!-- Development only: a BRouter other than brouter.de (the local one, DECISIONS 018: http://10.0.2.2:17777/ from the emulator). -->
+	<ItemGroup Condition="'$(VIENTOHUD_APP_BROUTER_URL)' != ''">
+		<AssemblyMetadata Include="BRouterUrl" Value="$(VIENTOHUD_APP_BROUTER_URL)" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#0B1218" />

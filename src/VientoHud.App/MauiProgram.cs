@@ -7,6 +7,10 @@ using VientoHud.Core.Routing;
 using VientoHud.Core.Wind;
 using VientoHud.Core.Wind.OpenMeteo;
 using VientoHud.Core.Net;
+using VientoHud.Core.Rain;
+using VientoHud.Core.Rain.Forecasts;
+using VientoHud.Core.Rain.Opera;
+using VientoHud.Core.Routing.BRouter;
 
 namespace VientoHud.App;
 
@@ -35,6 +39,21 @@ public static class MauiProgram
         builder.Services.AddSingleton<IWindForecastProvider>(sp => new OpenMeteoWindForecastProvider(sp.GetRequiredService<HttpClient>()));
         builder.Services.AddSingleton<DirectionAdvisor>();
         builder.Services.AddSingleton<ILocationProvider, GeolocationProvider>();
+
+        // Core: the ride traced on the map (7e): BRouter (brouter.de, one request a second; a development server when
+        // built with VIENTOHUD_APP_BROUTER_URL), the radar kept 3 h on the device, and the rain reused for 10 min (DECISIONS 049).
+        builder.Services.AddSingleton<IRouteEngine>(sp => new BRouterRouteEngine(
+            sp.GetRequiredService<HttpClient>(),
+            AppSettings.BRouterUrl is { } url ? new BRouterOptions { BaseUri = url, MinRequestInterval = TimeSpan.Zero } : new BRouterOptions()));
+        builder.Services.AddSingleton<IRadarSource>(sp => new OperaRadarSource(
+            sp.GetRequiredService<HttpClient>(),
+            new OperaOptions { CacheDirectory = Path.Combine(FileSystem.CacheDirectory, "radar"), CacheMaxAge = TimeSpan.FromHours(3) }));
+        builder.Services.AddSingleton<IRainOutlookSource>(sp =>
+        {
+            var forecasts = new OpenMeteoRainForecastSource(sp.GetRequiredService<HttpClient>(), OpenMeteoRainOptions.Latest);
+            return new CachedRainOutlookSource(new RainOutlookSource(sp.GetRequiredService<IRadarSource>(), forecasts, forecasts));
+        });
+        builder.Services.AddSingleton<TracedRideAdvisor>();
         builder.Services.AddTransient<MapPage>();
 
 #if DEBUG

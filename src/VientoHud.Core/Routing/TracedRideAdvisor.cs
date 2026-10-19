@@ -1,5 +1,4 @@
 using VientoHud.Core.Rain;
-using VientoHud.Core.Rain.Forecasts;
 using VientoHud.Core.Wind;
 
 namespace VientoHud.Core.Routing;
@@ -22,16 +21,29 @@ public sealed record TracedRequest(
         ? Via
         : throw new ArgumentException("At least one point to go through is needed.", nameof(Via));
 
+    public DateTimeOffset Departure { get; } = Departure.Offset == TimeSpan.Zero
+        ? Departure
+        : throw new ArgumentException("Departure must be in UTC.", nameof(Departure));
+
     public RouteShape Shape => Via.Count == 1 ? RouteShape.OutAndBack : RouteShape.Loop;
+}
+
+/// <summary>The route the engine joined the points with, before any weather: enough to draw it.</summary>
+/// <param name="Request">What was traced.</param>
+/// <param name="Route">There and back for one point, a loop otherwise.</param>
+/// <param name="Analysis">
+/// Kinds of road (forbidden ones are measured, not refused: the rider chose the points), repetition and how far the
+/// route passes from each point.
+/// </param>
+public sealed record TracedRoute(TracedRequest Request, Route Route, RouteAnalysis Analysis)
+{
+    public RouteShape Shape => Request.Shape;
 }
 
 /// <summary>Everything to show for a traced ride: the route, what roads it takes, the rain and when to leave.</summary>
 /// <param name="Request">What was traced.</param>
 /// <param name="Route">The route as the engine joined the points: there and back for one point, a loop otherwise.</param>
-/// <param name="Analysis">
-/// Kinds of road (forbidden ones are measured, not refused: the rider chose the points), repetition and how far the
-/// route passes from each point.
-/// </param>
+/// <param name="Analysis">As in <see cref="TracedRoute.Analysis"/>.</param>
 /// <param name="Departure">When to leave, with the ride in its better way round for each departure.</param>
 /// <param name="Rain">The rain to come; null when it could not be asked for.</param>
 /// <param name="RainFailure">Why the rain could not be asked for; null otherwise.</param>
@@ -52,21 +64,15 @@ public sealed record TracedRide(
 /// <summary>
 /// Advises on a ride the rider traced on the map: one request to the route engine, then the same judgement as the
 /// automatic planner (wind both ways round, rain, leave now or wait). Seconds instead of minutes (DECISIONS 048).
+/// In two steps, so the app can draw the route as soon as the engine answers.
 /// </summary>
 public sealed class TracedRideAdvisor(IRouteEngine engine, IWindForecastProvider winds, IRainOutlookSource rain)
 {
-    /// <param name="request">The points and when.</param>
-    /// <param name="now">The current time, in UTC: the rain is forecast from it (or from the departure, if earlier).</param>
+    /// <summary>The route through the points: one request to the engine.</summary>
     /// <exception cref="RouteException">The engine could not join the points (move them) or failed.</exception>
-    /// <exception cref="WindForecastException">The wind forecast failed.</exception>
-    public async Task<TracedRide> AdviseAsync(TracedRequest request, DateTimeOffset now, CancellationToken cancellationToken = default)
+    public async Task<TracedRoute> RouteAsync(TracedRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (now.Offset != TimeSpan.Zero || request.Departure.Offset != TimeSpan.Zero)
-        {
-            throw new ArgumentException("Times must be in UTC.");
-        }
-
         var start = request.Start;
         Route route;
         IReadOnlyList<Coordinate> judged;
@@ -81,10 +87,28 @@ public sealed class TracedRideAdvisor(IRouteEngine engine, IWindForecastProvider
             judged = [start, .. request.Via, start];
             route = await engine.RouteAsync(judged, cancellationToken);
         }
-        var analysis = RouteAnalyzer.Analyze(route, judged);
-
-        var (departure, outlook, rainFailure) = await RideForecast.ChooseAsync(
-            winds, rain, [route], start, request.Departure, request.AverageSpeedKmh, now, cancellationToken);
-        return new TracedRide(request, route, analysis, departure, outlook, rainFailure);
+        return new TracedRoute(request, route, RouteAnalyzer.Analyze(route, judged));
     }
+
+    /// <summary>The weather and the departure for a route already at hand.</summary>
+    /// <param name="now">The current time, in UTC: the rain is forecast from it (or from the departure, if earlier).</param>
+    /// <exception cref="WindForecastException">The wind forecast failed.</exception>
+    public async Task<TracedRide> AdviseAsync(TracedRoute traced, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(traced);
+        if (now.Offset != TimeSpan.Zero)
+        {
+            throw new ArgumentException("Now must be in UTC.", nameof(now));
+        }
+        var request = traced.Request;
+        var (departure, outlook, rainFailure) = await RideForecast.ChooseAsync(
+            winds, rain, [traced.Route], request.Start, request.Departure, request.AverageSpeedKmh, now, cancellationToken);
+        return new TracedRide(request, traced.Route, traced.Analysis, departure, outlook, rainFailure);
+    }
+
+    /// <summary>Both steps at once.</summary>
+    /// <exception cref="RouteException">The engine could not join the points (move them) or failed.</exception>
+    /// <exception cref="WindForecastException">The wind forecast failed.</exception>
+    public async Task<TracedRide> AdviseAsync(TracedRequest request, DateTimeOffset now, CancellationToken cancellationToken = default) =>
+        await AdviseAsync(await RouteAsync(request, cancellationToken), now, cancellationToken);
 }

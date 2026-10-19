@@ -6,6 +6,14 @@
 
 ### Qué funciona (fase 7)
 
+- **Tocar el mapa** (paso 7e): cada toque añade un punto (QUITAR PUNTO quita el último); con uno, ida y vuelta; con
+  dos o más, vuelta por ellos. `TracedRideAdvisor` va en dos pasos para que la ruta se dibuje en cuanto BRouter
+  contesta (`RouteAsync`, línea cian) y después llegue el juicio (`AdviseAsync`: viento en los dos sentidos, lluvia,
+  salir ahora o esperar; la ruta se redibuja en el sentido mejor). El panel muestra la recomendación, el sentido con la
+  ventaja, los tramos, las rachas, la lluvia, la ciudad, el resumen de la ruta (con "pasa a X km de un punto" cuando
+  BRouter mueve un punto a la carretera asfaltada más cercana) y la llegada. BRouter es brouter.de (una petición por
+  segundo); con `VIENTOHUD_APP_BROUTER_URL` al compilar, otro (el local desde el emulador: `http://10.0.2.2:17777/`).
+  El radar se guarda 3 h en el móvil y la lluvia se reutiliza 10 min.
 - **Ubicación y dirección en la app** (paso 7d): `GeolocationProvider` (pide el permiso y la posición al móvil, con la
   interfaz de Core) y `DirectionAdvisor` en Core (el viento de las horas de la salida en el sitio, `StartDirection`, y
   el abanico `DirectionFan`: un sector de ±45° hasta donde llega una ida y vuelta de la distancia; `RidePlanner` lo usa
@@ -63,9 +71,10 @@ visto bueno del autor**:
 - [x] 7d. Ubicación del móvil y la dirección: "hacia el oeste", el viento de las próximas horas y un abanico en el
   mapa. Una llamada a Open-Meteo: segundos. Hecho; **pendiente verlo en vivo con viento** (el 2026-10-19 Open-Meteo
   no tenía cupo: solo se vio la posición y el camino de error con REINTENTAR).
-- [ ] 7e. **Tocar el mapa**: un punto, ida y vuelta; dos o tres, vuelta. Distancia al momento, la ruta dibujada, y
+- [x] 7e. **Tocar el mapa**: un punto, ida y vuelta; dos o tres, vuelta. Distancia al momento, la ruta dibujada, y
   con ella el viento por tramos, la lluvia, salir ahora o esperar, el sentido mejor y la llegada. Juez: los mismos
-  puntos en la consola dan lo mismo; segundos hasta la ruta.
+  puntos en la consola dan lo mismo; segundos hasta la ruta. Hecho; **pendiente verlo en vivo con viento y lluvia**
+  (cupo de Open-Meteo) y el ojo del autor en el móvil.
 - [ ] 7f. **Mandarla al aparato**, sea cual sea: "Compartir" (Hammerhead y la mayoría) y "Abrir con" (Garmin Connect),
   quizá también guardarla en Descargas. Juez: llega al Karoo y al Fenix 5 del autor.
 - [ ] 7g. Opciones con un toque: velocidad media y, si hace falta, la hora de salida (decisión del autor).
@@ -97,6 +106,13 @@ visto bueno del autor**:
   vuelta) y `route` en León dan el mismo texto y los mismos GPX, salvo un km contado de más en una lluvia por el minuto
   que pasa entre las dos pasadas (el horizonte de 3 h se mueve con la hora). Open-Meteo dio 503 a ratos toda la tarde y
   hubo que repetir la comparación tres veces: razón de más para el reintento de 7b.
+- Paso 7e (2026-10-19): 1 test nuevo (625 en total): la ruta sola es una petición y no pide tiempo; el juicio encima
+  da lo mismo que todo de una vez. **En el emulador** contra **brouter.de** (posición en La Bañeza): un toque cerca de
+  Garavalles → ida y vuelta de 13 km dibujada en 2-3 s (`…7e-emulador-ida-y-vuelta.png`); un segundo toque al oeste →
+  vuelta de 10 km que no llega al segundo punto (`…7e-emulador-vuelta.png`): desde el ordenador brouter.de da lo mismo
+  ("pasa a 2,96 km de un punto"): el punto cayó donde no hay asfalto y BRouter lo movió a la carretera más cercana. La
+  app lo dice en el resumen de la ruta, que ahora se queda aunque el tiempo falle. El viento y la lluvia fallaron por
+  el cupo de Open-Meteo; el panel entero (recomendación, tramos, lluvia, llegada) queda para verlo en vivo.
 - Paso 7d (2026-10-19): 7 tests nuevos (624 en total): el abanico (25 puntos a 23 km de casa para 60 km, de 225° a
   315° alrededor de 270°, bien alrededor del norte, ninguno con viento flojo o variable); `DirectionAdvisor` pide las
   horas de la salida en el sitio (3 para 60 km a las 8:00, 4 desde las 8:50) y da rumbo y abanico, o ninguno con
@@ -146,6 +162,9 @@ visto bueno del autor**:
 - Las imágenes del radar (~2 MB cada una) se guardan sin límite: en el móvil hay que borrar las viejas (7b).
 - Android puede cortar una búsqueda larga si la pantalla se apaga o se cambia de app (ColorOS de OPPO es estricto).
   Menos grave desde `DECISIONS.md` 048: una ruta trazada son segundos.
+- Un punto tocado donde no hay asfalto se mueve (BRouter) a la carretera más cercana, a veces a 3 km: la app lo dice
+  en el resumen, pero el punto se queda donde se tocó. Para 7h: mover el punto dibujado a donde pasa la ruta, o avisar
+  más claro.
 - Thunderforest "se reserva retirar el plan gratuito": si pasa, la app sigue con OpenStreetMap (sin relieve ni firme)
   hasta cambiar de proveedor; es una línea.
 - Las teselas ya vistas se guardan en la caché del móvil sin límite de tamaño (Mapsui/BruTile `FileCache`); Android

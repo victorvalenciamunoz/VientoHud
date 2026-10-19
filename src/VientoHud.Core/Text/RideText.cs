@@ -188,11 +188,15 @@ public static class RideText
     }
 
     /// <summary>One line on a traced ride: distance, climb, roads and how far it passes from the points given.</summary>
-    public static string TracedSummary(TracedRide ride)
+    public static string TracedSummary(TracedRide ride) => TracedSummary(ride.Route, ride.Analysis);
+
+    /// <summary>As <see cref="TracedSummary(TracedRide)"/>, for a route not yet judged for the weather.</summary>
+    public static string TracedSummary(TracedRoute traced) => TracedSummary(traced.Route, traced.Analysis);
+
+    private static string TracedSummary(Route route, RouteAnalysis a)
     {
-        var a = ride.Analysis;
-        var parts = new List<string> { Km(ride.Route.DistanceKm) };
-        if (ride.Route.AscentMeters is { } ascent)
+        var parts = new List<string> { Km(route.DistanceKm) };
+        if (route.AscentMeters is { } ascent)
         {
             parts.Add($"desnivel {ascent.ToString("0", Spanish)} m");
         }

@@ -1,5 +1,6 @@
 using Mapsui;
 using Mapsui.Layers;
+using Mapsui.Manipulations;
 using Mapsui.Nts;
 using Mapsui.Projections;
 using Mapsui.Styles;
@@ -15,33 +16,45 @@ using GeoCoordinate = VientoHud.Core.Coordinate;
 namespace VientoHud.App;
 
 /// <summary>
-/// The one screen: where the rider is, which way to head (phase 7d) and the map where the ride will be traced (7e).
-/// Layout only: the position comes from the device and every judgement and sentence from Core.
+/// The one screen: where the rider is, which way to head (phase 7d) and the ride traced by touching the map (7e):
+/// one point is an out and back, two or more a loop. Layout only: the position comes from the device and every
+/// route, judgement and sentence from Core.
 /// </summary>
 public partial class MapPage : ContentPage
 {
-    /// <summary>Until the rider can choose (phase 7g): a two-hour ride.</summary>
+    /// <summary>Until the rider can choose (phase 7g): a two-hour ride, for the fan.</summary>
     private static readonly TimeSpan DefaultDuration = TimeSpan.FromHours(2);
+
+    private static readonly TimeZoneInfo Zone = TimeZoneInfo.Local;
 
     private readonly TileSources _tiles;
     private readonly ILocationProvider _location;
     private readonly DirectionAdvisor _direction;
+    private readonly TracedRideAdvisor _rides;
     private readonly MemoryLayer _fanLayer = new("Fan") { Style = FanStyle() };
+    private readonly MemoryLayer _routeLayer = new("Route") { Style = RouteStyle() };
+    private readonly MemoryLayer _viaLayer = new("Via") { Style = ViaStyle() };
     private readonly MemoryLayer _homeLayer = new("Home") { Style = HomeStyle() };
+    private readonly List<GeoCoordinate> _via = [];
+    private GeoCoordinate? _home;
     private bool _started;
     private CancellationTokenSource? _cancel;
 
-    public MapPage(TileSources tiles, ILocationProvider location, DirectionAdvisor direction)
+    public MapPage(TileSources tiles, ILocationProvider location, DirectionAdvisor direction, TracedRideAdvisor rides)
     {
         InitializeComponent();
         _tiles = tiles;
         _location = location;
         _direction = direction;
+        _rides = rides;
         MapName.Text = tiles.Name;
         Attribution.Text = tiles.Attribution;
         MapView.Map.Layers.Add(tiles.CreateLayer());
         MapView.Map.Layers.Add(_fanLayer);
+        MapView.Map.Layers.Add(_routeLayer);
+        MapView.Map.Layers.Add(_viaLayer);
         MapView.Map.Layers.Add(_homeLayer);
+        MapView.Map.Tapped += OnMapTapped;
         // Until the device answers: León, where the author rides. The navigator keeps the call until the map has its size.
         MapView.Map.Navigator.CenterOnAndZoomTo(ToMercator(new GeoCoordinate(42.5987, -5.5671)), ResolutionAt(12));
     }
@@ -52,7 +65,7 @@ public partial class MapPage : ContentPage
         if (!_started)
         {
             _started = true;
-            _ = AdviseAsync();
+            _ = AdviseDirectionAsync();
         }
     }
 
@@ -62,30 +75,69 @@ public partial class MapPage : ContentPage
         _cancel?.Cancel();
     }
 
-    private async void OnRetryClicked(object? sender, EventArgs e) => await AdviseAsync();
+    private async void OnRetryClicked(object? sender, EventArgs e)
+    {
+        if (_via.Count > 0)
+        {
+            await AdviseRideAsync();
+        }
+        else
+        {
+            await AdviseDirectionAsync();
+        }
+    }
+
+    /// <summary>A tap on the map adds a point and asks for the ride through all of them.</summary>
+    private void OnMapTapped(object? sender, MapEventArgs e)
+    {
+        if (e.GestureType != GestureType.SingleTap || _home is null)
+        {
+            return;
+        }
+        var (longitude, latitude) = SphericalMercator.ToLonLat(e.WorldPosition.X, e.WorldPosition.Y);
+        _via.Add(new GeoCoordinate(latitude, longitude));
+        ShowVia();
+        e.Handled = true;
+        _ = AdviseRideAsync();
+    }
+
+    private async void OnRemoveLastClicked(object? sender, EventArgs e)
+    {
+        if (_via.Count == 0)
+        {
+            return;
+        }
+        _via.RemoveAt(_via.Count - 1);
+        ShowVia();
+        if (_via.Count > 0)
+        {
+            await AdviseRideAsync();
+        }
+        else
+        {
+            ShowRoute(null);
+            await AdviseDirectionAsync();
+        }
+    }
 
     /// <summary>The position, then the wind and where to head; what failed stays on screen with a way to try again.</summary>
-    private async Task AdviseAsync()
+    private async Task AdviseDirectionAsync()
     {
-        _cancel?.Cancel();
-        _cancel = new CancellationTokenSource();
-        var cancellationToken = _cancel.Token;
-        Retry.IsVisible = false;
-        Headline.IsVisible = Detail.IsVisible = false;
+        var cancellationToken = Restart();
         try
         {
-            Status.Text = "Buscando tu posición…";
-            var fix = await _location.GetCurrentAsync(cancellationToken);
-            ShowHome(fix.Position);
-
+            if (_home is null)
+            {
+                Status.Text = "Buscando tu posición…";
+                var fix = await _location.GetCurrentAsync(cancellationToken);
+                _home = fix.Position;
+                ShowHome(fix.Position);
+            }
             Status.Text = "Pidiendo el viento…";
             var targetKm = RideDistance.FromDuration(DefaultDuration);
-            var advice = await _direction.AdviseAsync(fix.Position, targetKm, DateTimeOffset.UtcNow, cancellationToken: cancellationToken);
-            Headline.Text = RideText.DirectionHeadline(advice.Wind);
-            Detail.Text = RideText.Wind(advice.Wind);
-            Headline.IsVisible = Detail.IsVisible = true;
-            Status.Text = (fix.AccuracyMeters is { } accuracy ? $"Posición ±{accuracy:0} m · " : "") +
-                          $"salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h";
+            var advice = await _direction.AdviseAsync(_home.Value, targetKm, DateTimeOffset.UtcNow, cancellationToken: cancellationToken);
+            Show(RideText.DirectionHeadline(advice.Wind), RideText.Wind(advice.Wind),
+                $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.");
             ShowFan(advice.Fan);
         }
         catch (OperationCanceledException)
@@ -93,14 +145,77 @@ public partial class MapPage : ContentPage
         }
         catch (LocationUnavailableException ex)
         {
-            Status.Text = ex.Message;
-            Retry.IsVisible = true;
+            Fail(ex.Message);
         }
         catch (WindForecastException ex)
         {
-            Status.Text = $"Sin previsión de viento: {ex.Message}";
-            Retry.IsVisible = true;
+            Fail($"Sin previsión de viento: {ex.Message}");
         }
+    }
+
+    /// <summary>The route through the points (drawn as soon as it comes), then the wind, the rain and when to leave.</summary>
+    private async Task AdviseRideAsync()
+    {
+        var cancellationToken = Restart();
+        // The route's own line stays on screen even when the weather after it fails.
+        var summary = "";
+        try
+        {
+            var request = new TracedRequest(_home!.Value, _via.ToList(), DateTimeOffset.UtcNow);
+            Status.Text = request.Shape == RouteShape.OutAndBack ? "Buscando la ida y vuelta…" : "Buscando la vuelta…";
+            var traced = await _rides.RouteAsync(request, cancellationToken);
+            ShowRoute(traced.Route);
+            summary = RideText.TracedSummary(traced) + ". ";
+            Status.Text = $"{summary}Pidiendo el viento y la lluvia…";
+
+            var ride = await _rides.AdviseAsync(traced, DateTimeOffset.UtcNow, cancellationToken);
+            var option = ride.Ride;
+            // The way round the wind prefers: the route is redrawn in riding order.
+            ShowRoute(option.Route);
+            var lines = new List<string> { $"{SpanishText.Capitalized(RideText.Turn(option, ride.Shape))}: {RideText.Advantage(option.Score)}" };
+            lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone));
+            Show(RideText.Recommendation(ride.Departure, fromNow: true, Zone), string.Join("\n", lines),
+                $"{RideText.TracedSummary(ride)}. {RideText.Arrival(option, Zone)}");
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (RouteException ex) when (ex.Failure == RouteFailure.Unreachable)
+        {
+            Fail("BRouter no pudo unir los puntos: mueve el último a una carretera (QUITAR PUNTO y toca otra vez).");
+        }
+        catch (RouteException ex)
+        {
+            Fail($"BRouter no responde: {ex.Message}");
+        }
+        catch (WindForecastException ex)
+        {
+            Fail($"{summary}Sin previsión de viento: {ex.Message}");
+        }
+    }
+
+    /// <summary>Cancels what was running and clears the panel for the next job.</summary>
+    private CancellationToken Restart()
+    {
+        _cancel?.Cancel();
+        _cancel = new CancellationTokenSource();
+        Retry.IsVisible = false;
+        Headline.IsVisible = Detail.IsVisible = false;
+        return _cancel.Token;
+    }
+
+    private void Show(string headline, string detail, string status)
+    {
+        Headline.Text = headline;
+        Detail.Text = detail;
+        Status.Text = status;
+        Headline.IsVisible = Detail.IsVisible = true;
+    }
+
+    private void Fail(string why)
+    {
+        Status.Text = why;
+        Retry.IsVisible = true;
     }
 
     private void ShowHome(GeoCoordinate position)
@@ -114,17 +229,48 @@ public partial class MapPage : ContentPage
     {
         _fanLayer.Features = ring is null
             ? []
-            : [new GeometryFeature(new Polygon(new LinearRing(ring.Select(p => ToMercator(p)).Select(m => new Coordinate(m.X, m.Y)).ToArray())))];
+            : [new GeometryFeature(new Polygon(new LinearRing(ring.Select(p => ToNts(p)).ToArray())))];
         _fanLayer.DataHasChanged();
+        MapView.Map.RefreshGraphics();
+    }
+
+    private void ShowVia()
+    {
+        _viaLayer.Features = _via.Select(p => new PointFeature(ToMercator(p))).ToList();
+        _viaLayer.DataHasChanged();
+        RemoveLast.IsVisible = _via.Count > 0;
+        Hint.Text = _via.Count switch
+        {
+            0 => "Toca el mapa: un punto, ida y vuelta; dos o más, vuelta.",
+            1 => "Ida y vuelta. Toca otro punto para hacer una vuelta.",
+            var n => $"Vuelta por {n} puntos.",
+        };
+        MapView.Map.RefreshGraphics();
+    }
+
+    private void ShowRoute(Route? route)
+    {
+        _routeLayer.Features = route is null
+            ? []
+            : [new GeometryFeature(new LineString(route.Points.Select(p => ToNts(p.Position)).ToArray()))];
+        _routeLayer.DataHasChanged();
         MapView.Map.RefreshGraphics();
     }
 
     /// <summary>The sector, translucent, in the guide color.</summary>
     private static VectorStyle FanStyle() => new()
     {
-        Fill = new Mapsui.Styles.Brush(ToMapsui(HudTheme.Guide, 56)),
-        Outline = new Pen(ToMapsui(HudTheme.Guide, 200), 2),
+        Fill = new Mapsui.Styles.Brush(ToMapsui(HudTheme.Guide, 48)),
+        Outline = new Pen(ToMapsui(HudTheme.Guide, 180), 2),
         Line = null,
+    };
+
+    /// <summary>The route: a firm line in the guide color.</summary>
+    private static VectorStyle RouteStyle() => new()
+    {
+        Line = new Pen(ToMapsui(HudTheme.Guide, 230), 5),
+        Fill = null,
+        Outline = null,
     };
 
     /// <summary>Home: a marker-colored dot with a light rim.</summary>
@@ -134,6 +280,15 @@ public partial class MapPage : ContentPage
         SymbolScale = 0.5,
         Fill = new Mapsui.Styles.Brush(ToMapsui(HudTheme.Marker, 255)),
         Outline = new Pen(ToMapsui(HudTheme.Text, 255), 2),
+    };
+
+    /// <summary>The points touched: smaller dots in the marker color.</summary>
+    private static SymbolStyle ViaStyle() => new()
+    {
+        SymbolType = SymbolType.Ellipse,
+        SymbolScale = 0.4,
+        Fill = new Mapsui.Styles.Brush(ToMapsui(HudTheme.Background, 255)),
+        Outline = new Pen(ToMapsui(HudTheme.Marker, 255), 3),
     };
 
     private static Mapsui.Styles.Color ToMapsui(Microsoft.Maui.Graphics.Color color, int alpha) =>
@@ -146,6 +301,12 @@ public partial class MapPage : ContentPage
     {
         var (x, y) = SphericalMercator.FromLonLat(position.Longitude, position.Latitude);
         return new MPoint(x, y);
+    }
+
+    private static Coordinate ToNts(GeoCoordinate position)
+    {
+        var m = ToMercator(position);
+        return new Coordinate(m.X, m.Y);
     }
 
     private async void OnAttributionTapped(object? sender, TappedEventArgs e) =>

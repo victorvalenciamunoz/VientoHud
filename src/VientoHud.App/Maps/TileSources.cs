@@ -1,10 +1,10 @@
-using System.Reflection;
 using BruTile;
 using BruTile.Cache;
 using BruTile.Predefined;
 using BruTile.Web;
 using Mapsui.Tiling;
 using Mapsui.Tiling.Layers;
+using VientoHud.App.Services;
 using VientoHud.Core.Net;
 
 namespace VientoHud.App.Maps;
@@ -17,11 +17,7 @@ namespace VientoHud.App.Maps;
 /// </summary>
 public sealed class TileSources
 {
-    public const string ThunderforestKeyName = "ThunderforestKey";
-
-    private readonly string? _thunderforestKey = typeof(TileSources).Assembly
-        .GetCustomAttributes<AssemblyMetadataAttribute>()
-        .FirstOrDefault(a => a.Key == ThunderforestKeyName)?.Value;
+    private readonly string? _thunderforestKey = AppSettings.ThunderforestKey;
 
     public bool HasThunderforest => !string.IsNullOrWhiteSpace(_thunderforestKey);
 
