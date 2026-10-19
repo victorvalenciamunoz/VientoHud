@@ -1034,6 +1034,10 @@ Formato: contexto → decisión → alternativas descartadas.
   - Juez: la medida de `DECISIONS.md` 042 (cruces y calles), que no depende de GHSL, y el ojo del autor.
   - Límites: casillas de 90 m (sale alguna nave suelta: se quitan las manchas pequeñas), datos de 2020 (faltan las
     urbanizaciones más nuevas), lo construido incluye polígonos industriales (también conviene evitarlos).
+  - Ojo del autor (2026-10-19) sobre las manchas de `TownMap` (15 % construido, huecos de una casilla unidos, mínimo
+    0,2 km²): "bastante bien". Une Griñón y Cubas de la Sagra (les separa una franja de menos de 200 m; sin unir huecos
+    se separan, pero también se parten las ciudades): se deja. Los pueblos pequeños, que casi no salen en León, no hay
+    que evitarlos: "un pueblo pequeño no es problema tener que atravesarlo".
 - Alternativas:
   - **Overpass** (zonas `landuse` de OpenStreetMap; recomendada primero): gratis y sin clave, pero el 2026-10-19
     `overpass-api.de` y `overpass.private.coffee` respondieron 502 y 500 casi toda la tarde ("at capacity"), y su aviso

@@ -1,6 +1,6 @@
 # Estado
 
-**Fase actual: 6 — Mejores rutas** (en curso: 6a a 6c hechos, 6d a falta del ojo del autor, 6e-1 hecho a falta del ojo; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+**Fase actual: 6 — Mejores rutas** (en curso: 6a a 6c hechos, 6d a falta del ojo del autor, 6e-1 hecho; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
 
 ## Fase 6
 
@@ -32,8 +32,10 @@ División aceptada por el autor el 2026-10-19:
   empate por debajo de 10 km); **falta el ojo del autor** y decidir qué hacer cuando todos los rumbos van a ciudad.
 - [ ] 6e. Zonas construidas de GHSL (`DECISIONS.md` 045, aceptado por el autor el 2026-10-19): de los km de ciudad
   de las 30 salidas, 29 % son salir y volver a casa, 23 % alrededor de un punto de paso y 48 % entre puntos de paso.
-  - [ ] 6e-1. Descargar las zonas (GHSL), guardarlas en fichero y juntarlas en manchas sencillas; el autor las mira
-    en gpx.studio. Hecho (`GhslBuiltUpSource`, `TownMap`); **falta el ojo del autor**.
+  - [x] 6e-1. Descargar las zonas (GHSL), guardarlas en fichero y juntarlas en manchas sencillas; el autor las mira
+    en gpx.studio. Hecho (`GhslBuiltUpSource`, `TownMap`). **Ojo del autor** (2026-10-19): "bastante bien"; une
+    Griñón y Cubas de la Sagra (franja de menos de 200 m: se deja); los pueblos pequeños no hay que evitarlos ("un
+    pueblo pequeño no es problema tener que atravesarlo").
   - [ ] 6e-2. Mover los puntos de paso fuera de las zonas; medir las 30 salidas.
   - [ ] 6e-3. Pasar las zonas a BRouter como zonas con coste; medir, ajustar el peso y ojo del autor.
 
