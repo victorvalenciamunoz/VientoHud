@@ -1068,3 +1068,23 @@ Formato: contexto → decisión → alternativas descartadas.
   de Humanes de 80 % a 35 %.
 - Alternativas: usar GHSL para escoger de antemano los rumbos y variantes con menos pueblo (más trabajo, las carreteras
   serían las mismas); seguir con el peaje de BRouter (sin mejora y 12 veces más lento).
+
+## 047 — Cómo se divide la fase 7 (app para Android)
+- Contexto: empieza la fase 7 (`docs/PLAN.md`). Hoy `route` no solo formatea: hace en la consola el orden de la búsqueda
+  (rutas, lluvia, hora de salida) y los textos del resumen y del GPX. La app no debe repetirlo (nada de lógica en la
+  interfaz) y los GPX de la consola y de la app deben salir iguales.
+- Decisión (del autor, 2026-10-19, con la recomendación):
+  - **Primero Core** (7a): una sola llamada que devuelve la recomendación entera, con avance y cancelar (7a-1), y los
+    textos en español del resumen, del GPX y del nombre del fichero (7a-2). La consola pasa a usarla y su salida no
+    cambia.
+  - **Medir antes de la app** (7b): con brouter.de desde el ordenador, tiempo, peticiones, llamadas y MB; y borrar las
+    imágenes viejas del radar.
+  - **Después la app**, paso a paso: esqueleto (7c), ubicación y recomendación en texto (7d), duración o distancia con un
+    toque (7e), GPX al Karoo (7f), mapa (7g), pantalla HUD e instalable (7h) y juez con salidas reales (7i).
+  - Técnica: proyecto `VientoHud.App` como el de CieloHud (solo Android, `net10.0-android`, Android 8 o superior),
+    dentro de la solución para que `dotnet build` avise si un cambio de Core la rompe. Pruebas rápidas en el emulador y
+    las de verdad en el móvil del autor (OPPO, Android 16).
+- Comprobado (2026-10-19): la app de Hammerhead del móvil (1.56.0) acepta `application/gpx+xml` al compartir, así que el
+  GPX puede ir directo sin pasar por el panel web (se prueba en 7f).
+- Alternativas: copiar en la app lo que hace la consola (dos sitios con la misma lógica); empezar por la app y mover a
+  Core después (la app nacería con lógica dentro).
