@@ -974,8 +974,12 @@ Formato: contexto → decisión → alternativas descartadas.
 - Decisión (del autor, 2026-10-19, opción A con la recomendación):
   - **Perfil de BRouter** (técnica): calles residenciales y de servicio cuestan 2,5 (antes 1,2) y cada paso de peatones,
     stop o ceda el paso añade 30, cada semáforo 60 (antes 20). Así, entre dos caminos parecidos, BRouter toma el de
-    fuera. El interruptor de BRouter para evitar ciudades (`consider_town`) no sirve: nuestros mapas no traen la
-    estimación de ciudad.
+    fuera. El interruptor de BRouter para evitar ciudades (`consider_town`) no sirve (corregido el 2026-10-19: aquí
+    ponía que los mapas no traen la estimación de ciudad, y sí la traen; BRouter solo la enseña si el perfil la lee).
+    `estimated_town_class` marca solo municipios de más de 50.000 habitantes, el término entero menos bosques y ríos
+    (`misc/scripts/mapcreation/brouter.sql` de BRouter). Activado, con sus castigos y con el triple, las 30 salidas
+    quedan casi igual y algunas peor (León OSO ida y vuelta 10 → 20 %;
+    `docs/verificacion/2026-10-19-fase6-consider-town.txt`).
   - **Orden de las rutas:** rachas de lado peligrosas, lluvia probable (empate por debajo de 5 km), **km en ciudad
     (empate por debajo de 10 km)** y, al final, ventaja de viento. Una ruta muy urbana pierde aunque tenga mejor viento;
     dos parecidas en ciudad se deciden por el viento.

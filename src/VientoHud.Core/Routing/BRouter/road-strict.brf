@@ -11,7 +11,7 @@
 #  - consider_traffic raised from 0.1 to 0.3 to prefer quieter roads.
 #  - correctMisplacedViaPoints on, with no length limit: when the route reaches a via point and leaves it the way it
 #    came, BRouter cuts that back-and-forth out (dead ends to waypoints, see docs/STATUS.md).
-#  - Towns avoided where possible (docs/DECISIONS.md 043; the map data have no estimated_town_class): residential,
+#  - Towns avoided where possible (docs/DECISIONS.md 043; consider_town tried and left off, it changed little): residential,
 #    living and service streets cost 2.5 (fastbike 1.2); each crossing or stop/give way adds 30, traffic signals 60
 #    (fastbike: signals 20, crossings nothing).
 #
