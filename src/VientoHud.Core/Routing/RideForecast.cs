@@ -18,9 +18,7 @@ internal static class RideForecast
     /// <exception cref="WindForecastException">The wind forecast failed.</exception>
     public static async Task<(DepartureAdvice Departure, RainOutlook? Rain, string? RainFailure)> ChooseAsync(
         IWindForecastProvider winds,
-        IRadarSource radar,
-        IRainForecastSource rainModel,
-        IRainProbabilitySource rainFallback,
+        IRainOutlookSource rain,
         IReadOnlyList<Route> routes,
         Coordinate start,
         DateTimeOffset departure,
@@ -37,9 +35,7 @@ internal static class RideForecast
             var last = routes.Max(r => RouteLegs.Split(r, departures[^1], averageSpeedKmh)[^1].EndTime);
             try
             {
-                outlook = await RainOutlook.ForecastAsync(
-                    radar, rainModel, rainFallback, start, reach, now < departure ? now : departure, last,
-                    cancellationToken: cancellationToken);
+                outlook = await rain.ForecastAsync(start, reach, now < departure ? now : departure, last, cancellationToken);
             }
             catch (Exception ex) when (ex is RadarException or RainForecastException)
             {

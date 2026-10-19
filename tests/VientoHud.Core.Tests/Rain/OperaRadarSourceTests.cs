@@ -20,11 +20,12 @@ public class OperaRadarSourceTests
         DateTimeOffset now,
         Func<string, (HttpStatusCode, byte[])> respond,
         OperaProduct product = OperaProduct.Reflectivity,
-        string? cacheDirectory = null)
+        string? cacheDirectory = null,
+        TimeSpan? cacheMaxAge = null)
     {
         // Paths come with the '@' escaped; compare them unescaped.
         var handler = new BinaryHttpMessageHandler(uri => respond(Uri.UnescapeDataString(uri.PathAndQuery)));
-        var options = new OperaOptions { Product = product, CacheDirectory = cacheDirectory };
+        var options = new OperaOptions { Product = product, CacheDirectory = cacheDirectory, CacheMaxAge = cacheMaxAge };
         return (new OperaRadarSource(new HttpClient(handler), options, new FixedTimeProvider(now)), handler);
     }
 
@@ -201,6 +202,43 @@ public class OperaRadarSourceTests
             Assert.Empty(secondHandler.Requests);
             Assert.True(File.Exists(Path.Combine([cache, .. RateKey.Split('/')])));
             Assert.Equal(downloaded!.RateAt(Madrid), cached!.RateAt(Madrid));
+        }
+        finally
+        {
+            if (Directory.Exists(cache))
+            {
+                Directory.Delete(cache, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Old_cached_files_are_deleted_when_a_new_one_is_stored_if_a_maximum_age_is_set()
+    {
+        var cache = Path.Combine(Path.GetTempPath(), "vientohud-tests", Guid.NewGuid().ToString("N"));
+        try
+        {
+            // Two frames already in the cache: one from 4 h before "now" (October16At1107), one from 1 h before.
+            var old = Path.Combine(cache, "2026", "10", "16", "OPERA", "COMP", "old.h5");
+            var fresh = Path.Combine(cache, "2026", "10", "16", "OPERA", "COMP", "fresh.h5");
+            var emptyFolder = Path.Combine(cache, "2026", "10", "15");
+            Directory.CreateDirectory(Path.GetDirectoryName(old)!);
+            Directory.CreateDirectory(emptyFolder);
+            await File.WriteAllBytesAsync(old, [1]);
+            await File.WriteAllBytesAsync(fresh, [1]);
+            File.SetLastWriteTimeUtc(old, October16At1107.AddHours(-4).UtcDateTime);
+            File.SetLastWriteTimeUtc(fresh, October16At1107.AddHours(-1).UtcDateTime);
+            var (source, _) = Create(October16At1107, path =>
+                path == $"/openradar-archive/{RateKey}"
+                    ? (HttpStatusCode.OK, Fixture.ReadBytes("Opera/OPERA@20261003T0600@0@RATE.h5"))
+                    : (HttpStatusCode.NotFound, NotFound), OperaProduct.RainRate, cache, TimeSpan.FromHours(3));
+
+            await source.GetFrameAsync(October3At6, Madrid, 50);
+
+            Assert.False(File.Exists(old));
+            Assert.True(File.Exists(fresh));
+            Assert.True(File.Exists(Path.Combine([cache, .. RateKey.Split('/')])));
+            Assert.False(Directory.Exists(emptyFolder));
         }
         finally
         {

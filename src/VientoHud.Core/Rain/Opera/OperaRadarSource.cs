@@ -30,6 +30,12 @@ public sealed record OperaOptions
 
     /// <summary>Folder where downloaded files are kept and reused; null to keep nothing.</summary>
     public string? CacheDirectory { get; init; }
+
+    /// <summary>
+    /// Files in the cache older than this (by when they were written) are deleted whenever a new one is stored; null
+    /// keeps them all (the console and the judges look at past times; the phone only needs the last hours).
+    /// </summary>
+    public TimeSpan? CacheMaxAge { get; init; }
 }
 
 /// <summary>
@@ -228,6 +234,37 @@ public sealed class OperaRadarSource(HttpClient httpClient, OperaOptions? option
         var partial = path + ".part";
         await File.WriteAllBytesAsync(partial, bytes, cancellationToken);
         File.Move(partial, path, overwrite: true);
+        if (_options.CacheMaxAge is { } maxAge)
+        {
+            Prune(_options.CacheDirectory!, _time.GetUtcNow() - maxAge);
+        }
+    }
+
+    /// <summary>Deletes the cached files written before <paramref name="before"/>, and the folders left empty. Best effort.</summary>
+    private static void Prune(string directory, DateTimeOffset before)
+    {
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories).ToList())
+            {
+                if (File.GetLastWriteTimeUtc(file) < before.UtcDateTime)
+                {
+                    File.Delete(file);
+                }
+            }
+            foreach (var folder in Directory.EnumerateDirectories(directory, "*", SearchOption.AllDirectories)
+                         .OrderByDescending(d => d.Length).ToList())
+            {
+                if (!Directory.EnumerateFileSystemEntries(folder).Any())
+                {
+                    Directory.Delete(folder);
+                }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // A file in use or a permission: the cache is only a cache.
+        }
     }
 
     private string? CachePath(string key) => _options.CacheDirectory is { } directory

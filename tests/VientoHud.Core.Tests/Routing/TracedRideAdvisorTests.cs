@@ -28,7 +28,7 @@ public class TracedRideAdvisorTests
     private static TracedRideAdvisor Advisor(IRouteEngine roads, IRadarSource? radar = null, FakeRainForecastSource? model = null)
     {
         model ??= new FakeRainForecastSource((_, _) => 0);
-        return new(roads, Wind(15, 194), radar ?? DryRadar(), model, model);
+        return new(roads, Wind(15, 194), new RainOutlookSource(radar ?? DryRadar(), model, model));
     }
 
     // Roads 1.5 times as long as the straight line between the points.

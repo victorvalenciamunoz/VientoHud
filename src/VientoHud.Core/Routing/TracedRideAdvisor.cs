@@ -53,12 +53,7 @@ public sealed record TracedRide(
 /// Advises on a ride the rider traced on the map: one request to the route engine, then the same judgement as the
 /// automatic planner (wind both ways round, rain, leave now or wait). Seconds instead of minutes (DECISIONS 048).
 /// </summary>
-public sealed class TracedRideAdvisor(
-    IRouteEngine engine,
-    IWindForecastProvider winds,
-    IRadarSource radar,
-    IRainForecastSource rainModel,
-    IRainProbabilitySource rainFallback)
+public sealed class TracedRideAdvisor(IRouteEngine engine, IWindForecastProvider winds, IRainOutlookSource rain)
 {
     /// <param name="request">The points and when.</param>
     /// <param name="now">The current time, in UTC: the rain is forecast from it (or from the departure, if earlier).</param>
@@ -88,9 +83,8 @@ public sealed class TracedRideAdvisor(
         }
         var analysis = RouteAnalyzer.Analyze(route, judged);
 
-        var (departure, rain, rainFailure) = await RideForecast.ChooseAsync(
-            winds, radar, rainModel, rainFallback, [route], start, request.Departure, request.AverageSpeedKmh, now,
-            cancellationToken);
-        return new TracedRide(request, route, analysis, departure, rain, rainFailure);
+        var (departure, outlook, rainFailure) = await RideForecast.ChooseAsync(
+            winds, rain, [route], start, request.Departure, request.AverageSpeedKmh, now, cancellationToken);
+        return new TracedRide(request, route, analysis, departure, outlook, rainFailure);
     }
 }

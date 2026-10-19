@@ -45,12 +45,7 @@ public sealed record RideAdvice(
 /// Plans a ride from start to end (phases 3 to 6): the routes for the wind, the rain along them and whether to leave now
 /// or wait (DECISIONS 035-036). What the console's <c>route</c> did step by step, so that the app does the same.
 /// </summary>
-public sealed class RideAdvisor(
-    RidePlanner planner,
-    IWindForecastProvider winds,
-    IRadarSource radar,
-    IRainForecastSource rainModel,
-    IRainProbabilitySource rainFallback)
+public sealed class RideAdvisor(RidePlanner planner, IWindForecastProvider winds, IRainOutlookSource rain)
 {
     /// <param name="request">What the rider asks for.</param>
     /// <param name="now">The current time, in UTC: the rain is forecast from it (or from the departure, if earlier).</param>
@@ -77,8 +72,7 @@ public sealed class RideAdvisor(
         var found = Enumerable.Range(0, plan.Loops.Count).Where(i => plan.Loops[i].Found).ToList();
         var routes = found.Select(i => plan.Loops[i].Best!.Route).ToList();
         var (advice, outlook, rainFailure) = await RideForecast.ChooseAsync(
-            winds, radar, rainModel, rainFallback, routes, request.Start, request.Departure, request.AverageSpeedKmh, now,
-            cancellationToken);
+            winds, rain, routes, request.Start, request.Departure, request.AverageSpeedKmh, now, cancellationToken);
         return new RideAdvice(request, plan, advice, found, outlook, rainFailure);
     }
 }

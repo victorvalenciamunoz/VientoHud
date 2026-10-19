@@ -26,7 +26,7 @@ public class RideAdvisorTests
 
     private static RideAdvisor Advisor(
         IRouteEngine roads, FakeWindForecastProvider wind, IRadarSource radar, FakeRainForecastSource model) =>
-        new(new RidePlanner(new LoopGenerator(roads), wind), wind, radar, model, model);
+        new(new RidePlanner(new LoopGenerator(roads), wind), wind, new RainOutlookSource(radar, model, model));
 
     // Every fan of waypoints makes a valid route of exactly the target length.
     private static FakeRouteEngine Roads() => new(w => FakeRouteEngine.Straight(w, roadFactor: 1.5));

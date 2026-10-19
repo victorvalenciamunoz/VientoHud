@@ -6,6 +6,10 @@
 
 ### Qué funciona (fase 7)
 
+- **Core preparado para el móvil** (paso 7b, `DECISIONS.md` 049): `ResilientHttp.CreateClient()` reintenta los fallos
+  pasajeros (5xx, 408, red) hasta 3 veces con esperas de 2-8 s, no los 429; `CachedRainOutlookSource` reutiliza la
+  lluvia 10 min para el mismo sitio (cada punto nuevo cuesta ~25 llamadas a Open-Meteo en vez de ~250);
+  `OperaOptions.CacheMaxAge` borra los cuadros viejos del radar. La consola usa las tres cosas menos la limpieza.
 - **Los textos en Core** (`SpanishText`, `RideText`, `RideGpx` en `VientoHud.Core.Text`; paso 7a-3): la recomendación
   ("Sal ahora" / "Mejor espera…"), el viento, la ventaja y los tramos, las rachas, la lluvia, la ciudad, la llegada, los
   resúmenes, y el nombre, el nombre de fichero y los avisos del GPX; en español, con la zona horaria como parámetro.
@@ -38,9 +42,10 @@ visto bueno del autor**:
     Juez: tests con el motor falso, y en vivo desde la consola (un comando que recibe los puntos) en los sitios de
     prueba: segundos y el ojo del autor.
   - [x] 7a-3. Los textos en Core (recomendación, resumen de la ruta, nombre y descripción del GPX y del fichero).
-- [ ] 7b. Preparar Core para el móvil: borrar las imágenes viejas del radar (~2 MB cada una, hoy sin límite) y
+- [x] 7b. Preparar Core para el móvil: borrar las imágenes viejas del radar (~2 MB cada una, hoy sin límite) y
   reintentar una vez las respuestas pasajeras de Open-Meteo (503 "sobrecargado", 429): el 2026-10-19 un 503 del viento
-  tiró una recomendación entera.
+  tiró una recomendación entera. Hecho con Microsoft.Extensions.Http.Resilience y la lluvia reutilizada
+  (`DECISIONS.md` 049).
 - [ ] 7c. **Elegir el mapa** (opciones comprobadas en su fuente: licencia, mapas de fondo y sus normas de uso, clave,
   mantenimiento; decisión del autor) y esqueleto de la app con el mapa y la estética de CieloHud; arranca en el
   emulador y en el móvil.
@@ -80,6 +85,14 @@ visto bueno del autor**:
   vuelta) y `route` en León dan el mismo texto y los mismos GPX, salvo un km contado de más en una lluvia por el minuto
   que pasa entre las dos pasadas (el horizonte de 3 h se mueve con la hora). Open-Meteo dio 503 a ratos toda la tarde y
   hubo que repetir la comparación tres veces: razón de más para el reintento de 7b.
+- Paso 7b (2026-10-19): 9 tests nuevos (617 en total). Reintentos: un 503 y un 502 seguidos de un 200 no se notan
+  (3 peticiones); tras 3 reintentos el fallo vuelve tal cual (4 peticiones); un 403 (brouter.de) y un 429 (cupo de
+  Open-Meteo) no se reintentan; el cliente lleva el agente y los 60 s. Lluvia reutilizada: a menos de 1 km, menos de
+  10 min y dentro del alcance y las horas, la misma; pide 10 km y 1 h de más; vuelve a pedir al moverse 5 km, a los 11
+  min, con más alcance o más horas; nunca sirve una hecha después de la hora pedida. Radar: al guardar un cuadro con
+  `CacheMaxAge` de 3 h se borra el de hace 4 h y la carpeta vacía, y se queda el de hace 1 h. **En vivo**: `radar`
+  (OPERA) funciona a través del cliente nuevo; `trace` no se pudo probar porque se agotó el cupo diario de Open-Meteo
+  (el reintento de aquel 429 esperó 14 s para nada: por eso el 429 se quita). Queda probar `trace` mañana.
 - Paso 7b, medida (2026-10-19; `brouterspeed.cs`, `requests.cs`, `raintime.cs`;
   `docs/verificacion/2026-10-19-fase7-peticiones.txt`): una petición a brouter.de tarda lo mismo que al local
   (0,2-2,5 s). El tiempo es el número de peticiones: 40 (La Bañeza), 43 (León), 56 (Humanes, Tres Cantos), 121
@@ -94,7 +107,11 @@ visto bueno del autor**:
   brouter.de, la mitad por la espera de 1 s entre peticiones que nos imponemos (brouter.de no publica normas y nos
   bloqueó dos veces). Lo que en `DECISIONS.md` 044 ponía "~2 min" solo contaba esa espera. Resuelto para la app por
   otro camino: la ruta la traza el usuario y cuesta una petición (`DECISIONS.md` 048).
-- Datos en el móvil: ~8,7 MB de radar por recomendación cuando los cuadros son nuevos; AROME, 225 llamadas a Open-Meteo.
+- Datos en el móvil: ~8,7 MB de radar por recomendación cuando los cuadros son nuevos; AROME, 225 llamadas a Open-Meteo
+  (reutilizadas 10 min desde 7b).
+- **Cupo diario de Open-Meteo** (10.000 llamadas por conexión): se agotó el 2026-10-19 con los jueces y las pruebas. Una
+  recomendación nueva cuesta ~250 y cada punto nuevo ~25: de sobra para una persona, pero no se pueden hacer jueces y
+  pruebas en vivo el mismo día. Pendiente: probar `trace` con el cliente nuevo (7b) en cuanto vuelva el cupo.
 - Las imágenes del radar (~2 MB cada una) se guardan sin límite: en el móvil hay que borrar las viejas (7b).
 - Android puede cortar una búsqueda larga si la pantalla se apaga o se cambia de app (ColorOS de OPPO es estricto).
 

@@ -1129,6 +1129,16 @@ Formato: contexto → decisión → alternativas descartadas.
     con datos móviles. Se mantienen los 60 s de Core.
   - **El 429 no se arregla reintentando**: la lluvia (radar y AROME) se reutiliza unos minutos para el mismo sitio, en
     vez de pedirla con cada punto que se toca en el mapa.
+- Hecho (2026-10-19; `ResilientHttp`, `RainOutlookSource`, `CachedRainOutlookSource`, `OperaOptions.CacheMaxAge`):
+  - **El 429 no se reintenta** (corrección sobre lo de arriba): al agotar el cupo diario de Open-Meteo, el reintento
+    esperó 14 s para dar el mismo aviso. Sus 429 dicen "en un minuto" o "mañana"; con segundos no se arregla nada.
+  - **Cupo diario**: hoy se agotaron las 10.000 llamadas de Open-Meteo entre jueces, medidas y comparaciones. Una
+    recomendación cuesta unas 250 (225 de la rejilla de AROME, el resto viento); con la lluvia reutilizada, cada punto
+    nuevo tocado en el mapa cuesta ~25. Son unas 40 recomendaciones nuevas al día por conexión: de sobra para una
+    persona, pero no hay que ejecutar jueces y pruebas en vivo el mismo día.
+  - La caché de la lluvia pide 10 km más lejos y 1 h más tarde de lo necesario y vale 10 min para el mismo sitio
+    (menos de 1 km). El radar en el móvil se limpia al guardar cada cuadro nuevo (`CacheMaxAge`); la consola y los
+    jueces siguen guardándolo todo, porque miran horas pasadas.
 - Alternativas: Polly directo (BSD-3; desde el 2026-11-16 cobra una cuota a empresas que ganen más de 20.000 $ con un
   producto que lo use; no aplica); un reintento a mano (unas 15 líneas, sin azar ni `Retry-After`, probado por
   nosotros).

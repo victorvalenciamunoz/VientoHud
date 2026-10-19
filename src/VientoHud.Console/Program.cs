@@ -1,5 +1,6 @@
 using VientoHud.ConsoleApp;
 using VientoHud.Core.Location;
+using VientoHud.Core.Net;
 using VientoHud.Core.Rain;
 using VientoHud.Core.Rain.Forecasts;
 using VientoHud.Core.Rain.Opera;
@@ -29,8 +30,8 @@ Console.CancelKeyPress += (_, e) =>
     cancellation.Cancel();
 };
 
-using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-http.DefaultRequestHeaders.UserAgent.ParseAdd("VientoHud/0.1");
+// Retries passing failures of the services (DECISIONS 049), as the app does.
+using var http = ResilientHttp.CreateClient();
 var device = new WindowsLocationProvider();
 
 // Each command returns its exit code.
@@ -69,7 +70,7 @@ switch (args[0])
             var planner = new RidePlanner(new LoopGenerator(new BRouterRouteEngine(http, brouter.Options)), windProvider);
             var radarSource = new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() });
             var rainForecasts = new OpenMeteoRainForecastSource(http, OpenMeteoRainOptions.Latest);
-            var advisor = new RideAdvisor(planner, windProvider, radarSource, rainForecasts, rainForecasts);
+            var advisor = new RideAdvisor(planner, windProvider, RainSource(radarSource, rainForecasts));
             run = () => new RouteCommand(
                     advisor, device, Console.Out, brouter.Name, OpenMeteoWindForecastProvider.Attribution)
                 .RunAsync(routeOptions, cancellation.Token);
@@ -83,7 +84,7 @@ switch (args[0])
             var rainForecasts = new OpenMeteoRainForecastSource(http, OpenMeteoRainOptions.Latest);
             var advisor = new TracedRideAdvisor(
                 new BRouterRouteEngine(http, traceServer.Options), windProvider,
-                new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() }), rainForecasts, rainForecasts);
+                RainSource(new OperaRadarSource(http, new OperaOptions { CacheDirectory = RadarCache() }), rainForecasts));
             run = () => new TraceCommand(advisor, device, Console.Out, traceServer.Name, OpenMeteoWindForecastProvider.Attribution)
                 .RunAsync(traceOptions, cancellation.Token);
         }
@@ -141,6 +142,10 @@ static (BRouterOptions Options, string Name)? BRouterServer(out string? error)
     }
     return (new BRouterOptions { BaseUri = uri, MinRequestInterval = TimeSpan.Zero }, uri.ToString());
 }
+
+// The rain as the app asks for it: the last outlook is reused for a few minutes around the same place (DECISIONS 049).
+static IRainOutlookSource RainSource(IRadarSource radar, OpenMeteoRainForecastSource forecasts) =>
+    new CachedRainOutlookSource(new RainOutlookSource(radar, forecasts, forecasts));
 
 // Downloaded radar frames are kept (~2 MB each) so that looking again at the same time does not download again.
 static string RadarCache() =>
