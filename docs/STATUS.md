@@ -1,6 +1,8 @@
 # Estado
 
-**Fase actual: 5 — Combinarlo** (5a a 5e hechos; falta el visto bueno del autor al juez)
+**Fase actual: 6 — Mejores rutas** (sin empezar; añadida por el autor el 2026-10-19, `DECISIONS.md` 039)
+
+Fase 5 — Combinarlo: terminada el 2026-10-19 (pasos 5a a 5e hechos y el juez ejecutado; el autor la da por buena).
 
 ## Fase 5
 
@@ -43,7 +45,7 @@ División aceptada por el autor el 2026-10-17:
     (2026-10-18: el Karoo no muestra los avisos ni el nombre de dentro del GPX; **el autor lo deja así**, es secundario).
 - [x] 5e. Juez: en días pasados, lo que habría recomendado con lo que se sabía entonces frente a lo que pasó (radar y
   METAR después), comparado con salir ya con una vuelta cualquiera. Sitios del autor: La Bañeza y Humanes de Madrid
-  (`DECISIONS.md` 038). **Falta el visto bueno del autor.**
+  (`DECISIONS.md` 038). **El autor la da por buena** (2026-10-19).
 
 ### Cómo se ha validado (fase 5)
 

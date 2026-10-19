@@ -1,6 +1,6 @@
 # Plan
 
-**Fase actual: 5**
+**Fase actual: 6**
 
 ---
 
@@ -69,7 +69,18 @@ Objetivo: predecir la lluvia a 30-90 min en una zona.
 - Recomendación final: salir ahora / esperar hasta X, ruta elegida, sentido, hora estimada de llegada.
 - GPX con nombre y descripción que incluya el resumen.
 
-## Fase 6 — App MAUI (Android)
+## Fase 6 — Mejores rutas
+
+Añadida por el autor el 2026-10-19 (`DECISIONS.md` 039), al ver las rutas de las fases 3 a 5.
+
+- **Ida y vuelta:** proponer también rutas de ida y vuelta por la misma carretera junto a las vueltas, en el rumbo que
+  mejor venga (ida contra el viento, o lejos de la lluvia), y que compitan en el mismo orden (rachas, lluvia, viento).
+- **Evitar ciudades:** medir los km por ciudad de cada ruta y que no vuelva a pasar por la ciudad de salida a mitad de
+  camino (lazos que cruzan León o Tres Cantos varias veces); evitarlas siempre que se pueda, sabiendo que a veces será
+  inevitable (salir de casa).
+- **Juez:** con las mismas salidas, km urbanos y pasos por la ciudad antes y después, y el ojo del autor en gpx.studio.
+
+## Fase 7 — App MAUI (Android)
 
 - Pantalla única de recomendación, estética HUD.
 - Mapa de la ruta y botón para compartir o descargar el GPX.

@@ -905,3 +905,15 @@ Formato: contexto → decisión → alternativas descartadas.
   corta. Los casos caros son los que nadie previó: tormentas de verano que nacen en el sitio (Humanes 15 ago.: prevista
   0 km, mojado 45) y lluvia en toda la zona (La Bañeza 27 ago. y 29 sept.: prevista 46-51 km, mojado 45), donde ninguna
   vuelta ni espera de 2 h la evita. En 6 de los 24 casos se mojó 10 km o más con 0 km de lluvia probable prevista.
+
+## 039 — Fase nueva antes de la app: mejores rutas
+- Contexto: al ver las rutas de las fases 3 a 5, el autor (2026-10-19) vio dos cosas: lazos que pasan varias veces por la
+  ciudad de salida (León, Tres Cantos) y que nunca sale una ida y vuelta, que a veces sería mejor para el viento o la
+  lluvia. También pidió poder dar un rango de distancia, pero luego lo descartó: con la distancia o la duración basta.
+- Decisión (del autor, 2026-10-19):
+  - **Se cierra la fase 5** con su juez (`DECISIONS.md` 038) tal como salió.
+  - **Fase 6 nueva, "Mejores rutas"**, antes de la app MAUI (que pasa a ser la fase 7), para que la app nazca con rutas
+    mejores: primero ida y vuelta y después evitar ciudades.
+  - **Sin rango de distancia.**
+- Alternativas: meterlo como pasos extra de la fase 5 (la habría alargado con trabajo de rutas, que es de la fase 2);
+  dejarlo para después de la app.
