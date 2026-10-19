@@ -111,13 +111,14 @@ public partial class MapPage : ContentPage
         }
         _via.RemoveAt(_via.Count - 1);
         ShowVia();
+        // The old route goes at once; the one through the points left comes when the engine answers.
+        ShowRoute(null);
         if (_via.Count > 0)
         {
             await AdviseRideAsync();
         }
         else
         {
-            ShowRoute(null);
             await AdviseDirectionAsync();
         }
     }
@@ -138,6 +139,7 @@ public partial class MapPage : ContentPage
             Status.Text = "Pidiendo el viento…";
             var targetKm = RideDistance.FromDuration(DefaultDuration);
             var advice = await Task.Run(() => _direction.AdviseAsync(_home.Value, targetKm, DateTimeOffset.UtcNow, cancellationToken: cancellationToken), cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
             Show(RideText.DirectionHeadline(advice.Wind), RideText.Wind(advice.Wind),
                 $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.");
             ShowFan(advice.Fan);
@@ -166,11 +168,14 @@ public partial class MapPage : ContentPage
             var request = new TracedRequest(_home!.Value, _via.ToList(), DateTimeOffset.UtcNow);
             Status.Text = request.Shape == RouteShape.OutAndBack ? "Buscando la ida y vuelta…" : "Buscando la vuelta…";
             var traced = await Task.Run(() => _rides.RouteAsync(request, cancellationToken), cancellationToken);
+            // A point added or taken away meanwhile: this answer is stale, the next job draws its own.
+            cancellationToken.ThrowIfCancellationRequested();
             ShowRoute(traced.Route);
             summary = RideText.TracedSummary(traced) + ". ";
             Status.Text = $"{summary}Pidiendo el viento y la lluvia…";
 
             var ride = await Task.Run(() => _rides.AdviseAsync(traced, DateTimeOffset.UtcNow, cancellationToken), cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
             var option = ride.Ride;
             // The way round the wind prefers: the route is redrawn in riding order.
             ShowRoute(option.Route);
