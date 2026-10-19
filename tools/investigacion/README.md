@@ -41,3 +41,4 @@ HTTP 403 "Please, retry later!" tras unas 75 peticiones en unos 10 minutos (2026
 | `outandback.cs` | Fase 6: idas y vueltas del generador (`RouteShape.OutAndBack`) en vivo contra el BRouter local en los sitios de prueba, tres rumbos; validez, distancia, peticiones, tipos de vía y un GPX de cada una. |
 | `urban.cs` | Fase 6: km en ciudad (`RouteUrban`) de las vueltas e idas y vueltas de hoy en tres rumbos desde los sitios de prueba, y km de vuelta cerca de casa; un GPX por ruta con un nombre citable (`humanes-N-iv`). |
 | `ridesurban.cs` | Fase 6: km en ciudad (`RouteUrban`) de las salidas reales del autor, pasándolas por el BRouter local con un punto cada km. |
+| `brouterspeed.cs` | Fase 7: cuánto tarda una sola petición (tres idas de 23 km y una vuelta de 60 km) en cada servidor de BRouter que se le pase, en Fuenlabrada y León, con 1,5 s entre peticiones. |
