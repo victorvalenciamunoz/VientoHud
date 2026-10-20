@@ -1180,3 +1180,22 @@ Formato: contexto → decisión → alternativas descartadas.
   donde no hay asfalto se queda a la distancia que BRouter encuentre.
 - Alternativas: quitar el recorte también al planificador (volverían los ramales de la fase 2); un tope de longitud
   (`correctMisplacedViaPointsDistance`) en vez de apagarlo (cualquier tope cortaría alguna ida que el usuario quiere).
+
+## 052 — APK descargable en GitHub Releases, firmado con una clave propia fuera del repo
+- Contexto: el autor quiere que un amigo pruebe la app y dé su opinión (2026-10-20), como con CieloHud (su decisión
+  032). Probarla exigiría el SDK de .NET, la carga de trabajo de MAUI y la clave de Thunderforest.
+- Decisión (del autor, 2026-10-20, igual que en CieloHud):
+  - **Publicación a mano** en GitHub Releases con `gh release create`, marcada como *pre-release* mientras la fase 7
+    esté abierta. `scripts/publish-apk.ps1` compila en Release desde limpio, firma y verifica la firma con `apksigner`
+    (falla si no verifica o no la firma `CN=VientoHud`), y da el SHA-256.
+  - **Clave propia fuera del repositorio** (público): `%USERPROFILE%\.vientohud\vientohud-release.keystore` y su
+    contraseña en un fichero al lado, con copia de seguridad del autor. Sin ella, una versión nueva no puede actualizar
+    la instalada. En el certificado, `CN=VientoHud`, no un nombre personal: cualquiera puede leerlo en el APK.
+  - **La clave de Thunderforest va dentro del APK** (`DECISIONS.md` 050): quien instale la app gasta del plan gratuito
+    del autor (150.000 teselas al mes; una pantalla son 15-20). Para unos pocos amigos sobra; si se repartiera más,
+    habría que mirarlo.
+  - **Versiones**: `ApplicationDisplayVersion` 0.1.0 para la primera; `ApplicationVersion` = mayor×10000 + menor×100 +
+    parche, siempre creciente, para que Android acepte la actualización.
+- Alternativas: GitHub Actions al crear una etiqueta (pospuesto: necesita la carga de trabajo de MAUI en el runner y las
+  dos claves en los secretos; merece la pena si se publica a menudo); Google Play (descartado por ahora: cuenta de pago
+  y revisión); firmar con la clave de depuración (descartado: es pública y cambia entre máquinas).
