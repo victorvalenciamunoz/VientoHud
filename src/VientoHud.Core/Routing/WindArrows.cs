@@ -21,6 +21,12 @@ public static class WindArrows
 
     public const double DefaultLengthKm = 1.6;
 
+    /// <summary>
+    /// How far to the rider's right of the road each arrow stands, like a road sign: where the way out and the way
+    /// back share a road, their arrows and labels fall on opposite sides instead of on top of each other.
+    /// </summary>
+    public const double SideKm = 0.4;
+
     /// <summary>The head's arms, as a share of the length, swept back from the tip.</summary>
     public const double HeadShare = 0.3;
 
@@ -61,7 +67,8 @@ public static class WindArrows
             var feel = WindStretches.FeelOf(leg);
             if (feel != WindFeel.Light)
             {
-                arrows.Add(At(leg.Leg.Middle, leg.Wind.DirectionFromDegrees, leg.Wind.SpeedKmh, lengthKm, feel) with { AtKm = at });
+                var beside = leg.Leg.Middle.Destination((leg.Leg.BearingDegrees + 90) % 360, SideKm);
+                arrows.Add(At(beside, leg.Wind.DirectionFromDegrees, leg.Wind.SpeedKmh, lengthKm, feel) with { AtKm = at });
             }
         }
         return arrows;

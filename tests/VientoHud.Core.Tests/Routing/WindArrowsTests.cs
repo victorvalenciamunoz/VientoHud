@@ -46,7 +46,9 @@ public class WindArrowsTests
         Assert.Equal(180, arrows[0].Tail.BearingTo(arrows[0].Tip), 0);
         Assert.Equal(0, arrows[1].Tail.BearingTo(arrows[1].Tip), 0);
         Assert.Equal(1.6, arrows[0].Tail.DistanceKmTo(arrows[0].Tip), 2);
+        // Beside the road, 0,4 km to the rider's right (east, heading north), at km 2,5.
         Assert.Equal(2.5, Leon.DistanceKmTo(Midpoint(arrows[0])), 1);
+        Assert.Equal(9, Leon.BearingTo(Midpoint(arrows[0])), 0);
         Assert.Equal(2.5, arrows[0].AtKm);
         Assert.Equal(7.5, arrows[1].AtKm);
         Assert.Empty(WindArrows.AlongRide([]));

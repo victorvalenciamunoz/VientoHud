@@ -22,8 +22,9 @@
 - **Los puntos se ponen con una pulsación larga** (2026-10-20): en el emulador cada zoom acababa como un toque y ponía
   un punto, y el autor no podía trazar una vuelta. El toque corto solo cierra paneles. Comprobado: tocar y arrastrar no
   pone nada; dos pulsaciones largas hacen una vuelta (`docs/verificacion/2026-10-20-fase7-7e-emulador-vuelta-pulsacion-larga.png`,
-  con flechas rojas de cara y verdes a favor). Para pulir en 7h: donde ida y vuelta comparten carretera, dos flechas y
-  sus etiquetas se pisan.
+  con flechas rojas de cara y verdes a favor). Donde ida y vuelta comparten carretera las flechas se pisaban: ahora cada
+  una va 400 m a la derecha del sentido de marcha, como una señal, y las de ida y vuelta caen en lados opuestos
+  (`docs/verificacion/2026-10-20-fase7-7e-emulador-flechas-a-un-lado.png`).
 - **Botones + y − de zoom** sobre el mapa (2026-10-20): con una mano en el móvil, y en el emulador la única forma sin
   pellizco (la lupa de la barra del emulador amplía la ventana, no el mapa; el pellizco allí es Ctrl + arrastrar).
 - **Hora de salida** (pedido por el autor el 2026-10-20, solo de hoy): el botón SALIDA · AHORA abre un panel propio
