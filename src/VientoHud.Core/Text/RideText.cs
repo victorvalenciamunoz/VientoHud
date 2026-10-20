@@ -203,6 +203,8 @@ public static class RideText
             parts.Add($"desnivel {ascent.ToString("0", Spanish)} m");
         }
         parts.Add($"nacionales (trunk) {Km(a.TrunkKm)}");
+        // How much of the ride is ridden twice: an out and back repeats it all; a loop should repeat little.
+        parts.Add($"repite {(a.RepeatedFraction * 100).ToString("0", Spanish)} %");
         if (a.PavedTrackKm >= 0.05)
         {
             parts.Add($"caminos asfaltados {Km(a.PavedTrackKm)}");
