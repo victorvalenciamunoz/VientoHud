@@ -53,6 +53,25 @@ public partial class MapPage : ContentPage
     private readonly List<GeoCoordinate> _via = [];
     private GeoCoordinate? _home;
     private bool _started;
+    /// <summary>When to leave, as a time of day today; null for now.</summary>
+    private TimeOnly? _departureAt;
+    /// <summary>The choice being made in the departure panel, applied when it closes.</summary>
+    private TimeOnly? _pendingAt;
+
+    /// <summary>The departure in UTC: now, or the time chosen today (now again if it has already passed).</summary>
+    private DateTimeOffset Departure
+    {
+        get
+        {
+            var now = DateTimeOffset.UtcNow;
+            if (_departureAt is not { } at)
+            {
+                return now;
+            }
+            var next = DepartureTime.Next(at, now, Zone);
+            return next - now > TimeSpan.FromHours(23) ? now : next;
+        }
+    }
     private CancellationTokenSource? _cancel;
 
     public MapPage(TileSources tiles, ILocationProvider location, DirectionAdvisor direction, TracedRideAdvisor rides)
@@ -117,6 +136,17 @@ public partial class MapPage : ContentPage
         {
             return;
         }
+        // A tap with a panel open closes it (taps on its gaps reach the map); it never adds a point.
+        if (DetailPanel.IsVisible || DeparturePanel.IsVisible)
+        {
+            e.Handled = true;
+            DetailPanel.IsVisible = false;
+            if (DeparturePanel.IsVisible)
+            {
+                OnCloseDepartureClicked(this, EventArgs.Empty);
+            }
+            return;
+        }
         var (longitude, latitude) = SphericalMercator.ToLonLat(e.WorldPosition.X, e.WorldPosition.Y);
         _via.Add(new GeoCoordinate(latitude, longitude));
         ShowVia();
@@ -159,7 +189,8 @@ public partial class MapPage : ContentPage
             }
             Status.Text = "Pidiendo el viento…";
             var targetKm = RideDistance.FromDuration(DefaultDuration);
-            var advice = await Task.Run(() => _direction.AdviseAsync(_home.Value, targetKm, DateTimeOffset.UtcNow, cancellationToken: cancellationToken), cancellationToken);
+            var departure = Departure;
+            var advice = await Task.Run(() => _direction.AdviseAsync(_home.Value, targetKm, departure, cancellationToken: cancellationToken), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             Show(RideText.DirectionHeadline(advice.Wind),
                 $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.",
@@ -188,7 +219,7 @@ public partial class MapPage : ContentPage
         var summary = "";
         try
         {
-            var request = new TracedRequest(_home!.Value, _via.ToList(), DateTimeOffset.UtcNow);
+            var request = new TracedRequest(_home!.Value, _via.ToList(), Departure);
             Status.Text = request.Shape == RouteShape.OutAndBack ? "Buscando la ida y vuelta…" : "Buscando la vuelta…";
             var traced = await Task.Run(() => _rides.RouteAsync(request, cancellationToken), cancellationToken);
             // A point added or taken away meanwhile: this answer is stale, the next job draws its own.
@@ -233,7 +264,7 @@ public partial class MapPage : ContentPage
         ShowRideWind(WindArrows.AlongRide(option.Winds));
         var lines = new List<string> { $"{SpanishText.Capitalized(RideText.Turn(option, ride.Shape))}: {RideText.Advantage(option.Score)}" };
         lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone, ride.RainPending));
-        Show(RideText.Recommendation(ride.Departure, fromNow: true, Zone),
+        Show(RideText.Recommendation(ride.Departure, fromNow: _departureAt is null, Zone),
             $"{SpanishText.Km(option.Route.DistanceKm)} · {RideText.Arrival(option, Zone)}{(doing is null ? "" : $" {doing}")}",
             string.Join("\n", lines), RideText.TracedSummary(ride) + ".");
     }
@@ -263,6 +294,79 @@ public partial class MapPage : ContentPage
     private void OnShowDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = true;
 
     private void OnCloseDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = false;
+
+    private void OnDepartureClicked(object? sender, EventArgs e)
+    {
+        _pendingAt = _departureAt;
+        BuildDepartureChips();
+        DetailPanel.IsVisible = false;
+        DeparturePanel.IsVisible = true;
+    }
+
+    /// <summary>Closes the panel and, if the departure changed, judges everything again for it.</summary>
+    private async void OnCloseDepartureClicked(object? sender, EventArgs e)
+    {
+        DeparturePanel.IsVisible = false;
+        if (_pendingAt == _departureAt)
+        {
+            return;
+        }
+        _departureAt = _pendingAt;
+        DepartureChip.Text = _departureAt is { } at ? $"SALIDA · {at:HH\\:mm}" : "SALIDA · AHORA";
+        if (_via.Count > 0)
+        {
+            await AdviseRideAsync();
+        }
+        else
+        {
+            await AdviseDirectionAsync();
+        }
+    }
+
+    /// <summary>AHORA and the hours left today; with an hour chosen, its quarters.</summary>
+    private void BuildDepartureChips()
+    {
+        HourChips.Children.Clear();
+        MinuteChips.Children.Clear();
+        var nowLocal = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, Zone);
+        HourChips.Children.Add(Chip("AHORA", _pendingAt is null, () => _pendingAt = null));
+        for (var h = nowLocal.Hour + 1; h <= 23; h++)
+        {
+            var hour = h;
+            HourChips.Children.Add(Chip($"{hour:00}", _pendingAt?.Hour == hour, () => _pendingAt = new TimeOnly(hour, _pendingAt?.Minute ?? 0)));
+        }
+        if (_pendingAt is { } at)
+        {
+            foreach (var m in new[] { 0, 15, 30, 45 })
+            {
+                var minute = m;
+                MinuteChips.Children.Add(Chip($":{minute:00}", at.Minute == minute, () => _pendingAt = new TimeOnly(at.Hour, minute)));
+            }
+            var hoursAhead = (at.ToTimeSpan() - nowLocal.TimeOfDay).TotalHours;
+            DepartureNote.Text = $"Salida a las {at:HH\\:mm}." +
+                                 (hoursAhead > 3 ? " A más de 3 h vista la lluvia es solo un aviso para la zona." : "");
+        }
+        else
+        {
+            DepartureNote.Text = "Salida ahora.";
+        }
+    }
+
+    private Button Chip(string text, bool selected, Action choose)
+    {
+        var chip = new Button { Text = text, Style = (Microsoft.Maui.Controls.Style)Resources["Chip"], Margin = new Thickness(0, 0, 8, 8) };
+        if (selected)
+        {
+            chip.BackgroundColor = HudTheme.Guide;
+            chip.TextColor = HudTheme.Background;
+        }
+        chip.Clicked += (_, _) =>
+        {
+            choose();
+            BuildDepartureChips();
+        };
+        return chip;
+    }
 
     private void Fail(string why)
     {

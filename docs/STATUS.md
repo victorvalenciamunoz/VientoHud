@@ -19,6 +19,12 @@
   el panel completo (sentido, tramos, lluvia, ciudad, resumen) se despliega sobre el mapa y se cierra con CERRAR. Bajo el
   mapa, la leyenda de las flechas (de cara, a favor, de lado) mientras haya flechas.
   `docs/verificacion/2026-10-20-fase7-7e-emulador-panel-plegable.png`.
+- **Hora de salida** (pedido por el autor el 2026-10-20, solo de hoy): el botón SALIDA · AHORA abre un panel propio
+  (sin diálogo del sistema, que saldría en blanco) con AHORA, las horas que quedan de hoy y los cuartos; al cerrar, si
+  cambió, se recalculan abanico, ruta y juicio para esa salida y los textos pasan a "Sal a las 13:00". Si la hora ya
+  pasó, vale "ahora". A más de 3 h vista el panel avisa de que la lluvia es solo un aviso de zona. Con un panel abierto,
+  tocar el mapa lo cierra en vez de añadir un punto (un toque en un hueco del panel llegaba al mapa).
+  `docs/verificacion/2026-10-20-fase7-7e-emulador-hora-salida.png`.
 - **El viento antes que la lluvia** (`TracedRideAdvisor.JudgeWindAsync` y `JudgeRainAsync`): la app juzga primero con
   el viento (una petición: flechas, sentido, rachas y una primera salida, con "Lluvia: pidiendo la previsión…") y
   después con la lluvia, que en el móvil la primera vez tarda (4 cuadros de radar, ~9 MB); el campo de viento se
