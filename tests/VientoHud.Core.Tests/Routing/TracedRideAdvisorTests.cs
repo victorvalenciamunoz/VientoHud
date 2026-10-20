@@ -179,6 +179,25 @@ public class TracedRideAdvisorTests
     }
 
     [Fact]
+    public async Task Proposes_a_far_point_for_an_out_and_back_in_the_direction_asked()
+    {
+        var roads = Roads();
+
+        var proposal = await Advisor(roads).ProposeFarPointAsync(Leon, 270, 60);
+
+        // 60 km there and back on roads 1,5 times the straight line: the far point at 20 km, towards the west.
+        Assert.NotNull(proposal);
+        Assert.True(proposal!.Value.Fits);
+        Assert.Equal(20, Leon.DistanceKmTo(proposal.Value.FarPoint), 0);
+        Assert.Equal(270, Leon.BearingTo(proposal.Value.FarPoint), 0);
+        Assert.True(roads.Requests.Count <= 3);
+
+        // No road at all that way: nothing to propose.
+        var island = new FakeRouteEngine(_ => throw new RouteException(RouteFailure.Unreachable, "target island"));
+        Assert.Null(await Advisor(island).ProposeFarPointAsync(Leon, 270, 60));
+    }
+
+    [Fact]
     public async Task Needs_a_point_and_times_in_UTC()
     {
         Assert.Throws<ArgumentException>(() => new TracedRequest(Leon, [], Now));

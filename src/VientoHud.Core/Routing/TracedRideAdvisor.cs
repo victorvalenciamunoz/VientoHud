@@ -79,6 +79,22 @@ public sealed record TracedRide(
 /// </summary>
 public sealed class TracedRideAdvisor(IRouteEngine engine, IWindForecastProvider winds, IRainOutlookSource rain)
 {
+    /// <summary>
+    /// A far point to propose for an out and back of <paramref name="targetKm"/> towards <paramref name="bearingDegrees"/>
+    /// (the recommended direction): the generator's (DECISIONS 040; a few requests), so the rider starts from a ride
+    /// that fits instead of guessing a point. Null when the engine found no road that way; a point that falls short of
+    /// the distance is still returned (the rider can move it), with <c>Fits</c> false.
+    /// </summary>
+    public async Task<(Coordinate FarPoint, bool Fits)?> ProposeFarPointAsync(
+        Coordinate start, double bearingDegrees, double targetKm, CancellationToken cancellationToken = default)
+    {
+        // The bearing asked for when it works; turned only when it does not (no hunt for the least urban variant:
+        // fewer requests, and the rider can move the point anyway).
+        var generator = new LoopGenerator(engine, new LoopGeneratorOptions { OutAndBackVariantDegrees = 0 });
+        var result = await generator.GenerateAsync(start, bearingDegrees, targetKm, RouteShape.OutAndBack, cancellationToken);
+        return result.Best is { } best ? (best.Waypoints[1], best.IsValid) : null;
+    }
+
     /// <summary>The route through the points: one request to the engine.</summary>
     /// <exception cref="RouteException">The engine could not join the points (move them) or failed.</exception>
     public async Task<TracedRoute> RouteAsync(TracedRequest request, CancellationToken cancellationToken = default)

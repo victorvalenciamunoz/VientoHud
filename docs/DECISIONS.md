@@ -1199,3 +1199,19 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: GitHub Actions al crear una etiqueta (pospuesto: necesita la carga de trabajo de MAUI en el runner y las
   dos claves en los secretos; merece la pena si se publica a menudo); Google Play (descartado por ahora: cuenta de pago
   y revisión); firmar con la clave de depuración (descartado: es pública y cambia entre máquinas).
+
+## 053 — Trazar más fácil: PROPONER, el tipo de ruta a la vista y un punto en la cruz
+- Contexto: el primer amigo que probó la 0.1.0 (2026-10-20) dijo que la generación de la ruta no le convencía, y el
+  autor reconoce que era poco intuitiva: había que saber que los puntos van con pulsación larga, dónde hay asfalto y
+  que un punto es ida y vuelta y dos son vuelta. El abanico decía "hacia allí", pero elegir el punto era trabajo del
+  usuario.
+- Decisión (del autor, 2026-10-20, con la recomendación):
+  - **PROPONER**: la app pone sola una ida y vuelta de la duración fija hacia el rumbo recomendado, con el generador de
+    Core para un solo rumbo (`TracedRideAdvisor.ProposeFarPointAsync`: el rumbo pedido si vale y, si no, girado; sin
+    buscar la variante con menos ciudad: 2-5 peticiones, unos 10-20 s). Después se puede cambiar el punto o añadir otro.
+  - **El tipo de ruta a la vista**: chips IDA Y VUELTA (un punto, el siguiente lo sustituye) y VUELTA (los puntos se
+    acumulan), y la pista dice en cada caso qué hacer.
+  - **EN LA CRUZ**: una cruz fija en el centro del mapa y un botón que pone el punto ahí; se mueve el mapa para apuntar.
+    La pulsación larga sigue valiendo.
+- Alternativas: arrastrar los puntos (más trabajo con los gestos de Mapsui; se deja para después si hace falta);
+  proponer varias rutas (la búsqueda completa de la fase 6, minutos: descartada por `DECISIONS.md` 048).

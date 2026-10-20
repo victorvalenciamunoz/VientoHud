@@ -19,6 +19,10 @@
   el panel completo (sentido, tramos, lluvia, ciudad, resumen) se despliega sobre el mapa y se cierra con CERRAR. Bajo el
   mapa, la leyenda de las flechas (de cara, a favor, de lado) mientras haya flechas.
   `docs/verificacion/2026-10-20-fase7-7e-emulador-panel-plegable.png`.
+- **Trazar más fácil** (`DECISIONS.md` 053, por la opinión del primer amigo): PROPONER pone una ida y vuelta de 2 h
+  hacia el rumbo recomendado (en el emulador, 43 km hacia el OSO en ~20 s,
+  `docs/verificacion/2026-10-20-fase7-7e-emulador-proponer.png`); chips IDA Y VUELTA / VUELTA con la pista de qué
+  hacer; EN LA CRUZ pone un punto donde está la cruz del centro del mapa.
 - **Los puntos se ponen con una pulsación larga** (2026-10-20): en el emulador cada zoom acababa como un toque y ponía
   un punto, y el autor no podía trazar una vuelta. El toque corto solo cierra paneles. Comprobado: tocar y arrastrar no
   pone nada; dos pulsaciones largas hacen una vuelta (`docs/verificacion/2026-10-20-fase7-7e-emulador-vuelta-pulsacion-larga.png`,
