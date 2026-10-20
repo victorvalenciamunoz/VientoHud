@@ -55,6 +55,11 @@ public partial class MapPage : ContentPage
     private bool _loopMode;
     /// <summary>The last direction advice: PROPONER heads that way.</summary>
     private DirectionAdvice? _lastDirection;
+    /// <summary>
+    /// Whether the map moved or zoomed since the finger went down: the first finger of a pinch, or a slow drag, also
+    /// counts as a long press, and then no point must be added.
+    /// </summary>
+    private bool _mapMovedSincePress;
     private GeoCoordinate? _home;
     private bool _started;
     /// <summary>When to leave, as a time of day today; null for now.</summary>
@@ -101,6 +106,8 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(_reachedLayer);
         MapView.Map.Layers.Add(_homeLayer);
         MapView.Map.Tapped += OnMapTapped;
+        MapView.Map.PointerPressed += (_, _) => _mapMovedSincePress = false;
+        MapView.Map.Navigator.ViewportChanged += (_, _) => _mapMovedSincePress = true;
         // + and − on the map: one-handed on the phone, and the only way on the emulator without a pinch.
         MapView.Map.Widgets.Enqueue(new Mapsui.Widgets.ButtonWidgets.ZoomInOutWidget
         {
@@ -174,6 +181,10 @@ public partial class MapPage : ContentPage
             return;
         }
         e.Handled = true;
+        if (_mapMovedSincePress)
+        {
+            return;
+        }
         AddPoint(FromMercator(e.WorldPosition.X, e.WorldPosition.Y));
     }
 
