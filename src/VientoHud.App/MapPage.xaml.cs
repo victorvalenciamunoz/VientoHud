@@ -66,11 +66,6 @@ public partial class MapPage : ContentPage
     private bool _loopMode;
     /// <summary>The last direction advice: PROPONER heads that way.</summary>
     private DirectionAdvice? _lastDirection;
-    /// <summary>
-    /// Whether the map moved or zoomed since the finger went down: the first finger of a pinch, or a slow drag, also
-    /// counts as a long press, and then no point must be added.
-    /// </summary>
-    private bool _mapMovedSincePress;
     private GeoCoordinate? _home;
     private bool _started;
     /// <summary>When to leave, as a time of day today; null for now.</summary>
@@ -117,8 +112,6 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(_reachedLayer);
         MapView.Map.Layers.Add(_homeLayer);
         MapView.Map.Tapped += OnMapTapped;
-        MapView.Map.PointerPressed += (_, _) => _mapMovedSincePress = false;
-        MapView.Map.Navigator.ViewportChanged += (_, _) => _mapMovedSincePress = true;
         // + and − on the map: one-handed on the phone, and the only way on the emulator without a pinch.
         MapView.Map.Widgets.Enqueue(new Mapsui.Widgets.ButtonWidgets.ZoomInOutWidget
         {
@@ -165,9 +158,9 @@ public partial class MapPage : ContentPage
     }
 
     /// <summary>
-    /// A long press on the map adds a point and asks for the ride through all of them. A long press, not a tap: a
-    /// pinch to zoom or a drag can end as a tap (on the emulator, every zoom did), and a point by mistake ruins the
-    /// ride. A tap only closes an open panel (taps on its gaps reach the map).
+    /// A tap on the map only closes an open panel (taps on its gaps reach the map). Points are added with the aim
+    /// alone (<see cref="OnAimTapped"/>): taps, long presses, drags and pinches on the map never add one, which they
+    /// did by mistake before.
     /// </summary>
     private void OnMapTapped(object? sender, MapEventArgs e)
     {
@@ -192,16 +185,6 @@ public partial class MapPage : ContentPage
             }
             return;
         }
-        if (e.GestureType != GestureType.LongPress || DetailPanel.IsVisible || DeparturePanel.IsVisible || RidePanel.IsVisible)
-        {
-            return;
-        }
-        e.Handled = true;
-        if (_mapMovedSincePress)
-        {
-            return;
-        }
-        AddPoint(FromMercator(e.WorldPosition.X, e.WorldPosition.Y));
     }
 
     /// <summary>A point for the ride: the only one of an out and back, one more of a loop; then the ride through them.</summary>
@@ -216,8 +199,8 @@ public partial class MapPage : ContentPage
         _ = AdviseRideAsync();
     }
 
-    /// <summary>The point goes where the cross at the centre of the map is: no gesture to learn.</summary>
-    private void OnAddAtCrossClicked(object? sender, EventArgs e)
+    /// <summary>The aim tapped: the point goes where it is, at the centre of the map. The only way to add one.</summary>
+    private void OnAimTapped(object? sender, TappedEventArgs e)
     {
         if (_home is null)
         {
@@ -596,11 +579,11 @@ public partial class MapPage : ContentPage
         RemoveLast.IsVisible = _via.Count > 0;
         Hint.Text = (_loopMode, _via.Count) switch
         {
-            (false, 0) => $"Hasta dónde: PROPONER ({DurationText(_duration)}), EN LA MIRA (el anillo del centro) o mantén pulsado el mapa.",
-            (false, _) => "Ida y vuelta. Para cambiar el punto, pon otro.",
-            (true, 0) => "Por dónde pasar: EN LA MIRA o mantén pulsado; puedes añadir varios.",
-            (true, 1) => "Vuelta por 1 punto: BRouter elige por dónde volver. Añade puntos para mandar tú.",
-            (true, var n) => $"Vuelta por {n} puntos. Añade más o QUITAR.",
+            (false, 0) => $"Hasta dónde: mueve el mapa y toca la mira (el anillo del centro), o PROPONER ({DurationText(_duration)}).",
+            (false, _) => "Ida y vuelta. Para cambiar el punto, toca la mira en otro sitio.",
+            (true, 0) => "Por dónde pasar: mueve el mapa y toca la mira; puedes añadir varios.",
+            (true, 1) => "Vuelta por 1 punto: BRouter elige por dónde volver. Toca la mira en más sitios para mandar tú.",
+            (true, var n) => $"Vuelta por {n} puntos. Añade más con la mira o QUITAR PUNTO.",
         };
         MapView.Map.RefreshGraphics();
     }

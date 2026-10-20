@@ -1211,8 +1211,9 @@ Formato: contexto → decisión → alternativas descartadas.
     buscar la variante con menos ciudad: 2-5 peticiones, unos 10-20 s). Después se puede cambiar el punto o añadir otro.
   - **El tipo de ruta a la vista**: chips IDA Y VUELTA (un punto, el siguiente lo sustituye) y VUELTA (los puntos se
     acumulan), y la pista dice en cada caso qué hacer.
-  - **EN LA MIRA**: una mira fija en el centro del mapa (anillo ámbar con borde oscuro: la cruz clara no se veía) y un
-    botón que pone el punto ahí; se mueve el mapa para apuntar.
-    La pulsación larga sigue valiendo.
+  - **La mira es el único sitio que pone puntos** (idea del autor, 2026-10-20): un anillo ámbar con borde oscuro, fijo
+    en el centro del mapa (una cruz clara no se veía); se mueve el mapa hasta que la mira está donde se quiere y se
+    toca la mira. Nada más en el mapa pone puntos: se quitan la pulsación larga (el primer dedo de un pellizco contaba
+    como tal y dejaba puntos sin querer) y el botón EN LA MIRA.
 - Alternativas: arrastrar los puntos (más trabajo con los gestos de Mapsui; se deja para después si hace falta);
   proponer varias rutas (la búsqueda completa de la fase 6, minutos: descartada por `DECISIONS.md` 048).

@@ -39,8 +39,12 @@
         <Grid Grid.Row="1">
             <mapsui:MapControl x:Name="MapView" />
 
-            <!-- The aim at the centre: EN LA MIRA puts a point there, with no gesture to learn. -->
-            <Grid InputTransparent="True" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="48" HeightRequest="48">
+            <!-- The aim at the centre is the only way to put a point: move the map under it and tap it. Nothing else
+                 on the map adds points, so a pinch or a drag can never leave one by mistake. -->
+            <Grid HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="64" HeightRequest="64" BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnAimTapped" />
+                </Grid.GestureRecognizers>
                 <shapes:Ellipse WidthRequest="44" HeightRequest="44" StrokeThickness="7" Stroke="{DynamicResource HudBackground}" Opacity="0.7" />
                 <shapes:Ellipse WidthRequest="44" HeightRequest="44" StrokeThickness="3" Stroke="{DynamicResource HudMarker}" />
                 <shapes:Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource HudMarker}" Stroke="{DynamicResource HudBackground}" StrokeThickness="1" />
@@ -139,12 +143,10 @@
                 <Label Grid.Column="2" x:Name="Hint" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
                        VerticalOptions="Center" LineBreakMode="WordWrap" />
             </Grid>
-            <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="8">
+            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
                 <Button x:Name="Propose" Text="PROPONER" Style="{StaticResource Chip}"
                         TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnProposeClicked" />
-                <Button Grid.Column="1" x:Name="AddAtCross" Text="EN LA MIRA" Style="{StaticResource Chip}"
-                        TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnAddAtCrossClicked" />
-                <Button Grid.Column="2" x:Name="RemoveLast" Text="QUITAR" IsVisible="False" Style="{StaticResource Chip}"
+                <Button Grid.Column="1" x:Name="RemoveLast" Text="QUITAR PUNTO" IsVisible="False" Style="{StaticResource Chip}"
                         TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnRemoveLastClicked" />
             </Grid>
             <!-- When to leave, and how long and how fast (phase 7g): both open their own panel over the map. -->
