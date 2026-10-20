@@ -69,6 +69,7 @@ public class RideTextTests
     public void Spanish_numbers_and_compass_points()
     {
         Assert.Equal("12,3 km", SpanishText.Km(12.34));
+        Assert.Equal("km 7,5", SpanishText.KmAt(7.5));
         Assert.Equal("18 km/h", SpanishText.Kmh(18.4));
         Assert.Equal("34 %", SpanishText.Percent(0.34));
         Assert.Equal("-3 km/h", SpanishText.Signed(-3.2));

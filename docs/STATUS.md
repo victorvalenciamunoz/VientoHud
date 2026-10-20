@@ -21,6 +21,8 @@
 - **Flechas del viento** (`WindArrows`, pedido por el autor el 2026-10-19): con la ruta trazada, una cada 5 km con el
   viento que habrá al pasar por ahí (apunta hacia donde va el viento: un empujón), de color según se siente (de cara
   rojo, a favor verde, de lado ámbar), con halo blanco; **ninguna donde el viento es flojo** (su dirección sería ruido).
+  Cada flecha lleva su km ("km 7,5", pedido por el autor el 2026-10-20; `docs/verificacion/2026-10-20-fase7-7e-emulador-flechas-km.png`:
+  Humanes con viento del O a 16 km/h, flechas ámbar de lado hacia el E y el abanico hacia el O).
   Hubo una flecha grande en casa con el viento medio de una salida de 2 h: el autor la vio contradecir a las de la
   ruta (viento flojo que gira cada hora; su ida y vuelta duraba 27 min) y se quitó: el abanico ya dice hacia dónde.
 - **Ubicación y dirección en la app** (paso 7d): `GeolocationProvider` (pide el permiso y la posición al móvil, con la

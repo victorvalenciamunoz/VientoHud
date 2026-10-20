@@ -26,6 +26,9 @@ public static class SpanishText
 
     public static string Km(double km) => $"{km.ToString("0.#", Spanish)} km";
 
+    /// <summary>A place along the ride: "km 7,5".</summary>
+    public static string KmAt(double km) => $"km {km.ToString("0.#", Spanish)}";
+
     public static string Kmh(double value) => $"{value.ToString("0", Spanish)} km/h";
 
     /// <summary>"+8 km/h", "-3 km/h", "0 km/h".</summary>

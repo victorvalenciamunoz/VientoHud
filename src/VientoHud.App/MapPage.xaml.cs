@@ -41,6 +41,7 @@ public partial class MapPage : ContentPage
     // The wind: the mean one at home, and along the ride one layer per feel (the color is the layer's).
     // Every arrow has a white halo underneath, so it stands out on the pale map whatever its color.
     private readonly MemoryLayer _windHaloLayer = new("WindHalo") { Style = ArrowStyle(HudTheme.Text, 7) };
+    private readonly MemoryLayer _windLabelLayer = new("WindLabels") { Style = KmLabelStyle() };
     private readonly Dictionary<WindFeel, MemoryLayer> _windLayers = new()
     {
         [WindFeel.Headwind] = new MemoryLayer("WindHead") { Style = ArrowStyle(HudTheme.Alert, 3.5) },
@@ -72,6 +73,7 @@ public partial class MapPage : ContentPage
         {
             MapView.Map.Layers.Add(layer);
         }
+        MapView.Map.Layers.Add(_windLabelLayer);
         MapView.Map.Layers.Add(_viaLayer);
         MapView.Map.Layers.Add(_reachedLayer);
         MapView.Map.Layers.Add(_homeLayer);
@@ -309,6 +311,13 @@ public partial class MapPage : ContentPage
     {
         _windHaloLayer.Features = arrows.SelectMany(ArrowFeatures).ToList();
         _windHaloLayer.DataHasChanged();
+        _windLabelLayer.Features = arrows.Select(a =>
+        {
+            var label = new PointFeature(ToMercator(a.Tip));
+            label["km"] = SpanishText.KmAt(a.AtKm);
+            return label;
+        }).ToList();
+        _windLabelLayer.DataHasChanged();
         foreach (var (feel, layer) in _windLayers)
         {
             layer.Features = arrows.Where(a => a.Feel == feel).SelectMany(ArrowFeatures).ToList();
@@ -323,6 +332,17 @@ public partial class MapPage : ContentPage
         new GeometryFeature(new LineString([ToNts(arrow.Tail), ToNts(arrow.Tip)])),
         new GeometryFeature(new LineString([ToNts(arrow.HeadLeft), ToNts(arrow.Tip), ToNts(arrow.HeadRight)])),
     ];
+
+    /// <summary>"km 7,5" by the arrow: dark text with a light halo, above its tip.</summary>
+    private static LabelStyle KmLabelStyle() => new()
+    {
+        LabelColumn = "km",
+        ForeColor = ToMapsui(HudTheme.Background, 255),
+        Halo = new Pen(ToMapsui(HudTheme.Text, 220), 2),
+        BackColor = null,
+        Font = new Mapsui.Styles.Font { Size = 12, Bold = true },
+        Offset = new Offset(0, -16),
+    };
 
     private static VectorStyle ArrowStyle(Microsoft.Maui.Graphics.Color color, double width) => new()
     {

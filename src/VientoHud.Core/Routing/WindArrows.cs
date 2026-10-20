@@ -9,8 +9,9 @@ namespace VientoHud.Core.Routing;
 /// </summary>
 /// <param name="SpeedKmh">The wind's speed, for the stroke.</param>
 /// <param name="Feel">How it feels to the rider there, for the color; null when it is not part of a ride.</param>
+/// <param name="AtKm">Where along the ride it stands, for its label; 0 when it is not part of a ride.</param>
 public sealed record WindArrow(
-    Coordinate Tail, Coordinate Tip, Coordinate HeadLeft, Coordinate HeadRight, double SpeedKmh, WindFeel? Feel);
+    Coordinate Tail, Coordinate Tip, Coordinate HeadLeft, Coordinate HeadRight, double SpeedKmh, WindFeel? Feel, double AtKm = 0);
 
 /// <summary>Wind arrows along a ride (phase 7e): one every few km where the wind is felt.</summary>
 public static class WindArrows
@@ -60,7 +61,7 @@ public static class WindArrows
             var feel = WindStretches.FeelOf(leg);
             if (feel != WindFeel.Light)
             {
-                arrows.Add(At(leg.Leg.Middle, leg.Wind.DirectionFromDegrees, leg.Wind.SpeedKmh, lengthKm, feel));
+                arrows.Add(At(leg.Leg.Middle, leg.Wind.DirectionFromDegrees, leg.Wind.SpeedKmh, lengthKm, feel) with { AtKm = at });
             }
         }
         return arrows;
