@@ -19,6 +19,11 @@
   el panel completo (sentido, tramos, lluvia, ciudad, resumen) se despliega sobre el mapa y se cierra con CERRAR. Bajo el
   mapa, la leyenda de las flechas (de cara, a favor, de lado) mientras haya flechas.
   `docs/verificacion/2026-10-20-fase7-7e-emulador-panel-plegable.png`.
+- **Los puntos se ponen con una pulsación larga** (2026-10-20): en el emulador cada zoom acababa como un toque y ponía
+  un punto, y el autor no podía trazar una vuelta. El toque corto solo cierra paneles. Comprobado: tocar y arrastrar no
+  pone nada; dos pulsaciones largas hacen una vuelta (`docs/verificacion/2026-10-20-fase7-7e-emulador-vuelta-pulsacion-larga.png`,
+  con flechas rojas de cara y verdes a favor). Para pulir en 7h: donde ida y vuelta comparten carretera, dos flechas y
+  sus etiquetas se pisan.
 - **Hora de salida** (pedido por el autor el 2026-10-20, solo de hoy): el botón SALIDA · AHORA abre un panel propio
   (sin diálogo del sistema, que saldría en blanco) con AHORA, las horas que quedan de hoy y los cuartos; al cerrar, si
   cambió, se recalculan abanico, ruta y juicio para esa salida y los textos pasan a "Sal a las 13:00". Si la hora ya

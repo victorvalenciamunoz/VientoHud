@@ -100,7 +100,7 @@
                 <Label Text="➜ de lado" FontFamily="OpenSansSemibold" FontSize="12" TextColor="{DynamicResource HudMarker}" />
             </HorizontalStackLayout>
             <Label x:Name="Hint" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
-                   Text="Toca el mapa: un punto, ida y vuelta; dos o más, vuelta." />
+                   Text="Mantén pulsado el mapa: un punto, ida y vuelta; dos o más, vuelta." />
             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
                 <Button x:Name="DepartureChip" Text="SALIDA · AHORA" Style="{StaticResource Chip}" Clicked="OnDepartureClicked" />
                 <Button Grid.Column="2" x:Name="RemoveLast" Text="QUITAR PUNTO" IsVisible="False" Style="{StaticResource Chip}"

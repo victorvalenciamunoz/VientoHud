@@ -129,22 +129,32 @@ public partial class MapPage : ContentPage
         }
     }
 
-    /// <summary>A tap on the map adds a point and asks for the ride through all of them.</summary>
+    /// <summary>
+    /// A long press on the map adds a point and asks for the ride through all of them. A long press, not a tap: a
+    /// pinch to zoom or a drag can end as a tap (on the emulator, every zoom did), and a point by mistake ruins the
+    /// ride. A tap only closes an open panel (taps on its gaps reach the map).
+    /// </summary>
     private void OnMapTapped(object? sender, MapEventArgs e)
     {
-        if (e.GestureType != GestureType.SingleTap || _home is null)
+        if (_home is null)
         {
             return;
         }
-        // A tap with a panel open closes it (taps on its gaps reach the map); it never adds a point.
-        if (DetailPanel.IsVisible || DeparturePanel.IsVisible)
+        if (e.GestureType == GestureType.SingleTap)
         {
-            e.Handled = true;
-            DetailPanel.IsVisible = false;
-            if (DeparturePanel.IsVisible)
+            if (DetailPanel.IsVisible || DeparturePanel.IsVisible)
             {
-                OnCloseDepartureClicked(this, EventArgs.Empty);
+                e.Handled = true;
+                DetailPanel.IsVisible = false;
+                if (DeparturePanel.IsVisible)
+                {
+                    OnCloseDepartureClicked(this, EventArgs.Empty);
+                }
             }
+            return;
+        }
+        if (e.GestureType != GestureType.LongPress || DetailPanel.IsVisible || DeparturePanel.IsVisible)
+        {
             return;
         }
         var (longitude, latitude) = SphericalMercator.ToLonLat(e.WorldPosition.X, e.WorldPosition.Y);
@@ -397,8 +407,8 @@ public partial class MapPage : ContentPage
         RemoveLast.IsVisible = _via.Count > 0;
         Hint.Text = _via.Count switch
         {
-            0 => "Toca el mapa: un punto, ida y vuelta; dos o más, vuelta.",
-            1 => "Ida y vuelta. Toca otro punto para hacer una vuelta.",
+            0 => "Mantén pulsado el mapa: un punto, ida y vuelta; dos o más, vuelta.",
+            1 => "Ida y vuelta. Mantén pulsado otro punto para hacer una vuelta.",
             var n => $"Vuelta por {n} puntos.",
         };
         MapView.Map.RefreshGraphics();
