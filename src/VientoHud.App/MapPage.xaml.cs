@@ -435,9 +435,9 @@ public partial class MapPage : ContentPage
 
     private void OnCloseDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = false;
 
-    /// <summary>"2 h", "1 h 30".</summary>
+    /// <summary>"2 h", "1½ h": short, so it fits a chip at any font size.</summary>
     private static string DurationText(TimeSpan duration) =>
-        duration.Minutes == 0 ? $"{(int)duration.TotalHours} h" : $"{(int)duration.TotalHours} h {duration.Minutes:00}";
+        duration.Minutes == 0 ? $"{(int)duration.TotalHours} h" : $"{(int)duration.TotalHours}½ h";
 
     private void OnRideClicked(object? sender, EventArgs e)
     {
