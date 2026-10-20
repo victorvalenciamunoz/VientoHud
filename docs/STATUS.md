@@ -17,7 +17,8 @@
 - **Mapa a pantalla completa, panel plegable y leyenda** (pedido por el autor el 2026-10-20): sobre el mapa solo una
   barra con el titular ("Sal ahora (09:38)." o "Hacia el O") y una línea (km, llegada, qué está haciendo) con DETALLE;
   el panel completo se despliega sobre el mapa y se cierra con CERRAR; va por secciones (SENTIDO, VIENTO POR TRAMOS,
-  RACHAS DE LADO, LLUVIA, CIUDAD, RUTA) con una idea por línea y se desplaza si no cabe (pedido el 2026-10-20). Bajo el
+  RACHAS DE LADO, LLUVIA, CIUDAD, RUTA) con una idea por línea; el panel ocupa el hueco del mapa y las secciones se desplazan dentro (con la letra grande del
+  móvil no cabían y no había desplazamiento; corregido el 2026-10-20). Bajo el
   mapa, la leyenda de las flechas (de cara, a favor, de lado) mientras haya flechas.
   `docs/verificacion/2026-10-20-fase7-7e-emulador-panel-plegable.png`.
   `docs/verificacion/2026-10-20-fase7-7e-emulador-detalle-secciones.png`.
