@@ -330,7 +330,8 @@ public partial class MapPage : ContentPage
         var summary = "";
         try
         {
-            var request = new TracedRequest(_home!.Value, _via.ToList(), Departure);
+            var request = new TracedRequest(_home!.Value, _via.ToList(), Departure,
+                RequestedShape: _loopMode ? RouteShape.Loop : RouteShape.OutAndBack);
             Status.Text = request.Shape == RouteShape.OutAndBack ? "Buscando la ida y vuelta…" : "Buscando la vuelta…";
             var traced = await Task.Run(() => _rides.RouteAsync(request, cancellationToken), cancellationToken);
             // A point added or taken away meanwhile: this answer is stale, the next job draws its own.
@@ -511,7 +512,8 @@ public partial class MapPage : ContentPage
             (false, 0) => "Hasta dónde: PROPONER (2 h), EN LA CRUZ o mantén pulsado el mapa.",
             (false, _) => "Ida y vuelta. Para cambiar el punto, pon otro.",
             (true, 0) => "Por dónde pasar: EN LA CRUZ o mantén pulsado; puedes añadir varios.",
-            (true, var n) => $"Vuelta por {n} punto{(n == 1 ? "" : "s")}. Añade más o QUITAR.",
+            (true, 1) => "Vuelta por 1 punto: BRouter elige por dónde volver. Añade puntos para mandar tú.",
+            (true, var n) => $"Vuelta por {n} puntos. Añade más o QUITAR.",
         };
         MapView.Map.RefreshGraphics();
     }

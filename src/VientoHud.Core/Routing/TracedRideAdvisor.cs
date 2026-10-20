@@ -11,11 +11,16 @@ namespace VientoHud.Core.Routing;
 /// </param>
 /// <param name="Departure">The earliest departure, in UTC; later ones up to 2 h are also tried (DECISIONS 036).</param>
 /// <param name="AverageSpeedKmh">Average speed of the whole ride.</param>
+/// <param name="RequestedShape">
+/// The kind of ride the rider chose; null to go by the points (one, out and back; more, a loop). A loop through one
+/// point lets the engine come back another way when there is one.
+/// </param>
 public sealed record TracedRequest(
     Coordinate Start,
     IReadOnlyList<Coordinate> Via,
     DateTimeOffset Departure,
-    double AverageSpeedKmh = RideDistance.DefaultAverageSpeedKmh)
+    double AverageSpeedKmh = RideDistance.DefaultAverageSpeedKmh,
+    RouteShape? RequestedShape = null)
 {
     public IReadOnlyList<Coordinate> Via { get; } = Via is { Count: >= 1 }
         ? Via
@@ -25,7 +30,7 @@ public sealed record TracedRequest(
         ? Departure
         : throw new ArgumentException("Departure must be in UTC.", nameof(Departure));
 
-    public RouteShape Shape => Via.Count == 1 ? RouteShape.OutAndBack : RouteShape.Loop;
+    public RouteShape Shape => RequestedShape ?? (Via.Count == 1 ? RouteShape.OutAndBack : RouteShape.Loop);
 }
 
 /// <summary>The route the engine joined the points with, before any weather: enough to draw it.</summary>
