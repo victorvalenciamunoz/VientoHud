@@ -82,8 +82,10 @@
                                TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
                         <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseDetailClicked" />
                     </Grid>
-                    <Label x:Name="Detail" FontFamily="OpenSansRegular" FontSize="13" TextColor="{DynamicResource HudTextSoft}" />
-                    <Label x:Name="DetailFooter" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                    <!-- Sections built in code: a small title and one idea per line; it scrolls when it does not fit. -->
+                    <ScrollView MaximumHeightRequest="460">
+                        <VerticalStackLayout x:Name="DetailSections" Spacing="10" />
+                    </ScrollView>
                 </VerticalStackLayout>
             </Border>
 

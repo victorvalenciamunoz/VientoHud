@@ -16,9 +16,11 @@
   El radar se guarda 3 h en el móvil y la lluvia se reutiliza 10 min.
 - **Mapa a pantalla completa, panel plegable y leyenda** (pedido por el autor el 2026-10-20): sobre el mapa solo una
   barra con el titular ("Sal ahora (09:38)." o "Hacia el O") y una línea (km, llegada, qué está haciendo) con DETALLE;
-  el panel completo (sentido, tramos, lluvia, ciudad, resumen) se despliega sobre el mapa y se cierra con CERRAR. Bajo el
+  el panel completo se despliega sobre el mapa y se cierra con CERRAR; va por secciones (SENTIDO, VIENTO POR TRAMOS,
+  RACHAS DE LADO, LLUVIA, CIUDAD, RUTA) con una idea por línea y se desplaza si no cabe (pedido el 2026-10-20). Bajo el
   mapa, la leyenda de las flechas (de cara, a favor, de lado) mientras haya flechas.
   `docs/verificacion/2026-10-20-fase7-7e-emulador-panel-plegable.png`.
+  `docs/verificacion/2026-10-20-fase7-7e-emulador-detalle-secciones.png`.
 - **Duración y ritmo** (paso 7g): chip "2 H · 25 KM/H" que abre un panel con la duración (1 h a 5 h) y la media
   (18-33 km/h), guardadas en las preferencias del móvil; al cerrar se recalculan el abanico (alcance = la mitad de la
   distancia entre 1,3), PROPONER y, si hay ruta, las horas de paso y la llegada.

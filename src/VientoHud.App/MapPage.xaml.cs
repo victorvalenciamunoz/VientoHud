@@ -315,7 +315,7 @@ public partial class MapPage : ContentPage
             cancellationToken.ThrowIfCancellationRequested();
             Show(RideText.DirectionHeadline(advice.Wind),
                 $"Salida de {DurationText(_duration)} a {SpanishText.Kmh(_speedKmh)}, viento de las próximas {advice.Hours} h.",
-                RideText.Wind(advice.Wind), "");
+                [("VIENTO", [RideText.Wind(advice.Wind)])]);
             ShowFan(advice.Fan);
             _lastDirection = advice;
             ShowRideWind([]);
@@ -385,11 +385,20 @@ public partial class MapPage : ContentPage
         var option = ride.Ride;
         ShowRoute(option.Route);
         ShowRideWind(WindArrows.AlongRide(option.Winds));
-        var lines = new List<string> { $"{SpanishText.Capitalized(RideText.Turn(option, ride.Shape))}: {RideText.Advantage(option.Score)}" };
-        lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone, ride.RainPending));
+        // One idea per line: the way round and the advantage, each wind stretch, the gusts, the rain, the town, and
+        // the route's figures (the summary's comma-separated parts, each on its own line).
+        var sections = new List<(string, IReadOnlyList<string>)>
+        {
+            ("SENTIDO", [SpanishText.Capitalized(RideText.Turn(option, ride.Shape)), SpanishText.Capitalized(RideText.Advantage(option.Score))]),
+            ("VIENTO POR TRAMOS", WindStretches.Describe(option.Winds).Select(RideText.Stretch).ToList()),
+            ("RACHAS DE LADO", RideText.Gusts(option.Score) is { } gusts ? [gusts] : []),
+            ("LLUVIA", RideText.RainLines(option, ride.RainFailure, Zone, ride.RainPending).Select(l => SpanishText.Capitalized(l.StartsWith("Lluvia: ") ? l["Lluvia: ".Length..] : l)).ToList()),
+            ("CIUDAD", [RideText.Urban(option.Urban)["Ciudad: ".Length..]]),
+            ("RUTA", RideText.TracedSummary(ride).Split(", ").Select(SpanishText.Capitalized).ToList()),
+        };
         Show(RideText.Recommendation(ride.Departure, fromNow: _departureAt is null, Zone),
             $"{SpanishText.Km(option.Route.DistanceKm)} · {RideText.Arrival(option, Zone)}{(doing is null ? "" : $" {doing}")}",
-            string.Join("\n", lines), RideText.TracedSummary(ride) + ".");
+            sections);
     }
 
     /// <summary>Cancels what was running and clears the panel for the next job.</summary>
@@ -403,15 +412,26 @@ public partial class MapPage : ContentPage
     }
 
     /// <summary>The bar over the map (headline and status) and the detail panel behind DETALLE.</summary>
-    private void Show(string headline, string status, string detail, string footer)
+    private void Show(string headline, string status, IReadOnlyList<(string Title, IReadOnlyList<string> Lines)> sections)
     {
         Headline.Text = headline;
         Status.Text = status;
-        Detail.Text = detail;
-        DetailFooter.Text = footer;
-        DetailFooter.IsVisible = footer.Length > 0;
+        DetailSections.Children.Clear();
+        foreach (var (title, lines) in sections.Where(s => s.Lines.Count > 0))
+        {
+            var block = new VerticalStackLayout { Spacing = 2 };
+            block.Children.Add(new Label
+            {
+                Text = title, FontFamily = "ChakraPetchBold", FontSize = 11, CharacterSpacing = 1, TextColor = HudTheme.TextMuted,
+            });
+            foreach (var line in lines)
+            {
+                block.Children.Add(new Label { Text = line, FontFamily = "OpenSansRegular", FontSize = 14, TextColor = HudTheme.TextSoft });
+            }
+            DetailSections.Children.Add(block);
+        }
         Headline.IsVisible = true;
-        ShowDetail.IsVisible = detail.Length > 0;
+        ShowDetail.IsVisible = DetailSections.Children.Count > 0;
     }
 
     private void OnShowDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = true;
