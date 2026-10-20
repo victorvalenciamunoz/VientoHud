@@ -161,8 +161,9 @@ public partial class MapPage : ContentPage
             var targetKm = RideDistance.FromDuration(DefaultDuration);
             var advice = await Task.Run(() => _direction.AdviseAsync(_home.Value, targetKm, DateTimeOffset.UtcNow, cancellationToken: cancellationToken), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            Show(RideText.DirectionHeadline(advice.Wind), RideText.Wind(advice.Wind),
-                $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.");
+            Show(RideText.DirectionHeadline(advice.Wind),
+                $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.",
+                RideText.Wind(advice.Wind), "");
             ShowFan(advice.Fan);
             ShowRideWind([]);
         }
@@ -232,8 +233,9 @@ public partial class MapPage : ContentPage
         ShowRideWind(WindArrows.AlongRide(option.Winds));
         var lines = new List<string> { $"{SpanishText.Capitalized(RideText.Turn(option, ride.Shape))}: {RideText.Advantage(option.Score)}" };
         lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone, ride.RainPending));
-        Show(RideText.Recommendation(ride.Departure, fromNow: true, Zone), string.Join("\n", lines),
-            $"{RideText.TracedSummary(ride)}. {RideText.Arrival(option, Zone)}{(doing is null ? "" : $" {doing}")}");
+        Show(RideText.Recommendation(ride.Departure, fromNow: true, Zone),
+            $"{SpanishText.Km(option.Route.DistanceKm)} · {RideText.Arrival(option, Zone)}{(doing is null ? "" : $" {doing}")}",
+            string.Join("\n", lines), RideText.TracedSummary(ride) + ".");
     }
 
     /// <summary>Cancels what was running and clears the panel for the next job.</summary>
@@ -242,17 +244,25 @@ public partial class MapPage : ContentPage
         _cancel?.Cancel();
         _cancel = new CancellationTokenSource();
         Retry.IsVisible = false;
-        Headline.IsVisible = Detail.IsVisible = false;
+        Headline.IsVisible = ShowDetail.IsVisible = DetailPanel.IsVisible = false;
         return _cancel.Token;
     }
 
-    private void Show(string headline, string detail, string status)
+    /// <summary>The bar over the map (headline and status) and the detail panel behind DETALLE.</summary>
+    private void Show(string headline, string status, string detail, string footer)
     {
         Headline.Text = headline;
-        Detail.Text = detail;
         Status.Text = status;
-        Headline.IsVisible = Detail.IsVisible = true;
+        Detail.Text = detail;
+        DetailFooter.Text = footer;
+        DetailFooter.IsVisible = footer.Length > 0;
+        Headline.IsVisible = true;
+        ShowDetail.IsVisible = detail.Length > 0;
     }
+
+    private void OnShowDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = true;
+
+    private void OnCloseDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = false;
 
     private void Fail(string why)
     {
@@ -309,6 +319,7 @@ public partial class MapPage : ContentPage
 
     private void ShowRideWind(IReadOnlyList<WindArrow> arrows)
     {
+        Legend.IsVisible = arrows.Count > 0;
         _windHaloLayer.Features = arrows.SelectMany(ArrowFeatures).ToList();
         _windHaloLayer.DataHasChanged();
         _windLabelLayer.Features = arrows.Select(a =>

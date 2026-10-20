@@ -6,7 +6,21 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource HudBackground}">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
+    <ContentPage.Resources>
+        <Style x:Key="Chip" TargetType="Button">
+            <Setter Property="FontFamily" Value="ChakraPetch" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="MinimumHeightRequest" Value="32" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{DynamicResource HudGuide}" />
+            <Setter Property="BorderColor" Value="{DynamicResource HudGuide}" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Header in the family's look: the name, and which map is on. -->
         <Grid Grid.Row="0" Padding="16,44,16,8" ColumnDefinitions="*,Auto">
@@ -16,42 +30,68 @@
                    TextColor="{DynamicResource HudTextMuted}" VerticalOptions="Center" />
         </Grid>
 
-        <!-- Where to head (7d) or, once the rider has touched the map, the ride (7e): the headline, the details,
-             and what the app is doing or why it could not. -->
-        <VerticalStackLayout Grid.Row="1" Padding="16,0,16,10" Spacing="2">
-            <Label x:Name="Headline" IsVisible="False" FontFamily="ChakraPetchBold" FontSize="24" CharacterSpacing="1"
-                   TextColor="{DynamicResource HudGood}" />
-            <Label x:Name="Detail" IsVisible="False" FontFamily="OpenSansRegular" FontSize="13" TextColor="{DynamicResource HudTextSoft}" />
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                <Label x:Name="Status" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
-                       VerticalOptions="Center" />
-                <Button Grid.Column="1" x:Name="Retry" Text="REINTENTAR" IsVisible="False"
-                        FontFamily="ChakraPetch" FontSize="11" BorderWidth="1" CornerRadius="6" Padding="10,4"
-                        BackgroundColor="Transparent" TextColor="{DynamicResource HudGuide}" BorderColor="{DynamicResource HudGuide}"
-                        Clicked="OnRetryClicked" />
-            </Grid>
-        </VerticalStackLayout>
+        <!-- The map fills the screen (DECISIONS 050): home, the fan, the points touched, the route and the wind. -->
+        <Grid Grid.Row="1">
+            <mapsui:MapControl x:Name="MapView" />
 
-        <!-- The map (DECISIONS 050): home, the fan of the recommended direction, the points touched and the route. -->
-        <mapsui:MapControl Grid.Row="2" x:Name="MapView" />
+            <!-- Always in view over the map: the one line that matters, what the app is doing, and DETALLE. -->
+            <Border VerticalOptions="Start" Margin="12,8,12,0" Padding="12,8" StrokeThickness="1"
+                    BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <VerticalStackLayout Spacing="2">
+                        <Label x:Name="Headline" IsVisible="False" FontFamily="ChakraPetchBold" FontSize="20" CharacterSpacing="1"
+                               TextColor="{DynamicResource HudGood}" />
+                        <Label x:Name="Status" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                        <Button x:Name="ShowDetail" Text="DETALLE" IsVisible="False" Style="{StaticResource Chip}" Clicked="OnShowDetailClicked" />
+                        <Button x:Name="Retry" Text="REINTENTAR" IsVisible="False" Style="{StaticResource Chip}" Clicked="OnRetryClicked" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
 
-        <!-- The points: a tap on the map adds one; this takes the last one away. -->
-        <Grid Grid.Row="3" Padding="16,8,16,0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <Label x:Name="Hint" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
-                   VerticalOptions="Center" Text="Toca el mapa: un punto, ida y vuelta; dos o más, vuelta." />
-            <Button Grid.Column="1" x:Name="RemoveLast" Text="QUITAR PUNTO" IsVisible="False"
-                    FontFamily="ChakraPetch" FontSize="11" BorderWidth="1" CornerRadius="6" Padding="10,4"
-                    BackgroundColor="Transparent" TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}"
-                    Clicked="OnRemoveLastClicked" />
+            <!-- The whole judgement, over the map, when asked for: the way round, the wind stretch by stretch, the gusts,
+                 the rain, the town, the route and the arrival. Our own panel in the palette, as CieloHud's. -->
+            <Border x:Name="DetailPanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
+                    BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="6">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Text="DETALLE" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
+                               TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseDetailClicked" />
+                    </Grid>
+                    <Label x:Name="Detail" FontFamily="OpenSansRegular" FontSize="13" TextColor="{DynamicResource HudTextSoft}" />
+                    <Label x:Name="DetailFooter" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                </VerticalStackLayout>
+            </Border>
         </Grid>
 
-        <!-- The credit the tiles' licences ask for, always in view; a tap opens the provider's page. -->
-        <Label Grid.Row="4" x:Name="Attribution" Padding="16,6,16,10" FontFamily="OpenSansRegular" FontSize="11"
-               TextColor="{DynamicResource HudTextMuted}">
-            <Label.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnAttributionTapped" />
-            </Label.GestureRecognizers>
-        </Label>
+        <!-- Below the map: what the arrow colors mean (while there are arrows), the points, and the credit the tiles' licences ask for. -->
+        <VerticalStackLayout Grid.Row="2" Padding="16,6,16,10" Spacing="4">
+            <HorizontalStackLayout x:Name="Legend" IsVisible="False" Spacing="14">
+                <Label Text="Viento:" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                <Label Text="➜ de cara" FontFamily="OpenSansSemibold" FontSize="12" TextColor="{DynamicResource HudAlert}" />
+                <Label Text="➜ a favor" FontFamily="OpenSansSemibold" FontSize="12" TextColor="{DynamicResource HudGood}" />
+                <Label Text="➜ de lado" FontFamily="OpenSansSemibold" FontSize="12" TextColor="{DynamicResource HudMarker}" />
+            </HorizontalStackLayout>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Label x:Name="Hint" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
+                       VerticalOptions="Center" Text="Toca el mapa: un punto, ida y vuelta; dos o más, vuelta." />
+                <Button Grid.Column="1" x:Name="RemoveLast" Text="QUITAR PUNTO" IsVisible="False" Style="{StaticResource Chip}"
+                        TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnRemoveLastClicked" />
+            </Grid>
+            <Label x:Name="Attribution" FontFamily="OpenSansRegular" FontSize="11" TextColor="{DynamicResource HudTextMuted}">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnAttributionTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+        </VerticalStackLayout>
 
     </Grid>
 </ContentPage>
