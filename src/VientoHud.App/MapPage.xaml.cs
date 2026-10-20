@@ -97,6 +97,17 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(_reachedLayer);
         MapView.Map.Layers.Add(_homeLayer);
         MapView.Map.Tapped += OnMapTapped;
+        // + and − on the map: one-handed on the phone, and the only way on the emulator without a pinch.
+        MapView.Map.Widgets.Enqueue(new Mapsui.Widgets.ButtonWidgets.ZoomInOutWidget
+        {
+            HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment.Right,
+            VerticalAlignment = Mapsui.Widgets.VerticalAlignment.Bottom,
+            Margin = new MRect(12, 12),
+            Size = 40,
+            BackColor = ToMapsui(HudTheme.Background, 230),
+            StrokeColor = ToMapsui(HudTheme.Guide, 255),
+            TextColor = ToMapsui(HudTheme.Guide, 255),
+        });
         // Until the device answers: León, where the author rides. The navigator keeps the call until the map has its size.
         MapView.Map.Navigator.CenterOnAndZoomTo(ToMercator(new GeoCoordinate(42.5987, -5.5671)), ResolutionAt(12));
     }

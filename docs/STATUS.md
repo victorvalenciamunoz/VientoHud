@@ -24,6 +24,8 @@
   pone nada; dos pulsaciones largas hacen una vuelta (`docs/verificacion/2026-10-20-fase7-7e-emulador-vuelta-pulsacion-larga.png`,
   con flechas rojas de cara y verdes a favor). Para pulir en 7h: donde ida y vuelta comparten carretera, dos flechas y
   sus etiquetas se pisan.
+- **Botones + y − de zoom** sobre el mapa (2026-10-20): con una mano en el móvil, y en el emulador la única forma sin
+  pellizco (la lupa de la barra del emulador amplía la ventana, no el mapa; el pellizco allí es Ctrl + arrastrar).
 - **Hora de salida** (pedido por el autor el 2026-10-20, solo de hoy): el botón SALIDA · AHORA abre un panel propio
   (sin diálogo del sistema, que saldría en blanco) con AHORA, las horas que quedan de hoy y los cuartos; al cerrar, si
   cambió, se recalculan abanico, ruta y juicio para esa salida y los textos pasan a "Sal a las 13:00". Si la hora ya
