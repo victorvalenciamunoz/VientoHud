@@ -79,6 +79,16 @@ Claves y servicios, nunca en el repo:
 - `VIENTOHUD_BROUTER_URL`: un BRouter propio para la consola (por defecto, brouter.de). `tools/brouter-local/start.ps1` arranca uno local en el puerto 17777 para no cargar el servidor público durante el desarrollo.
 - `VIENTOHUD_APP_BROUTER_URL`: lo mismo para la app, leído al compilar (desde el emulador, `http://10.0.2.2:17777/`).
 
+## Instalar en tu móvil
+
+Descarga el APK de la [última versión](https://github.com/victorvalenciamunoz/VientoHud/releases) desde el propio móvil
+(Android 8.0 o posterior) y ábrelo. Android pedirá permiso para instalar apps de origen desconocido, y Play Protect
+puede avisar de que no la conoce: es normal en una app que no está en Google Play.
+
+Al abrirla pedirá la **ubicación** (es el punto de salida; no sale del móvil salvo para pedir el tiempo y las rutas).
+Necesita conexión: la previsión, el radar, las rutas y el mapa vienen de servicios públicos. Las versiones 0.x son
+*pre-release*: la fase 7 sigue abierta y conviene contrastar lo que dice con lo que luego pasa en la carretera.
+
 ## Estado
 
 Fase 7 de 7, la app Android, en marcha. Lo hecho y lo que falta, paso a paso y con cómo se validó, en

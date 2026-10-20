@@ -187,6 +187,10 @@ visto bueno del autor**:
 
 ### Riesgos y pendientes (fase 7)
 
+- **APK repartido** (`DECISIONS.md` 052): la clave de Thunderforest va dentro y consume del plan gratuito del autor;
+  la clave de firma está solo en `%USERPROFILE%.vientohud` (sin copia de seguridad no hay actualizaciones). Las
+  opiniones de los amigos van al ojo del autor y al juez de la fase (7i).
+
 - **La espera de la recomendación automática** (medida en 7b): de ~50 s (León, La Bañeza) a ~4 min (Fuenlabrada) con
   brouter.de, la mitad por la espera de 1 s entre peticiones que nos imponemos (brouter.de no publica normas y nos
   bloqueó dos veces). Lo que en `DECISIONS.md` 044 ponía "~2 min" solo contaba esa espera. Resuelto para la app por
