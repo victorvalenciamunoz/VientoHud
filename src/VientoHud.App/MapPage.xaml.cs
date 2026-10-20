@@ -509,9 +509,9 @@ public partial class MapPage : ContentPage
         RemoveLast.IsVisible = _via.Count > 0;
         Hint.Text = (_loopMode, _via.Count) switch
         {
-            (false, 0) => "Hasta dónde: PROPONER (2 h), EN LA CRUZ o mantén pulsado el mapa.",
+            (false, 0) => "Hasta dónde: PROPONER (2 h), EN LA MIRA (el anillo del centro) o mantén pulsado el mapa.",
             (false, _) => "Ida y vuelta. Para cambiar el punto, pon otro.",
-            (true, 0) => "Por dónde pasar: EN LA CRUZ o mantén pulsado; puedes añadir varios.",
+            (true, 0) => "Por dónde pasar: EN LA MIRA o mantén pulsado; puedes añadir varios.",
             (true, 1) => "Vuelta por 1 punto: BRouter elige por dónde volver. Añade puntos para mandar tú.",
             (true, var n) => $"Vuelta por {n} puntos. Añade más o QUITAR.",
         };

@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:mapsui="clr-namespace:Mapsui.UI.Maui;assembly=Mapsui.UI.Maui"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="VientoHud.App.MapPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource HudBackground}">
@@ -38,9 +39,12 @@
         <Grid Grid.Row="1">
             <mapsui:MapControl x:Name="MapView" />
 
-            <!-- The cross at the centre: PUNTO EN LA CRUZ puts a point there, with no gesture to learn. -->
-            <Label Text="+" FontFamily="OpenSansRegular" FontSize="40" InputTransparent="True" Opacity="0.85"
-                   HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource HudText}" />
+            <!-- The aim at the centre: EN LA MIRA puts a point there, with no gesture to learn. -->
+            <Grid InputTransparent="True" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="48" HeightRequest="48">
+                <shapes:Ellipse WidthRequest="44" HeightRequest="44" StrokeThickness="7" Stroke="{DynamicResource HudBackground}" Opacity="0.7" />
+                <shapes:Ellipse WidthRequest="44" HeightRequest="44" StrokeThickness="3" Stroke="{DynamicResource HudMarker}" />
+                <shapes:Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource HudMarker}" Stroke="{DynamicResource HudBackground}" StrokeThickness="1" />
+            </Grid>
 
             <!-- Always in view over the map: the one line that matters, what the app is doing, and DETALLE. -->
             <Border VerticalOptions="Start" Margin="12,8,12,0" Padding="12,8" StrokeThickness="1"
@@ -117,7 +121,7 @@
             <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="8">
                 <Button x:Name="Propose" Text="PROPONER" Style="{StaticResource Chip}"
                         TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnProposeClicked" />
-                <Button Grid.Column="1" x:Name="AddAtCross" Text="EN LA CRUZ" Style="{StaticResource Chip}"
+                <Button Grid.Column="1" x:Name="AddAtCross" Text="EN LA MIRA" Style="{StaticResource Chip}"
                         TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnAddAtCrossClicked" />
                 <Button Grid.Column="2" x:Name="RemoveLast" Text="QUITAR" IsVisible="False" Style="{StaticResource Chip}"
                         TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnRemoveLastClicked" />
