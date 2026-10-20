@@ -50,3 +50,5 @@ Lee `docs/VISION.md` para el porqué y `docs/PLAN.md` para las fases. El estado 
 - Al terminar un paso, actualiza `docs/STATUS.md` (qué funciona, qué falta, cómo se validó).
 - Las decisiones relevantes van a `docs/DECISIONS.md`: contexto, decisión, alternativas.
 - Pasos pequeños y verificables. Si una tarea es grande, propón cómo dividirla antes de empezar.
+- El repo está en GitHub (`victorvalenciamunoz/VientoHud`) y `main` está protegida: cada paso va en una rama y entra
+  por un pull request con el CI (`Tests de Core`) en verde. Nada de commits directos a `main`.
