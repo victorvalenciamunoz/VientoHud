@@ -24,8 +24,19 @@ namespace VientoHud.App;
 /// </summary>
 public partial class MapPage : ContentPage
 {
-    /// <summary>Until the rider can choose (phase 7g): a two-hour ride, for the fan.</summary>
-    private static readonly TimeSpan DefaultDuration = TimeSpan.FromHours(2);
+    /// <summary>How long the rider wants to ride and at what average (phase 7g); remembered between sessions.</summary>
+    private static readonly TimeSpan[] DurationChoices =
+        [TimeSpan.FromHours(1), TimeSpan.FromMinutes(90), TimeSpan.FromHours(2), TimeSpan.FromMinutes(150), TimeSpan.FromHours(3), TimeSpan.FromHours(4), TimeSpan.FromHours(5)];
+
+    private static readonly double[] SpeedChoices = [18, 20, 22, 25, 28, 30, 33];
+
+    private const string DurationKey = "ride_duration_minutes";
+    private const string SpeedKey = "ride_speed_kmh";
+
+    private TimeSpan _duration = TimeSpan.FromMinutes(Preferences.Default.Get(DurationKey, 120));
+    private double _speedKmh = Preferences.Default.Get(SpeedKey, RideDistance.DefaultAverageSpeedKmh);
+    private TimeSpan _pendingDuration;
+    private double _pendingSpeed;
 
     private static readonly TimeZoneInfo Zone = TimeZoneInfo.Local;
 
@@ -122,6 +133,7 @@ public partial class MapPage : ContentPage
         // Until the device answers: León, where the author rides. The navigator keeps the call until the map has its size.
         MapView.Map.Navigator.CenterOnAndZoomTo(ToMercator(new GeoCoordinate(42.5987, -5.5671)), ResolutionAt(12));
         ShowVia();
+        ShowRideChip();
     }
 
     protected override void OnAppearing()
@@ -165,7 +177,7 @@ public partial class MapPage : ContentPage
         }
         if (e.GestureType == GestureType.SingleTap)
         {
-            if (DetailPanel.IsVisible || DeparturePanel.IsVisible)
+            if (DetailPanel.IsVisible || DeparturePanel.IsVisible || RidePanel.IsVisible)
             {
                 e.Handled = true;
                 DetailPanel.IsVisible = false;
@@ -173,10 +185,14 @@ public partial class MapPage : ContentPage
                 {
                     OnCloseDepartureClicked(this, EventArgs.Empty);
                 }
+                if (RidePanel.IsVisible)
+                {
+                    OnCloseRideClicked(this, EventArgs.Empty);
+                }
             }
             return;
         }
-        if (e.GestureType != GestureType.LongPress || DetailPanel.IsVisible || DeparturePanel.IsVisible)
+        if (e.GestureType != GestureType.LongPress || DetailPanel.IsVisible || DeparturePanel.IsVisible || RidePanel.IsVisible)
         {
             return;
         }
@@ -253,9 +269,9 @@ public partial class MapPage : ContentPage
         var bearing = direction.Wind.StartBearingDegrees ?? RideBearings.For(direction.Wind, 1)[0];
         try
         {
-            Status.Text = $"Buscando una ida y vuelta de {DefaultDuration.TotalHours:0} h {SpanishText.Heading(bearing)}…";
+            Status.Text = $"Buscando una ida y vuelta de {DurationText(_duration)} {SpanishText.Heading(bearing)}…";
             var home = _home.Value;
-            var targetKm = RideDistance.FromDuration(DefaultDuration);
+            var targetKm = RideDistance.FromDuration(_duration, _speedKmh);
             var proposal = await Task.Run(() => _rides.ProposeFarPointAsync(home, bearing, targetKm, cancellationToken), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             if (proposal is not { } found)
@@ -309,12 +325,13 @@ public partial class MapPage : ContentPage
                 ShowHome(fix.Position);
             }
             Status.Text = "Pidiendo el viento…";
-            var targetKm = RideDistance.FromDuration(DefaultDuration);
+            var targetKm = RideDistance.FromDuration(_duration, _speedKmh);
             var departure = Departure;
-            var advice = await Task.Run(() => _direction.AdviseAsync(_home.Value, targetKm, departure, cancellationToken: cancellationToken), cancellationToken);
+            var speed = _speedKmh;
+            var advice = await Task.Run(() => _direction.AdviseAsync(_home.Value, targetKm, departure, speed, cancellationToken), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             Show(RideText.DirectionHeadline(advice.Wind),
-                $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.",
+                $"Salida de {DurationText(_duration)} a {SpanishText.Kmh(_speedKmh)}, viento de las próximas {advice.Hours} h.",
                 RideText.Wind(advice.Wind), "");
             ShowFan(advice.Fan);
             _lastDirection = advice;
@@ -341,8 +358,8 @@ public partial class MapPage : ContentPage
         var summary = "";
         try
         {
-            var request = new TracedRequest(_home!.Value, _via.ToList(), Departure,
-                RequestedShape: _loopMode ? RouteShape.Loop : RouteShape.OutAndBack);
+            var request = new TracedRequest(_home!.Value, _via.ToList(), Departure, _speedKmh,
+                _loopMode ? RouteShape.Loop : RouteShape.OutAndBack);
             Status.Text = request.Shape == RouteShape.OutAndBack ? "Buscando la ida y vuelta…" : "Buscando la vuelta…";
             var traced = await Task.Run(() => _rides.RouteAsync(request, cancellationToken), cancellationToken);
             // A point added or taken away meanwhile: this answer is stale, the next job draws its own.
@@ -418,6 +435,65 @@ public partial class MapPage : ContentPage
 
     private void OnCloseDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = false;
 
+    /// <summary>"2 h", "1 h 30".</summary>
+    private static string DurationText(TimeSpan duration) =>
+        duration.Minutes == 0 ? $"{(int)duration.TotalHours} h" : $"{(int)duration.TotalHours} h {duration.Minutes:00}";
+
+    private void OnRideClicked(object? sender, EventArgs e)
+    {
+        _pendingDuration = _duration;
+        _pendingSpeed = _speedKmh;
+        BuildRideChips();
+        DetailPanel.IsVisible = DeparturePanel.IsVisible = false;
+        RidePanel.IsVisible = true;
+    }
+
+    /// <summary>Closes the panel and, if the duration or the speed changed, remembers them and judges everything again.</summary>
+    private async void OnCloseRideClicked(object? sender, EventArgs e)
+    {
+        RidePanel.IsVisible = false;
+        if (_pendingDuration == _duration && _pendingSpeed == _speedKmh)
+        {
+            return;
+        }
+        _duration = _pendingDuration;
+        _speedKmh = _pendingSpeed;
+        Preferences.Default.Set(DurationKey, (int)_duration.TotalMinutes);
+        Preferences.Default.Set(SpeedKey, _speedKmh);
+        ShowRideChip();
+        ShowVia();
+        if (_via.Count > 0)
+        {
+            // The fan for the new duration, then the ride at the new pace.
+            await AdviseDirectionAsync();
+            await AdviseRideAsync();
+        }
+        else
+        {
+            await AdviseDirectionAsync();
+        }
+    }
+
+    private void ShowRideChip() => RideChip.Text = $"{DurationText(_duration).ToUpperInvariant()} · {_speedKmh:0} KM/H";
+
+    private void BuildRideChips()
+    {
+        DurationChips.Children.Clear();
+        SpeedChips.Children.Clear();
+        foreach (var choice in DurationChoices)
+        {
+            var duration = choice;
+            DurationChips.Children.Add(Chip(DurationText(duration), _pendingDuration == duration, () => _pendingDuration = duration, BuildRideChips));
+        }
+        foreach (var choice in SpeedChoices)
+        {
+            var speed = choice;
+            SpeedChips.Children.Add(Chip($"{speed:0}", _pendingSpeed == speed, () => _pendingSpeed = speed, BuildRideChips));
+        }
+        RideNote.Text = $"Unos {SpanishText.Km(RideDistance.FromDuration(_pendingDuration, _pendingSpeed))}: el abanico y PROPONER van a esa distancia; " +
+                        "la media reparte las horas de paso (más despacio cuesta arriba).";
+    }
+
     private void OnDepartureClicked(object? sender, EventArgs e)
     {
         _pendingAt = _departureAt;
@@ -452,18 +528,18 @@ public partial class MapPage : ContentPage
         HourChips.Children.Clear();
         MinuteChips.Children.Clear();
         var nowLocal = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, Zone);
-        HourChips.Children.Add(Chip("AHORA", _pendingAt is null, () => _pendingAt = null));
+        HourChips.Children.Add(Chip("AHORA", _pendingAt is null, () => _pendingAt = null, BuildDepartureChips));
         for (var h = nowLocal.Hour + 1; h <= 23; h++)
         {
             var hour = h;
-            HourChips.Children.Add(Chip($"{hour:00}", _pendingAt?.Hour == hour, () => _pendingAt = new TimeOnly(hour, _pendingAt?.Minute ?? 0)));
+            HourChips.Children.Add(Chip($"{hour:00}", _pendingAt?.Hour == hour, () => _pendingAt = new TimeOnly(hour, _pendingAt?.Minute ?? 0), BuildDepartureChips));
         }
         if (_pendingAt is { } at)
         {
             foreach (var m in new[] { 0, 15, 30, 45 })
             {
                 var minute = m;
-                MinuteChips.Children.Add(Chip($":{minute:00}", at.Minute == minute, () => _pendingAt = new TimeOnly(at.Hour, minute)));
+                MinuteChips.Children.Add(Chip($":{minute:00}", at.Minute == minute, () => _pendingAt = new TimeOnly(at.Hour, minute), BuildDepartureChips));
             }
             var hoursAhead = (at.ToTimeSpan() - nowLocal.TimeOfDay).TotalHours;
             DepartureNote.Text = $"Salida a las {at:HH\\:mm}." +
@@ -475,7 +551,7 @@ public partial class MapPage : ContentPage
         }
     }
 
-    private Button Chip(string text, bool selected, Action choose)
+    private Button Chip(string text, bool selected, Action choose, Action rebuild)
     {
         var chip = new Button { Text = text, Style = (Microsoft.Maui.Controls.Style)Resources["Chip"], Margin = new Thickness(0, 0, 8, 8) };
         if (selected)
@@ -486,7 +562,7 @@ public partial class MapPage : ContentPage
         chip.Clicked += (_, _) =>
         {
             choose();
-            BuildDepartureChips();
+            rebuild();
         };
         return chip;
     }
@@ -520,7 +596,7 @@ public partial class MapPage : ContentPage
         RemoveLast.IsVisible = _via.Count > 0;
         Hint.Text = (_loopMode, _via.Count) switch
         {
-            (false, 0) => "Hasta dónde: PROPONER (2 h), EN LA MIRA (el anillo del centro) o mantén pulsado el mapa.",
+            (false, 0) => $"Hasta dónde: PROPONER ({DurationText(_duration)}), EN LA MIRA (el anillo del centro) o mantén pulsado el mapa.",
             (false, _) => "Ida y vuelta. Para cambiar el punto, pon otro.",
             (true, 0) => "Por dónde pasar: EN LA MIRA o mantén pulsado; puedes añadir varios.",
             (true, 1) => "Vuelta por 1 punto: BRouter elige por dónde volver. Añade puntos para mandar tú.",
