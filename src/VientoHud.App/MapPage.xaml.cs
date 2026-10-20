@@ -51,6 +51,15 @@ public partial class MapPage : ContentPage
     };
     private readonly MemoryLayer _homeLayer = new("Home") { Style = HomeStyle() };
     private readonly List<GeoCoordinate> _via = [];
+    /// <summary>VUELTA (points accumulate) or IDA Y VUELTA (one point, replaced by the next).</summary>
+    private bool _loopMode;
+    /// <summary>The last direction advice: PROPONER heads that way.</summary>
+    private DirectionAdvice? _lastDirection;
+    /// <summary>
+    /// Whether the map moved or zoomed since the finger went down: the first finger of a pinch, or a slow drag, also
+    /// counts as a long press, and then no point must be added.
+    /// </summary>
+    private bool _mapMovedSincePress;
     private GeoCoordinate? _home;
     private bool _started;
     /// <summary>When to leave, as a time of day today; null for now.</summary>
@@ -97,6 +106,8 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(_reachedLayer);
         MapView.Map.Layers.Add(_homeLayer);
         MapView.Map.Tapped += OnMapTapped;
+        MapView.Map.PointerPressed += (_, _) => _mapMovedSincePress = false;
+        MapView.Map.Navigator.ViewportChanged += (_, _) => _mapMovedSincePress = true;
         // + and − on the map: one-handed on the phone, and the only way on the emulator without a pinch.
         MapView.Map.Widgets.Enqueue(new Mapsui.Widgets.ButtonWidgets.ZoomInOutWidget
         {
@@ -110,6 +121,7 @@ public partial class MapPage : ContentPage
         });
         // Until the device answers: León, where the author rides. The navigator keeps the call until the map has its size.
         MapView.Map.Navigator.CenterOnAndZoomTo(ToMercator(new GeoCoordinate(42.5987, -5.5671)), ResolutionAt(12));
+        ShowVia();
     }
 
     protected override void OnAppearing()
@@ -168,11 +180,99 @@ public partial class MapPage : ContentPage
         {
             return;
         }
-        var (longitude, latitude) = SphericalMercator.ToLonLat(e.WorldPosition.X, e.WorldPosition.Y);
-        _via.Add(new GeoCoordinate(latitude, longitude));
-        ShowVia();
         e.Handled = true;
+        if (_mapMovedSincePress)
+        {
+            return;
+        }
+        AddPoint(FromMercator(e.WorldPosition.X, e.WorldPosition.Y));
+    }
+
+    /// <summary>A point for the ride: the only one of an out and back, one more of a loop; then the ride through them.</summary>
+    private void AddPoint(GeoCoordinate point)
+    {
+        if (!_loopMode)
+        {
+            _via.Clear();
+        }
+        _via.Add(point);
+        ShowVia();
         _ = AdviseRideAsync();
+    }
+
+    /// <summary>The point goes where the cross at the centre of the map is: no gesture to learn.</summary>
+    private void OnAddAtCrossClicked(object? sender, EventArgs e)
+    {
+        if (_home is null)
+        {
+            return;
+        }
+        var viewport = MapView.Map.Navigator.Viewport;
+        AddPoint(FromMercator(viewport.CenterX, viewport.CenterY));
+    }
+
+    private void OnOutAndBackClicked(object? sender, EventArgs e) => SetMode(loop: false);
+
+    private void OnLoopClicked(object? sender, EventArgs e) => SetMode(loop: true);
+
+    /// <summary>Switches the kind of ride; back to an out and back, only the first point stays.</summary>
+    private void SetMode(bool loop)
+    {
+        if (_loopMode == loop)
+        {
+            return;
+        }
+        _loopMode = loop;
+        OutAndBackChip.Style = (Microsoft.Maui.Controls.Style)Resources[loop ? "Chip" : "ChipOn"];
+        LoopChip.Style = (Microsoft.Maui.Controls.Style)Resources[loop ? "ChipOn" : "Chip"];
+        if (!loop && _via.Count > 1)
+        {
+            _via.RemoveRange(1, _via.Count - 1);
+            ShowVia();
+            ShowRoute(null);
+            _ = AdviseRideAsync();
+        }
+        else
+        {
+            ShowVia();
+        }
+    }
+
+    /// <summary>
+    /// An out and back of the default duration towards the recommended direction, found by Core's generator: a ride
+    /// that fits without choosing a point. The rider can then move the point or add one for a loop.
+    /// </summary>
+    private async void OnProposeClicked(object? sender, EventArgs e)
+    {
+        if (_home is null || _lastDirection is not { } direction)
+        {
+            Status.Text = "Primero hace falta la posición y el viento.";
+            return;
+        }
+        var cancellationToken = Restart();
+        var bearing = direction.Wind.StartBearingDegrees ?? RideBearings.For(direction.Wind, 1)[0];
+        try
+        {
+            Status.Text = $"Buscando una ida y vuelta de {DefaultDuration.TotalHours:0} h {SpanishText.Heading(bearing)}…";
+            var home = _home.Value;
+            var targetKm = RideDistance.FromDuration(DefaultDuration);
+            var proposal = await Task.Run(() => _rides.ProposeFarPointAsync(home, bearing, targetKm, cancellationToken), cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (proposal is not { } found)
+            {
+                Fail($"BRouter no encontró carretera {SpanishText.Heading(bearing)}. Pon tú el punto.");
+                return;
+            }
+            SetMode(loop: false);
+            AddPoint(found.FarPoint);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (RouteException ex)
+        {
+            Fail($"BRouter no responde: {ex.Message}");
+        }
     }
 
     private async void OnRemoveLastClicked(object? sender, EventArgs e)
@@ -217,6 +317,7 @@ public partial class MapPage : ContentPage
                 $"Salida de {DefaultDuration.TotalHours:0} h, viento de las próximas {advice.Hours} h.",
                 RideText.Wind(advice.Wind), "");
             ShowFan(advice.Fan);
+            _lastDirection = advice;
             ShowRideWind([]);
         }
         catch (OperationCanceledException)
@@ -240,7 +341,8 @@ public partial class MapPage : ContentPage
         var summary = "";
         try
         {
-            var request = new TracedRequest(_home!.Value, _via.ToList(), Departure);
+            var request = new TracedRequest(_home!.Value, _via.ToList(), Departure,
+                RequestedShape: _loopMode ? RouteShape.Loop : RouteShape.OutAndBack);
             Status.Text = request.Shape == RouteShape.OutAndBack ? "Buscando la ida y vuelta…" : "Buscando la vuelta…";
             var traced = await Task.Run(() => _rides.RouteAsync(request, cancellationToken), cancellationToken);
             // A point added or taken away meanwhile: this answer is stale, the next job draws its own.
@@ -416,11 +518,13 @@ public partial class MapPage : ContentPage
         _viaLayer.Features = _via.Select(p => new PointFeature(ToMercator(p))).ToList();
         _viaLayer.DataHasChanged();
         RemoveLast.IsVisible = _via.Count > 0;
-        Hint.Text = _via.Count switch
+        Hint.Text = (_loopMode, _via.Count) switch
         {
-            0 => "Mantén pulsado el mapa: un punto, ida y vuelta; dos o más, vuelta.",
-            1 => "Ida y vuelta. Mantén pulsado otro punto para hacer una vuelta.",
-            var n => $"Vuelta por {n} puntos.",
+            (false, 0) => "Hasta dónde: PROPONER (2 h), EN LA MIRA (el anillo del centro) o mantén pulsado el mapa.",
+            (false, _) => "Ida y vuelta. Para cambiar el punto, pon otro.",
+            (true, 0) => "Por dónde pasar: EN LA MIRA o mantén pulsado; puedes añadir varios.",
+            (true, 1) => "Vuelta por 1 punto: BRouter elige por dónde volver. Añade puntos para mandar tú.",
+            (true, var n) => $"Vuelta por {n} puntos. Añade más o QUITAR.",
         };
         MapView.Map.RefreshGraphics();
     }
@@ -566,6 +670,12 @@ public partial class MapPage : ContentPage
     {
         var (x, y) = SphericalMercator.FromLonLat(position.Longitude, position.Latitude);
         return new MPoint(x, y);
+    }
+
+    private static GeoCoordinate FromMercator(double x, double y)
+    {
+        var (longitude, latitude) = SphericalMercator.ToLonLat(x, y);
+        return new GeoCoordinate(latitude, longitude);
     }
 
     private static Coordinate ToNts(GeoCoordinate position)

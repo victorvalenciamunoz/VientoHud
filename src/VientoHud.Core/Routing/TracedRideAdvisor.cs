@@ -11,11 +11,16 @@ namespace VientoHud.Core.Routing;
 /// </param>
 /// <param name="Departure">The earliest departure, in UTC; later ones up to 2 h are also tried (DECISIONS 036).</param>
 /// <param name="AverageSpeedKmh">Average speed of the whole ride.</param>
+/// <param name="RequestedShape">
+/// The kind of ride the rider chose; null to go by the points (one, out and back; more, a loop). A loop through one
+/// point lets the engine come back another way when there is one.
+/// </param>
 public sealed record TracedRequest(
     Coordinate Start,
     IReadOnlyList<Coordinate> Via,
     DateTimeOffset Departure,
-    double AverageSpeedKmh = RideDistance.DefaultAverageSpeedKmh)
+    double AverageSpeedKmh = RideDistance.DefaultAverageSpeedKmh,
+    RouteShape? RequestedShape = null)
 {
     public IReadOnlyList<Coordinate> Via { get; } = Via is { Count: >= 1 }
         ? Via
@@ -25,7 +30,7 @@ public sealed record TracedRequest(
         ? Departure
         : throw new ArgumentException("Departure must be in UTC.", nameof(Departure));
 
-    public RouteShape Shape => Via.Count == 1 ? RouteShape.OutAndBack : RouteShape.Loop;
+    public RouteShape Shape => RequestedShape ?? (Via.Count == 1 ? RouteShape.OutAndBack : RouteShape.Loop);
 }
 
 /// <summary>The route the engine joined the points with, before any weather: enough to draw it.</summary>
@@ -79,6 +84,22 @@ public sealed record TracedRide(
 /// </summary>
 public sealed class TracedRideAdvisor(IRouteEngine engine, IWindForecastProvider winds, IRainOutlookSource rain)
 {
+    /// <summary>
+    /// A far point to propose for an out and back of <paramref name="targetKm"/> towards <paramref name="bearingDegrees"/>
+    /// (the recommended direction): the generator's (DECISIONS 040; a few requests), so the rider starts from a ride
+    /// that fits instead of guessing a point. Null when the engine found no road that way; a point that falls short of
+    /// the distance is still returned (the rider can move it), with <c>Fits</c> false.
+    /// </summary>
+    public async Task<(Coordinate FarPoint, bool Fits)?> ProposeFarPointAsync(
+        Coordinate start, double bearingDegrees, double targetKm, CancellationToken cancellationToken = default)
+    {
+        // The bearing asked for when it works; turned only when it does not (no hunt for the least urban variant:
+        // fewer requests, and the rider can move the point anyway).
+        var generator = new LoopGenerator(engine, new LoopGeneratorOptions { OutAndBackVariantDegrees = 0 });
+        var result = await generator.GenerateAsync(start, bearingDegrees, targetKm, RouteShape.OutAndBack, cancellationToken);
+        return result.Best is { } best ? (best.Waypoints[1], best.IsValid) : null;
+    }
+
     /// <summary>The route through the points: one request to the engine.</summary>
     /// <exception cref="RouteException">The engine could not join the points (move them) or failed.</exception>
     public async Task<TracedRoute> RouteAsync(TracedRequest request, CancellationToken cancellationToken = default)

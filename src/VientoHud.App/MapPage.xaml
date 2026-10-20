@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:mapsui="clr-namespace:Mapsui.UI.Maui;assembly=Mapsui.UI.Maui"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="VientoHud.App.MapPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{DynamicResource HudBackground}">
@@ -18,6 +19,10 @@
             <Setter Property="TextColor" Value="{DynamicResource HudGuide}" />
             <Setter Property="BorderColor" Value="{DynamicResource HudGuide}" />
         </Style>
+        <Style x:Key="ChipOn" TargetType="Button" BasedOn="{StaticResource Chip}">
+            <Setter Property="BackgroundColor" Value="{DynamicResource HudGuide}" />
+            <Setter Property="TextColor" Value="{DynamicResource HudBackground}" />
+        </Style>
     </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -33,6 +38,13 @@
         <!-- The map fills the screen (DECISIONS 050): home, the fan, the points touched, the route and the wind. -->
         <Grid Grid.Row="1">
             <mapsui:MapControl x:Name="MapView" />
+
+            <!-- The aim at the centre: EN LA MIRA puts a point there, with no gesture to learn. -->
+            <Grid InputTransparent="True" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="48" HeightRequest="48">
+                <shapes:Ellipse WidthRequest="44" HeightRequest="44" StrokeThickness="7" Stroke="{DynamicResource HudBackground}" Opacity="0.7" />
+                <shapes:Ellipse WidthRequest="44" HeightRequest="44" StrokeThickness="3" Stroke="{DynamicResource HudMarker}" />
+                <shapes:Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource HudMarker}" Stroke="{DynamicResource HudBackground}" StrokeThickness="1" />
+            </Grid>
 
             <!-- Always in view over the map: the one line that matters, what the app is doing, and DETALLE. -->
             <Border VerticalOptions="Start" Margin="12,8,12,0" Padding="12,8" StrokeThickness="1"
@@ -91,20 +103,30 @@
             </Border>
         </Grid>
 
-        <!-- Below the map: what the arrow colors mean (while there are arrows), the points, and the credit the tiles' licences ask for. -->
-        <VerticalStackLayout Grid.Row="2" Padding="16,6,16,10" Spacing="4">
+        <!-- Below the map: what the arrow colors mean (while there are arrows); the kind of ride and what to do; the
+             buttons; and the credit the tiles' licences ask for. -->
+        <VerticalStackLayout Grid.Row="2" Padding="16,6,16,10" Spacing="6">
             <HorizontalStackLayout x:Name="Legend" IsVisible="False" Spacing="14">
                 <Label Text="Viento:" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
                 <Label Text="➜ de cara" FontFamily="OpenSansSemibold" FontSize="12" TextColor="{DynamicResource HudAlert}" />
                 <Label Text="➜ a favor" FontFamily="OpenSansSemibold" FontSize="12" TextColor="{DynamicResource HudGood}" />
                 <Label Text="➜ de lado" FontFamily="OpenSansSemibold" FontSize="12" TextColor="{DynamicResource HudMarker}" />
             </HorizontalStackLayout>
-            <Label x:Name="Hint" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
-                   Text="Mantén pulsado el mapa: un punto, ida y vuelta; dos o más, vuelta." />
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                <Button x:Name="DepartureChip" Text="SALIDA · AHORA" Style="{StaticResource Chip}" Clicked="OnDepartureClicked" />
-                <Button Grid.Column="2" x:Name="RemoveLast" Text="QUITAR PUNTO" IsVisible="False" Style="{StaticResource Chip}"
+            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                <Button x:Name="OutAndBackChip" Text="IDA Y VUELTA" Style="{StaticResource ChipOn}" Clicked="OnOutAndBackClicked" />
+                <Button Grid.Column="1" x:Name="LoopChip" Text="VUELTA" Style="{StaticResource Chip}" Clicked="OnLoopClicked" />
+                <Label Grid.Column="2" x:Name="Hint" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
+                       VerticalOptions="Center" LineBreakMode="WordWrap" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="8">
+                <Button x:Name="Propose" Text="PROPONER" Style="{StaticResource Chip}"
+                        TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnProposeClicked" />
+                <Button Grid.Column="1" x:Name="AddAtCross" Text="EN LA MIRA" Style="{StaticResource Chip}"
+                        TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnAddAtCrossClicked" />
+                <Button Grid.Column="2" x:Name="RemoveLast" Text="QUITAR" IsVisible="False" Style="{StaticResource Chip}"
                         TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnRemoveLastClicked" />
+                <Button Grid.Column="3" x:Name="DepartureChip" Text="SALIDA · AHORA" Style="{StaticResource Chip}" HorizontalOptions="End"
+                        Clicked="OnDepartureClicked" />
             </Grid>
             <Label x:Name="Attribution" FontFamily="OpenSansRegular" FontSize="11" TextColor="{DynamicResource HudTextMuted}">
                 <Label.GestureRecognizers>
