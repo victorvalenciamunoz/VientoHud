@@ -118,9 +118,9 @@ visto bueno del autor**:
   puntos en la consola dan lo mismo; segundos hasta la ruta. Hecho; **pendiente verlo en vivo con viento y lluvia**
   (cupo de Open-Meteo) y el ojo del autor en el móvil.
 - [x] 7f. **Mandarla al aparato**, sea cual sea: botón GPX junto a DETALLE con un panel COMPARTIR (Hammerhead y la
-  mayoría) / ABRIR CON… (Garmin Connect), apagados hasta tener viento y lluvia; el GPX es el mismo que escribe la consola (`RideGpx.ForTraced`, DECISIONS 054). Hecho el
-  2026-10-21 en el emulador (la hoja de compartir sale con el fichero; "abrir con" no tiene apps allí); **pendiente el
-  juez: que llegue al Karoo y al Fenix 5 del autor**. Guardar en Descargas se deja para si algún aparato lo pide.
+  mayoría) / ABRIR CON… (Garmin Connect), apagados hasta tener viento y lluvia; el GPX es el mismo que escribe la consola (`RideGpx.ForTraced`, DECISIONS 054). Hecho y
+  juzgado el 2026-10-21 en el móvil del autor: COMPARTIR deja la vuelta en el panel de Hammerhead (Karoo) y ABRIR CON…
+  la abre en Garmin Connect (Fenix 5), en el mismo sentido que la app. Guardar en Descargas se deja para si algún aparato lo pide.
   La ruta lleva **marcas de sentido** (triángulos claros cada 2,5 km, `RouteMarks.Along`): el autor leyó las flechas del
   viento como el sentido de marcha al comparar con Garmin Connect (2026-10-21; iban igual).
   `docs/verificacion/2026-10-21-fase7-7e-emulador-marcas-de-sentido.png`.
