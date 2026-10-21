@@ -13,8 +13,8 @@
 		<ApplicationTitle>VientoHud</ApplicationTitle>
 		<ApplicationId>com.vientohud.app</ApplicationId>
 		<!-- ApplicationVersion is major*10000 + minor*100 + patch: Android installs an update only if it grows. -->
-		<ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
-		<ApplicationVersion>100</ApplicationVersion>
+		<ApplicationDisplayVersion>0.2.0</ApplicationDisplayVersion>
+		<ApplicationVersion>200</ApplicationVersion>
 
 		<SupportedOSPlatformVersion>26.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
