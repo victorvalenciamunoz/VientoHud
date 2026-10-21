@@ -89,6 +89,24 @@ Al abrirla pedirá la **ubicación** (es el punto de salida; no sale del móvil 
 Necesita conexión: la previsión, el radar, las rutas y el mapa vienen de servicios públicos. Las versiones 0.x son
 *pre-release*: la fase 7 sigue abierta y conviene contrastar lo que dice con lo que luego pasa en la carretera.
 
+## Llevar la ruta al GPS de la bici
+
+Con la ruta trazada y juzgada (viento y lluvia dentro), el botón **GPX** junto a DETALLE abre el panel "GPX al aparato".
+El fichero lleva el consejo entero en la descripción y los avisos de rachas y lluvia como puntos de paso.
+
+| 1. La ruta | 2. El panel GPX | 3. Al Karoo: COMPARTIR | 4. A Garmin: ABRIR CON… |
+| --- | --- | --- | --- |
+| ![La ruta trazada y juzgada](docs/capturas/1-ruta.png) | ![El panel GPX al aparato](docs/capturas/2-gpx.png) | ![La hoja de compartir con Karoo Companion](docs/capturas/3-compartir-karoo.png) | ![La ruta abierta en Garmin Connect](docs/capturas/4-garmin-connect.png) |
+
+- **Hammerhead Karoo** (y casi cualquier app): **COMPARTIR** y elige *Karoo Companion*. La ruta aparece en el panel de
+  Hammerhead y se sincroniza con el Karoo.
+- **Garmin** (Fenix, Edge…): **ABRIR CON…** y elige *Garmin Connect*. Pide el tipo de trayecto (ciclismo en ruta),
+  muestra la ruta y con *Guardar* queda en tus trayectos para enviarla al reloj o al ciclocomputador. Garmin Connect
+  no sale en la hoja de compartir: solo acepta "abrir con".
+- Cualquier otro aparato que admita GPX: COMPARTIR a la app que use, o guárdalo (Drive, correo…) y cárgalo desde allí.
+
+Las capturas son del móvil del autor con la ubicación simulada en La Bañeza (León).
+
 ## Estado
 
 Fase 7 de 7, la app Android, en marcha. Lo hecho y lo que falta, paso a paso y con cómo se validó, en
