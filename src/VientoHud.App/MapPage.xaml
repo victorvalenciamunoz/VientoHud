@@ -39,8 +39,12 @@
         <Grid Grid.Row="1">
             <mapsui:MapControl x:Name="MapView" />
 
-            <!-- The aim at the centre: EN LA MIRA puts a point there, with no gesture to learn. -->
-            <Grid InputTransparent="True" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="48" HeightRequest="48">
+            <!-- The aim at the centre is the only way to put a point: move the map under it and tap it. Nothing else
+                 on the map adds points, so a pinch or a drag can never leave one by mistake. -->
+            <Grid HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="64" HeightRequest="64" BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnAimTapped" />
+                </Grid.GestureRecognizers>
                 <shapes:Ellipse WidthRequest="44" HeightRequest="44" StrokeThickness="7" Stroke="{DynamicResource HudBackground}" Opacity="0.7" />
                 <shapes:Ellipse WidthRequest="44" HeightRequest="44" StrokeThickness="3" Stroke="{DynamicResource HudMarker}" />
                 <shapes:Ellipse WidthRequest="8" HeightRequest="8" Fill="{DynamicResource HudMarker}" Stroke="{DynamicResource HudBackground}" StrokeThickness="1" />
@@ -67,20 +71,23 @@
 
             <!-- The whole judgement, over the map, when asked for: the way round, the wind stretch by stretch, the gusts,
                  the rain, the town, the route and the arrival. Our own panel in the palette, as CieloHud's. -->
-            <Border x:Name="DetailPanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
+            <Border x:Name="DetailPanel" IsVisible="False" VerticalOptions="Fill" Margin="12,8,12,8" Padding="14,12" StrokeThickness="1"
                     BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <VerticalStackLayout Spacing="6">
+                <Grid RowDefinitions="Auto,*" RowSpacing="6">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                         <Label Text="DETALLE" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
                                TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
                         <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseDetailClicked" />
                     </Grid>
-                    <Label x:Name="Detail" FontFamily="OpenSansRegular" FontSize="13" TextColor="{DynamicResource HudTextSoft}" />
-                    <Label x:Name="DetailFooter" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
-                </VerticalStackLayout>
+                    <!-- Sections built in code: a small title and one idea per line. The panel fills the map and the sections
+                         scroll inside it, whatever the phone's font size. -->
+                    <ScrollView Grid.Row="1">
+                        <VerticalStackLayout x:Name="DetailSections" Spacing="10" />
+                    </ScrollView>
+                </Grid>
             </Border>
 
             <!-- When to leave: now, or a time of day later today, by touching (no typing, no system dialog, which would be
@@ -101,6 +108,27 @@
                     <Label x:Name="DepartureNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
                 </VerticalStackLayout>
             </Border>
+
+            <!-- How long the ride is and the average speed (phase 7g): the fan's reach, PROPONER's distance and every
+                 arrival time come from them. Remembered between sessions. Applied when the panel closes. -->
+            <Border x:Name="RidePanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
+                    BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Text="DURACIÓN Y RITMO" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
+                               TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseRideClicked" />
+                    </Grid>
+                    <Label Text="Cuánto quieres rodar" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                    <FlexLayout x:Name="DurationChips" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
+                    <Label Text="A qué media (llano, sin paradas)" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                    <FlexLayout x:Name="SpeedChips" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
+                    <Label x:Name="RideNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                </VerticalStackLayout>
+            </Border>
         </Grid>
 
         <!-- Below the map: what the arrow colors mean (while there are arrows); the kind of ride and what to do; the
@@ -118,15 +146,16 @@
                 <Label Grid.Column="2" x:Name="Hint" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
                        VerticalOptions="Center" LineBreakMode="WordWrap" />
             </Grid>
-            <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="8">
+            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
                 <Button x:Name="Propose" Text="PROPONER" Style="{StaticResource Chip}"
                         TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnProposeClicked" />
-                <Button Grid.Column="1" x:Name="AddAtCross" Text="EN LA MIRA" Style="{StaticResource Chip}"
-                        TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnAddAtCrossClicked" />
-                <Button Grid.Column="2" x:Name="RemoveLast" Text="QUITAR" IsVisible="False" Style="{StaticResource Chip}"
+                <Button Grid.Column="1" x:Name="RemoveLast" Text="QUITAR PUNTO" IsVisible="False" Style="{StaticResource Chip}"
                         TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnRemoveLastClicked" />
-                <Button Grid.Column="3" x:Name="DepartureChip" Text="SALIDA · AHORA" Style="{StaticResource Chip}" HorizontalOptions="End"
-                        Clicked="OnDepartureClicked" />
+            </Grid>
+            <!-- When to leave, and how long and how fast (phase 7g): both open their own panel over the map. -->
+            <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
+                <Button x:Name="DepartureChip" Text="SALIDA · AHORA" Style="{StaticResource Chip}" Clicked="OnDepartureClicked" />
+                <Button Grid.Column="1" x:Name="RideChip" Text="2 H · 25 KM/H" Style="{StaticResource Chip}" Clicked="OnRideClicked" />
             </Grid>
             <Label x:Name="Attribution" FontFamily="OpenSansRegular" FontSize="11" TextColor="{DynamicResource HudTextMuted}">
                 <Label.GestureRecognizers>

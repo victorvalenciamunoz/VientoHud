@@ -16,13 +16,21 @@
   El radar se guarda 3 h en el móvil y la lluvia se reutiliza 10 min.
 - **Mapa a pantalla completa, panel plegable y leyenda** (pedido por el autor el 2026-10-20): sobre el mapa solo una
   barra con el titular ("Sal ahora (09:38)." o "Hacia el O") y una línea (km, llegada, qué está haciendo) con DETALLE;
-  el panel completo (sentido, tramos, lluvia, ciudad, resumen) se despliega sobre el mapa y se cierra con CERRAR. Bajo el
+  el panel completo se despliega sobre el mapa y se cierra con CERRAR; va por secciones (SENTIDO, VIENTO POR TRAMOS,
+  RACHAS DE LADO, LLUVIA, CIUDAD, RUTA) con una idea por línea; el panel ocupa el hueco del mapa y las secciones se desplazan dentro (con la letra grande del
+  móvil no cabían y no había desplazamiento; corregido el 2026-10-20). Bajo el
   mapa, la leyenda de las flechas (de cara, a favor, de lado) mientras haya flechas.
   `docs/verificacion/2026-10-20-fase7-7e-emulador-panel-plegable.png`.
+  `docs/verificacion/2026-10-20-fase7-7e-emulador-detalle-secciones.png`.
+- **Duración y ritmo** (paso 7g): chip "2 H · 25 KM/H" que abre un panel con la duración (1 h a 5 h) y la media
+  (18-33 km/h), guardadas en las preferencias del móvil; al cerrar se recalculan el abanico (alcance = la mitad de la
+  distancia entre 1,3), PROPONER y, si hay ruta, las horas de paso y la llegada.
 - **Trazar más fácil** (`DECISIONS.md` 053, por la opinión del primer amigo): PROPONER pone una ida y vuelta de 2 h
   hacia el rumbo recomendado (en el emulador, 43 km hacia el OSO en ~20 s,
   `docs/verificacion/2026-10-20-fase7-7e-emulador-proponer.png`); chips IDA Y VUELTA / VUELTA con la pista de qué
-  hacer; EN LA MIRA pone un punto donde está la mira del centro del mapa.
+  hacer; la mira del centro del mapa (anillo ámbar) es el único sitio que pone puntos: se mueve el mapa y se toca la
+  mira. Ni toques, ni pulsaciones largas, ni arrastres ponen puntos (el primer dedo de un pellizco contaba como
+  pulsación larga).
 - **Los puntos se ponen con una pulsación larga** (2026-10-20): en el emulador cada zoom acababa como un toque y ponía
   un punto, y el autor no podía trazar una vuelta. El toque corto solo cierra paneles. Comprobado: tocar y arrastrar no
   pone nada; dos pulsaciones largas hacen una vuelta (`docs/verificacion/2026-10-20-fase7-7e-emulador-vuelta-pulsacion-larga.png`,
@@ -111,7 +119,9 @@ visto bueno del autor**:
   (cupo de Open-Meteo) y el ojo del autor en el móvil.
 - [ ] 7f. **Mandarla al aparato**, sea cual sea: "Compartir" (Hammerhead y la mayoría) y "Abrir con" (Garmin Connect),
   quizá también guardarla en Descargas. Juez: llega al Karoo y al Fenix 5 del autor.
-- [ ] 7g. Opciones con un toque: velocidad media y, si hace falta, la hora de salida (decisión del autor).
+- [x] 7g. Opciones con un toque: duración (1 h a 5 h) y velocidad media (18-33 km/h) en un panel propio, recordadas entre
+  sesiones; el abanico, PROPONER y las horas de paso van con ellas. La hora de salida ya estaba (panel SALIDA).
+  `docs/verificacion/2026-10-20-fase7-7g-emulador-duracion.png`. Pedido por el autor el 2026-10-20.
 - [ ] 7h. Pantalla definitiva con la estética de CieloHud y versión instalable firmada.
 - [ ] 7i. Juez de la fase: salidas reales usando solo la app (segundos hasta la ruta, datos gastados, GPX en el Karoo
   y en el Fenix, ojo del autor sobre el viento y la lluvia que hubo).
