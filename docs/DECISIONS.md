@@ -1217,3 +1217,18 @@ Formato: contexto → decisión → alternativas descartadas.
     como tal y dejaba puntos sin querer) y el botón EN LA MIRA.
 - Alternativas: arrastrar los puntos (más trabajo con los gestos de Mapsui; se deja para después si hace falta);
   proponer varias rutas (la búsqueda completa de la fase 6, minutos: descartada por `DECISIONS.md` 048).
+
+## 054 — El GPX al aparato: COMPARTIR y ABRIR CON, desde la caché de la app
+
+- Contexto: el GPX es el producto. El Karoo (app Hammerhead) y casi todas las apps lo cogen por "Compartir"; Garmin
+  Connect no sale en compartir, solo en "Abrir con" (registra VIEW para `.gpx`). El usuario puede tener cualquier
+  aparato (`user-gps-hammerhead`, 2026-10-19).
+- Decisión (2026-10-21): dos botones con la ruta ya juzgada (viento y lluvia dentro, para que lleve los avisos):
+  **COMPARTIR GPX** (hoja de compartir del sistema, `Share.RequestAsync`) y **ABRIR CON…** (`Launcher.OpenAsync` con
+  el fichero, intención VIEW). El fichero se escribe en la caché de la app (`FileSystem.CacheDirectory/gpx/`) con el
+  nombre que ya daba la consola (`RideGpx.FileName`, DECISIONS 037); el sistema lo entrega por el FileProvider que
+  MAUI registra solo. El contenido (nombre, descripción, avisos) sale de Core (`RideGpx.ForTraced`), el mismo que
+  escribe `vientohud trace`: la app no compone nada.
+- Alternativas: guardar en Descargas (pide el almacenamiento compartido por MediaStore y el usuario tendría que ir a
+  buscarlo; se añadirá si algún aparato lo necesita); solo compartir (deja fuera a Garmin Connect); cola de envío por
+  Bluetooth al aparato (cada marca tiene su protocolo cerrado: fuera de alcance).

@@ -7,6 +7,7 @@ using Mapsui.Styles;
 using NetTopologySuite.Geometries;
 using VientoHud.App.Hud;
 using VientoHud.App.Maps;
+using VientoHud.Core.Gpx;
 using VientoHud.Core.Location;
 using VientoHud.Core.Routing;
 using VientoHud.Core.Text;
@@ -67,6 +68,8 @@ public partial class MapPage : ContentPage
     /// <summary>The last direction advice: PROPONER heads that way.</summary>
     private DirectionAdvice? _lastDirection;
     private GeoCoordinate? _home;
+    /// <summary>The ride as last judged (wind and rain in): what COMPARTIR GPX and ABRIR CON hand over.</summary>
+    private TracedRide? _ride;
     private bool _started;
     /// <summary>When to leave, as a time of day today; null for now.</summary>
     private TimeOnly? _departureAt;
@@ -383,6 +386,9 @@ public partial class MapPage : ContentPage
     private void ShowRide(TracedRide ride, string? doing)
     {
         var option = ride.Ride;
+        // The GPX waits for the rain: its waypoints warn of it.
+        _ride = ride.RainPending ? null : ride;
+        GpxRow.IsVisible = _ride is not null;
         ShowRoute(option.Route);
         ShowRideWind(WindArrows.AlongRide(option.Winds));
         // One idea per line: the way round and the advantage, each wind stretch, the gusts, the rain, the town, and
@@ -408,6 +414,8 @@ public partial class MapPage : ContentPage
         _cancel = new CancellationTokenSource();
         Retry.IsVisible = false;
         Headline.IsVisible = ShowDetail.IsVisible = DetailPanel.IsVisible = false;
+        _ride = null;
+        GpxRow.IsVisible = false;
         return _cancel.Token;
     }
 
@@ -437,6 +445,69 @@ public partial class MapPage : ContentPage
     private void OnShowDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = true;
 
     private void OnCloseDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = false;
+
+    /// <summary>The GPX to the bike device (phase 7f): written to the app's cache and handed to the system.</summary>
+    private const string GpxMediaType = "application/gpx+xml";
+
+    /// <summary>Hammerhead and most apps take a share.</summary>
+    private async void OnShareGpxClicked(object? sender, EventArgs e)
+    {
+        if (WriteGpx() is not { } gpx)
+        {
+            return;
+        }
+        try
+        {
+            await Share.Default.RequestAsync(new ShareFileRequest { Title = gpx.Track.Name, File = new ShareFile(gpx.Path, GpxMediaType) });
+        }
+        catch (Exception ex)
+        {
+            Status.Text = $"No se pudo compartir el GPX: {ex.Message}";
+        }
+    }
+
+    /// <summary>Garmin Connect only registers "open with" for GPX files, not share.</summary>
+    private async void OnOpenGpxClicked(object? sender, EventArgs e)
+    {
+        if (WriteGpx() is not { } gpx)
+        {
+            return;
+        }
+        try
+        {
+            await Launcher.Default.OpenAsync(new OpenFileRequest(gpx.Track.Name, new ReadOnlyFile(gpx.Path, GpxMediaType)));
+        }
+        catch (Exception ex)
+        {
+            Status.Text = $"No se pudo abrir el GPX con otra app: {ex.Message}";
+        }
+    }
+
+    /// <summary>The GPX of the ride judged, as a file in the cache (the same one the console writes).</summary>
+    private (string Path, GpxTrack Track)? WriteGpx()
+    {
+        if (_ride is null)
+        {
+            return null;
+        }
+        try
+        {
+            var gpx = RideGpx.ForTraced(_ride, fromNow: _departureAt is null, Zone);
+            var directory = Path.Combine(FileSystem.CacheDirectory, "gpx");
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, gpx.FileName);
+            using (var stream = File.Create(path))
+            {
+                GpxWriter.Write(gpx.Track, stream);
+            }
+            return (path, gpx.Track);
+        }
+        catch (Exception ex)
+        {
+            Status.Text = $"No se pudo escribir el GPX: {ex.Message}";
+            return null;
+        }
+    }
 
     /// <summary>"2 h", "1½ h": short, so it fits a chip at any font size.</summary>
     private static string DurationText(TimeSpan duration) =>

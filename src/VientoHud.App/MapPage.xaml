@@ -157,6 +157,16 @@
                 <Button x:Name="DepartureChip" Text="SALIDA · AHORA" Style="{StaticResource Chip}" Clicked="OnDepartureClicked" />
                 <Button Grid.Column="1" x:Name="RideChip" Text="2 H · 25 KM/H" Style="{StaticResource Chip}" Clicked="OnRideClicked" />
             </Grid>
+            <!-- The GPX to the bike device (phase 7f): COMPARTIR for Hammerhead and most apps, ABRIR CON for Garmin Connect
+                 (which only registers "open with" for GPX). Shown once the ride is judged. -->
+            <Grid x:Name="GpxRow" IsVisible="False" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                <Button x:Name="ShareGpx" Text="COMPARTIR GPX" Style="{StaticResource Chip}"
+                        TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnShareGpxClicked" />
+                <Button Grid.Column="1" x:Name="OpenGpx" Text="ABRIR CON…" Style="{StaticResource Chip}"
+                        TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnOpenGpxClicked" />
+                <Label Grid.Column="2" Text="Al Karoo: compartir. A Garmin Connect: abrir con." FontFamily="OpenSansRegular" FontSize="12"
+                       TextColor="{DynamicResource HudTextMuted}" VerticalOptions="Center" LineBreakMode="WordWrap" />
+            </Grid>
             <Label x:Name="Attribution" FontFamily="OpenSansRegular" FontSize="11" TextColor="{DynamicResource HudTextMuted}">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnAttributionTapped" />

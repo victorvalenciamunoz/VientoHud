@@ -1,6 +1,8 @@
 using VientoHud.Core.Rain;
+using VientoHud.Core.Rain.Forecasts;
 using VientoHud.Core.Routing;
 using VientoHud.Core.Tests.Support;
+using VientoHud.Core.Text;
 using VientoHud.Core.Wind;
 
 namespace VientoHud.Core.Tests.Routing;
@@ -218,5 +220,23 @@ public class TracedRideAdvisorTests
         Assert.Throws<ArgumentException>(() => new TracedRequest(Leon, [Leon.Destination(0, 20)], Now.ToOffset(TimeSpan.FromHours(2))));
         await Assert.ThrowsAsync<ArgumentException>(() =>
             Advisor(Roads()).AdviseAsync(new TracedRequest(Leon, [Leon.Destination(0, 20)], Now), Now.ToOffset(TimeSpan.FromHours(2))));
+    }
+    [Fact]
+    public async Task The_GPX_carries_the_advice_and_a_file_name_the_GPS_shows()
+    {
+        var far = Leon.Destination(90, 20);
+        var ride = await Advisor(Roads()).AdviseAsync(new TracedRequest(Leon, [far], Now), Now);
+
+        var gpx = RideGpx.ForTraced(ride, fromNow: true, TimeZoneInfo.Utc);
+
+        Assert.Equal("ida-y-vuelta-60km-E-20260930-0800.gpx", gpx.FileName);
+        Assert.Equal("Sal 08:00 · 60 km E ida y vuelta", gpx.Track.Name);
+        Assert.Equal(ride.Ride.Route.Points.Count, gpx.Track.Points.Count);
+        var description = gpx.Track.Description!.Split('\n');
+        Assert.StartsWith("Sal ahora", description[0]);
+        Assert.Equal("Ida y vuelta 60 km.", description[1]);
+        Assert.Contains(description, l => l.StartsWith("Ida y vuelta: "));
+        Assert.Contains(description, l => l.Contains("Llegada hacia las"));
+        Assert.Contains(OpenMeteoRainForecastSource.Attribution, description);
     }
 }
