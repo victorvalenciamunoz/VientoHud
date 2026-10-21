@@ -41,7 +41,6 @@ internal sealed class TraceCommand(TracedRideAdvisor advisor, ILocationProvider 
         }
 
         var option = ride.Ride;
-        var chosen = ride.Departure.Chosen;
         var recommendation = RideText.Recommendation(ride.Departure, options.At is null, Zone);
         output.WriteLine(recommendation);
         if (ride.RainFailure is not null)
@@ -50,23 +49,15 @@ internal sealed class TraceCommand(TracedRideAdvisor advisor, ILocationProvider 
         }
         output.WriteLine();
 
-        var outAndBack = ride.Shape == RouteShape.OutAndBack;
         var turn = RideText.Turn(option, ride.Shape);
         var lines = new List<string> { $"{Capitalized(turn)}: {RideText.Advantage(option.Score)}" };
         lines.AddRange(RideText.Lines(option, ride.RainFailure, Zone));
         lines.Add($"{RideText.TracedSummary(ride)}. {RideText.Arrival(option, Zone)}");
 
-        // The file name carries the bearing to the farthest point given (Hammerhead shows the file name).
-        var bearing = start.BearingTo(options.Via.MaxBy(v => v.DistanceKmTo(start)));
-        var track = RideGpx.Track(
-            option, RideGpx.Name(chosen.Departure, option.Route.DistanceKm, bearing, ride.Shape, Zone), chosen.Departure,
-            new[] { recommendation, $"{RideText.Kind(ride.Shape)} {Km(option.Route.DistanceKm)}{(outAndBack ? "" : $", {turn}")}." }
-                .Concat(lines)
-                .Concat(RideText.Attributions(option.Route, ride.Rain)),
-            Zone);
-        var file = await WriteGpxAsync(
-            options.OutputDirectory, RideGpx.FileName(ride.Shape, option.Route.DistanceKm, bearing, chosen.Departure, Zone),
-            track, cancellationToken);
+        // The same GPX the app shares: the name carries the bearing to the farthest point given.
+        var gpx = RideGpx.ForTraced(ride, fromNow: options.At is null, Zone);
+        var track = gpx.Track;
+        var file = await WriteGpxAsync(options.OutputDirectory, gpx.FileName, track, cancellationToken);
 
         foreach (var line in lines)
         {

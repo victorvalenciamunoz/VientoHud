@@ -63,7 +63,12 @@
                         <Label x:Name="Status" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
                     </VerticalStackLayout>
                     <VerticalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
-                        <Button x:Name="ShowDetail" Text="DETALLE" IsVisible="False" Style="{StaticResource Chip}" Clicked="OnShowDetailClicked" />
+                        <HorizontalStackLayout Spacing="6">
+                            <Button x:Name="ShowDetail" Text="DETALLE" IsVisible="False" Style="{StaticResource Chip}" Clicked="OnShowDetailClicked" />
+                            <!-- The GPX to the bike device (phase 7f), as soon as there is a route; its panel says when it is ready. -->
+                            <Button x:Name="ShowGpx" Text="GPX" IsVisible="False" Style="{StaticResource Chip}"
+                                    TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnShowGpxClicked" />
+                        </HorizontalStackLayout>
                         <Button x:Name="Retry" Text="REINTENTAR" IsVisible="False" Style="{StaticResource Chip}" Clicked="OnRetryClicked" />
                     </VerticalStackLayout>
                 </Grid>
@@ -90,43 +95,56 @@
                 </Grid>
             </Border>
 
-            <!-- When to leave: now, or a time of day later today, by touching (no typing, no system dialog, which would be
-                 white). Hours in chips, then the quarter of an hour. Applied when the panel closes. -->
-            <Border x:Name="DeparturePanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
+            <!-- The three choices in one panel (the bar below was getting crowded, 2026-10-21): when to leave (now, or a
+                 time of day later today), how long the ride is and the average speed. All by touching chips; applied when
+                 the panel closes. It fills the map and scrolls inside, whatever the phone's font size. -->
+            <Border x:Name="OptionsPanel" IsVisible="False" VerticalOptions="Fill" Margin="12,8,12,8" Padding="14,12" StrokeThickness="1"
                     BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <VerticalStackLayout Spacing="8">
+                <Grid RowDefinitions="Auto,*" RowSpacing="8">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <Label Text="HORA DE SALIDA (HOY)" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
+                        <Label Text="SALIDA, DURACIÓN Y RITMO" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
                                TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
-                        <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseDepartureClicked" />
+                        <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseOptionsClicked" />
                     </Grid>
-                    <FlexLayout x:Name="HourChips" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
-                    <HorizontalStackLayout x:Name="MinuteChips" Spacing="8" />
-                    <Label x:Name="DepartureNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
-                </VerticalStackLayout>
+                    <ScrollView Grid.Row="1">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="A qué hora sales (hoy)" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                            <FlexLayout x:Name="HourChips" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
+                            <HorizontalStackLayout x:Name="MinuteChips" Spacing="8" />
+                            <Label x:Name="DepartureNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                            <Label Text="Cuánto quieres rodar" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" Margin="0,6,0,0" />
+                            <FlexLayout x:Name="DurationChips" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
+                            <Label Text="A qué media (llano, sin paradas)" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                            <FlexLayout x:Name="SpeedChips" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
+                            <Label x:Name="RideNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Grid>
             </Border>
 
-            <!-- How long the ride is and the average speed (phase 7g): the fan's reach, PROPONER's distance and every
-                 arrival time come from them. Remembered between sessions. Applied when the panel closes. -->
-            <Border x:Name="RidePanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
+            <!-- The GPX to the bike device (phase 7f, DECISIONS 054): COMPARTIR for Hammerhead and most apps, ABRIR CON for
+                 Garmin Connect (which only registers "open with" for GPX). Ready once the wind and the rain are in. -->
+            <Border x:Name="GpxPanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
                     BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
                 <VerticalStackLayout Spacing="8">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <Label Text="DURACIÓN Y RITMO" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
+                        <Label Text="GPX AL APARATO" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
                                TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
-                        <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseRideClicked" />
+                        <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseGpxClicked" />
                     </Grid>
-                    <Label Text="Cuánto quieres rodar" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
-                    <FlexLayout x:Name="DurationChips" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
-                    <Label Text="A qué media (llano, sin paradas)" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
-                    <FlexLayout x:Name="SpeedChips" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
-                    <Label x:Name="RideNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                    <HorizontalStackLayout Spacing="8">
+                        <Button x:Name="ShareGpx" Text="COMPARTIR" Style="{StaticResource Chip}"
+                                TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnShareGpxClicked" />
+                        <Button x:Name="OpenGpx" Text="ABRIR CON…" Style="{StaticResource Chip}"
+                                TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnOpenGpxClicked" />
+                    </HorizontalStackLayout>
+                    <Label x:Name="GpxNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
                 </VerticalStackLayout>
             </Border>
         </Grid>
@@ -146,17 +164,15 @@
                 <Label Grid.Column="2" x:Name="Hint" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}"
                        VerticalOptions="Center" LineBreakMode="WordWrap" />
             </Grid>
-            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
-                <Button x:Name="Propose" Text="PROPONER" Style="{StaticResource Chip}"
+            <!-- PROPONER, the last point away, and the chip with the three choices (when, how long, how fast) that opens
+                 their panel over the map. -->
+            <FlexLayout Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                <Button x:Name="Propose" Text="PROPONER" Style="{StaticResource Chip}" Margin="0,0,8,0"
                         TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnProposeClicked" />
-                <Button Grid.Column="1" x:Name="RemoveLast" Text="QUITAR PUNTO" IsVisible="False" Style="{StaticResource Chip}"
+                <Button x:Name="RemoveLast" Text="QUITAR PUNTO" IsVisible="False" Style="{StaticResource Chip}" Margin="0,0,8,0"
                         TextColor="{DynamicResource HudMarker}" BorderColor="{DynamicResource HudMarker}" Clicked="OnRemoveLastClicked" />
-            </Grid>
-            <!-- When to leave, and how long and how fast (phase 7g): both open their own panel over the map. -->
-            <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
-                <Button x:Name="DepartureChip" Text="SALIDA · AHORA" Style="{StaticResource Chip}" Clicked="OnDepartureClicked" />
-                <Button Grid.Column="1" x:Name="RideChip" Text="2 H · 25 KM/H" Style="{StaticResource Chip}" Clicked="OnRideClicked" />
-            </Grid>
+                <Button x:Name="OptionsChip" Text="AHORA · 2 H · 25 KM/H" Style="{StaticResource Chip}" Clicked="OnOptionsClicked" />
+            </FlexLayout>
             <Label x:Name="Attribution" FontFamily="OpenSansRegular" FontSize="11" TextColor="{DynamicResource HudTextMuted}">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnAttributionTapped" />
