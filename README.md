@@ -94,16 +94,33 @@ Necesita conexión: la previsión, el radar, las rutas y el mapa vienen de servi
 Con la ruta trazada y juzgada (viento y lluvia dentro), el botón **GPX** junto a DETALLE abre el panel "GPX al aparato".
 El fichero lleva el consejo entero en la descripción y los avisos de rachas y lluvia como puntos de paso.
 
-| 1. La ruta | 2. El panel GPX | 3. Al Karoo: COMPARTIR | 4. A Garmin: ABRIR CON… |
-| --- | --- | --- | --- |
-| ![La ruta trazada y juzgada](docs/capturas/1-ruta.png) | ![El panel GPX al aparato](docs/capturas/2-gpx.png) | ![La hoja de compartir con Karoo Companion](docs/capturas/3-compartir-karoo.png) | ![La ruta abierta en Garmin Connect](docs/capturas/4-garmin-connect.png) |
+| La ruta | El panel GPX |
+| --- | --- |
+| ![La ruta trazada y juzgada](docs/capturas/1-ruta.png) | ![El panel GPX al aparato](docs/capturas/2-panel-gpx.png) |
 
-- **Hammerhead Karoo** (y casi cualquier app): **COMPARTIR** y elige *Karoo Companion*. La ruta aparece en el panel de
-  Hammerhead y se sincroniza con el Karoo.
-- **Garmin** (Fenix, Edge…): **ABRIR CON…** y elige *Garmin Connect*. Pide el tipo de trayecto (ciclismo en ruta),
-  muestra la ruta y con *Guardar* queda en tus trayectos para enviarla al reloj o al ciclocomputador. Garmin Connect
-  no sale en la hoja de compartir: solo acepta "abrir con".
-- Cualquier otro aparato que admita GPX: COMPARTIR a la app que use, o guárdalo (Drive, correo…) y cárgalo desde allí.
+### Hammerhead Karoo
+
+1. **COMPARTIR**.
+2. En la hoja de Android, elige **Karoo Companion** (la app de Hammerhead).
+3. "Enviando a Karoo" y "Carga completa": la ruta ya está en tu lista de rutas de Hammerhead, y el Karoo la
+   descarga por wifi o por la app.
+
+| 2. Elige Karoo Companion | 3. Enviando | Carga completa |
+| --- | --- | --- |
+| ![La hoja de compartir con Karoo Companion](docs/capturas/karoo-1-compartir.png) | ![Enviando a Karoo](docs/capturas/karoo-2-enviando.png) | ![Carga completa](docs/capturas/karoo-3-cargada.png) |
+
+Vale igual para cualquier otra app que acepte un GPX compartido (Strava, komoot, Drive, el correo…).
+
+### Garmin (Fenix, Edge…)
+
+1. **ABRIR CON…**. Garmin Connect no sale en la hoja de compartir: solo acepta "abrir con". Si tienes varias apps que
+   abran GPX, Android pregunta cuál; si solo está Garmin Connect, se abre directamente.
+2. Garmin Connect pide el tipo de trayecto: **Ciclismo en ruta**.
+3. Muestra la ruta; con **Guardar** queda en tus trayectos, para mandarla al reloj o al ciclocomputador.
+
+| 2. Tipo de trayecto | 3. La ruta en Garmin Connect |
+| --- | --- |
+| ![Garmin Connect pide el tipo de trayecto](docs/capturas/garmin-1-tipo.png) | ![La ruta abierta en Garmin Connect](docs/capturas/garmin-2-ruta.png) |
 
 Las capturas son del móvil del autor con la ubicación simulada en La Bañeza (León).
 
