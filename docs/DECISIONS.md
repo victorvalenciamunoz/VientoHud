@@ -1223,9 +1223,13 @@ Formato: contexto → decisión → alternativas descartadas.
 - Contexto: el GPX es el producto. El Karoo (app Hammerhead) y casi todas las apps lo cogen por "Compartir"; Garmin
   Connect no sale en compartir, solo en "Abrir con" (registra VIEW para `.gpx`). El usuario puede tener cualquier
   aparato (`user-gps-hammerhead`, 2026-10-19).
-- Decisión (2026-10-21): dos botones con la ruta ya juzgada (viento y lluvia dentro, para que lleve los avisos):
-  **COMPARTIR GPX** (hoja de compartir del sistema, `Share.RequestAsync`) y **ABRIR CON…** (`Launcher.OpenAsync` con
-  el fichero, intención VIEW). El fichero se escribe en la caché de la app (`FileSystem.CacheDirectory/gpx/`) con el
+- Decisión (2026-10-21): un botón **GPX** junto a DETALLE en cuanto hay ruta; abre un panel con **COMPARTIR** (hoja de
+  compartir del sistema, `Share.RequestAsync`) y **ABRIR CON…** (`Launcher.OpenAsync` con el fichero, intención VIEW),
+  apagados hasta que el viento y la lluvia están dentro (el GPX lleva sus avisos), con la pista de qué usar para el Karoo
+  y para Garmin Connect. Primero fueron dos botones en la barra de abajo que aparecían con la ruta juzgada: la barra
+  quedaba llena (cuatro filas) y los botones se iban y volvían al cambiar la hora de salida, moviendo el mapa (el
+  autor, 2026-10-21). Con lo mismo, SALIDA y DURACIÓN Y RITMO se funden en una ficha "AHORA · 3 H · 28 KM/H" con un
+  solo panel: la barra de abajo queda en dos filas. El fichero se escribe en la caché de la app (`FileSystem.CacheDirectory/gpx/`) con el
   nombre que ya daba la consola (`RideGpx.FileName`, DECISIONS 037); el sistema lo entrega por el FileProvider que
   MAUI registra solo. El contenido (nombre, descripción, avisos) sale de Core (`RideGpx.ForTraced`), el mismo que
   escribe `vientohud trace`: la app no compone nada.

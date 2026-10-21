@@ -117,13 +117,15 @@ visto bueno del autor**:
   con ella el viento por tramos, la lluvia, salir ahora o esperar, el sentido mejor y la llegada. Juez: los mismos
   puntos en la consola dan lo mismo; segundos hasta la ruta. Hecho; **pendiente verlo en vivo con viento y lluvia**
   (cupo de Open-Meteo) y el ojo del autor en el móvil.
-- [x] 7f. **Mandarla al aparato**, sea cual sea: COMPARTIR GPX (Hammerhead y la mayoría) y ABRIR CON… (Garmin Connect),
-  con la ruta ya juzgada; el GPX es el mismo que escribe la consola (`RideGpx.ForTraced`, DECISIONS 054). Hecho el
+- [x] 7f. **Mandarla al aparato**, sea cual sea: botón GPX junto a DETALLE con un panel COMPARTIR (Hammerhead y la
+  mayoría) / ABRIR CON… (Garmin Connect), apagados hasta tener viento y lluvia; el GPX es el mismo que escribe la consola (`RideGpx.ForTraced`, DECISIONS 054). Hecho el
   2026-10-21 en el emulador (la hoja de compartir sale con el fichero; "abrir con" no tiene apps allí); **pendiente el
   juez: que llegue al Karoo y al Fenix 5 del autor**. Guardar en Descargas se deja para si algún aparato lo pide.
-  `docs/verificacion/2026-10-21-fase7-7f-emulador-gpx-botones.png`, `...-compartir.png`.
+  `docs/verificacion/2026-10-21-fase7-7f-emulador-gpx-botones.png`, `...-panel-gpx.png`.
 - [x] 7g. Opciones con un toque: duración (1 h a 5 h) y velocidad media (18-33 km/h) en un panel propio, recordadas entre
   sesiones; el abanico, PROPONER y las horas de paso van con ellas. La hora de salida ya estaba (panel SALIDA).
+  Desde el 2026-10-21 hora, duración y media van en una sola ficha "AHORA · 3 H · 28 KM/H" y un solo panel (la barra
+  de abajo estaba llena; DECISIONS 054). `docs/verificacion/2026-10-21-fase7-7g-emulador-panel-opciones.png`.
   `docs/verificacion/2026-10-20-fase7-7g-emulador-duracion.png`. Pedido por el autor el 2026-10-20.
 - [ ] 7h. Pantalla definitiva con la estética de CieloHud y versión instalable firmada.
 - [ ] 7i. Juez de la fase: salidas reales usando solo la app (segundos hasta la ruta, datos gastados, GPX en el Karoo
@@ -134,8 +136,9 @@ visto bueno del autor**:
 - Paso 7f (2026-10-21): 1 test nuevo (632 en total): el GPX de una ruta trazada lleva el nombre "Sal 08:00 · 60 km E
   ida y vuelta", el fichero `ida-y-vuelta-60km-E-20260930-0800.gpx`, todos los puntos de la ruta y, en la descripción,
   el consejo (sal ahora, tipo y km, sentido y ventaja, llegada) y los créditos. La consola `trace` escribe ahora ese
-  mismo GPX. En el emulador: con la ruta juzgada aparecen COMPARTIR GPX y ABRIR CON…; COMPARTIR abre la hoja del
-  sistema con `ida-y-vuelta-15km-S-20261021-1020.gpx` y el fichero de la caché tiene nombre, descripción y créditos.
+  mismo GPX. En el emulador: con la ruta aparece GPX junto a DETALLE; su panel espera al viento y la lluvia y luego COMPARTIR
+  abre la hoja del sistema con `ida-y-vuelta-15km-S-20261021-1020.gpx`; el fichero de la caché tiene nombre, descripción
+  y créditos. Al cambiar la hora de salida nada se mueve abajo (antes los botones se iban y volvían).
 - Paso 7a-1 (2026-10-19): 5 tests nuevos (596 en total): rutas, lluvia pedida una vez (también AROME, al pasar de 2 h)
   y las 9 salidas ordenadas, con cada opción apuntando a su rumbo y forma; sin radar, ordena igual y dice por qué; sin
   ninguna ruta válida, no pide la lluvia; con la salida más tarde, la lluvia se pide desde ahora; la hora tiene que ir en

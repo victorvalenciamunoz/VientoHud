@@ -129,7 +129,7 @@ public partial class MapPage : ContentPage
         // Until the device answers: León, where the author rides. The navigator keeps the call until the map has its size.
         MapView.Map.Navigator.CenterOnAndZoomTo(ToMercator(new GeoCoordinate(42.5987, -5.5671)), ResolutionAt(12));
         ShowVia();
-        ShowRideChip();
+        ShowOptionsChip();
     }
 
     protected override void OnAppearing()
@@ -173,17 +173,13 @@ public partial class MapPage : ContentPage
         }
         if (e.GestureType == GestureType.SingleTap)
         {
-            if (DetailPanel.IsVisible || DeparturePanel.IsVisible || RidePanel.IsVisible)
+            if (DetailPanel.IsVisible || OptionsPanel.IsVisible || GpxPanel.IsVisible)
             {
                 e.Handled = true;
-                DetailPanel.IsVisible = false;
-                if (DeparturePanel.IsVisible)
+                DetailPanel.IsVisible = GpxPanel.IsVisible = false;
+                if (OptionsPanel.IsVisible)
                 {
-                    OnCloseDepartureClicked(this, EventArgs.Empty);
-                }
-                if (RidePanel.IsVisible)
-                {
-                    OnCloseRideClicked(this, EventArgs.Empty);
+                    OnCloseOptionsClicked(this, EventArgs.Empty);
                 }
             }
             return;
@@ -352,6 +348,7 @@ public partial class MapPage : ContentPage
             cancellationToken.ThrowIfCancellationRequested();
             ShowRoute(traced.Route);
             ShowReached(traced);
+            ShowGpx.IsVisible = true;
             summary = RideText.TracedSummary(traced) + ". ";
             Status.Text = $"{summary}Pidiendo el viento…";
 
@@ -388,7 +385,7 @@ public partial class MapPage : ContentPage
         var option = ride.Ride;
         // The GPX waits for the rain: its waypoints warn of it.
         _ride = ride.RainPending ? null : ride;
-        GpxRow.IsVisible = _ride is not null;
+        RefreshGpxPanel();
         ShowRoute(option.Route);
         ShowRideWind(WindArrows.AlongRide(option.Winds));
         // One idea per line: the way round and the advantage, each wind stretch, the gusts, the rain, the town, and
@@ -415,7 +412,7 @@ public partial class MapPage : ContentPage
         Retry.IsVisible = false;
         Headline.IsVisible = ShowDetail.IsVisible = DetailPanel.IsVisible = false;
         _ride = null;
-        GpxRow.IsVisible = false;
+        ShowGpx.IsVisible = GpxPanel.IsVisible = false;
         return _cancel.Token;
     }
 
@@ -442,9 +439,41 @@ public partial class MapPage : ContentPage
         ShowDetail.IsVisible = DetailSections.Children.Count > 0;
     }
 
-    private void OnShowDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = true;
+    private void OnShowDetailClicked(object? sender, EventArgs e)
+    {
+        if (OptionsPanel.IsVisible)
+        {
+            OnCloseOptionsClicked(this, EventArgs.Empty);
+        }
+        GpxPanel.IsVisible = false;
+        DetailPanel.IsVisible = true;
+    }
 
     private void OnCloseDetailClicked(object? sender, EventArgs e) => DetailPanel.IsVisible = false;
+
+    private void OnShowGpxClicked(object? sender, EventArgs e)
+    {
+        if (OptionsPanel.IsVisible)
+        {
+            OnCloseOptionsClicked(this, EventArgs.Empty);
+        }
+        DetailPanel.IsVisible = false;
+        RefreshGpxPanel();
+        GpxPanel.IsVisible = true;
+    }
+
+    private void OnCloseGpxClicked(object? sender, EventArgs e) => GpxPanel.IsVisible = false;
+
+    /// <summary>The GPX panel: ready once the ride is judged (its waypoints warn of gusts and rain); waiting until then.</summary>
+    private void RefreshGpxPanel()
+    {
+        var ready = _ride is not null;
+        ShareGpx.IsEnabled = OpenGpx.IsEnabled = ready;
+        ShareGpx.Opacity = OpenGpx.Opacity = ready ? 1 : 0.4;
+        GpxNote.Text = ready
+            ? "Al Karoo (app Hammerhead): COMPARTIR. A Garmin Connect: ABRIR CON…"
+            : "Esperando el viento y la lluvia: el GPX lleva sus avisos.";
+    }
 
     /// <summary>The GPX to the bike device (phase 7f): written to the app's cache and handed to the system.</summary>
     private const string GpxMediaType = "application/gpx+xml";
@@ -513,33 +542,41 @@ public partial class MapPage : ContentPage
     private static string DurationText(TimeSpan duration) =>
         duration.Minutes == 0 ? $"{(int)duration.TotalHours} h" : $"{(int)duration.TotalHours}½ h";
 
-    private void OnRideClicked(object? sender, EventArgs e)
+    private void OnOptionsClicked(object? sender, EventArgs e)
     {
+        _pendingAt = _departureAt;
         _pendingDuration = _duration;
         _pendingSpeed = _speedKmh;
+        BuildDepartureChips();
         BuildRideChips();
-        DetailPanel.IsVisible = DeparturePanel.IsVisible = false;
-        RidePanel.IsVisible = true;
+        DetailPanel.IsVisible = GpxPanel.IsVisible = false;
+        OptionsPanel.IsVisible = true;
     }
 
-    /// <summary>Closes the panel and, if the duration or the speed changed, remembers them and judges everything again.</summary>
-    private async void OnCloseRideClicked(object? sender, EventArgs e)
+    /// <summary>Closes the panel and, for whatever changed, remembers it and judges everything again.</summary>
+    private async void OnCloseOptionsClicked(object? sender, EventArgs e)
     {
-        RidePanel.IsVisible = false;
-        if (_pendingDuration == _duration && _pendingSpeed == _speedKmh)
+        OptionsPanel.IsVisible = false;
+        var departureChanged = _pendingAt != _departureAt;
+        var rideChanged = _pendingDuration != _duration || _pendingSpeed != _speedKmh;
+        if (!departureChanged && !rideChanged)
         {
             return;
         }
+        _departureAt = _pendingAt;
         _duration = _pendingDuration;
         _speedKmh = _pendingSpeed;
         Preferences.Default.Set(DurationKey, (int)_duration.TotalMinutes);
         Preferences.Default.Set(SpeedKey, _speedKmh);
-        ShowRideChip();
+        ShowOptionsChip();
         ShowVia();
         if (_via.Count > 0)
         {
-            // The fan for the new duration, then the ride at the new pace.
-            await AdviseDirectionAsync();
+            if (rideChanged)
+            {
+                // The fan for the new duration, then the ride at the new pace.
+                await AdviseDirectionAsync();
+            }
             await AdviseRideAsync();
         }
         else
@@ -548,7 +585,9 @@ public partial class MapPage : ContentPage
         }
     }
 
-    private void ShowRideChip() => RideChip.Text = $"{DurationText(_duration).ToUpperInvariant()} · {_speedKmh:0} KM/H";
+    /// <summary>"AHORA · 2 H · 25 KM/H" or "14:00 · 2 H · 25 KM/H": the three choices at a glance.</summary>
+    private void ShowOptionsChip() =>
+        OptionsChip.Text = $"{(_departureAt is { } at ? at.ToString("HH\\:mm") : "AHORA")} · {DurationText(_duration).ToUpperInvariant()} · {_speedKmh:0} KM/H";
 
     private void BuildRideChips()
     {
@@ -566,34 +605,6 @@ public partial class MapPage : ContentPage
         }
         RideNote.Text = $"Unos {SpanishText.Km(RideDistance.FromDuration(_pendingDuration, _pendingSpeed))}: el abanico y PROPONER van a esa distancia; " +
                         "la media reparte las horas de paso (más despacio cuesta arriba).";
-    }
-
-    private void OnDepartureClicked(object? sender, EventArgs e)
-    {
-        _pendingAt = _departureAt;
-        BuildDepartureChips();
-        DetailPanel.IsVisible = false;
-        DeparturePanel.IsVisible = true;
-    }
-
-    /// <summary>Closes the panel and, if the departure changed, judges everything again for it.</summary>
-    private async void OnCloseDepartureClicked(object? sender, EventArgs e)
-    {
-        DeparturePanel.IsVisible = false;
-        if (_pendingAt == _departureAt)
-        {
-            return;
-        }
-        _departureAt = _pendingAt;
-        DepartureChip.Text = _departureAt is { } at ? $"SALIDA · {at:HH\\:mm}" : "SALIDA · AHORA";
-        if (_via.Count > 0)
-        {
-            await AdviseRideAsync();
-        }
-        else
-        {
-            await AdviseDirectionAsync();
-        }
     }
 
     /// <summary>AHORA and the hours left today; with an hour chosen, its quarters.</summary>
