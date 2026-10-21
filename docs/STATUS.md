@@ -121,6 +121,9 @@ visto bueno del autor**:
   mayoría) / ABRIR CON… (Garmin Connect), apagados hasta tener viento y lluvia; el GPX es el mismo que escribe la consola (`RideGpx.ForTraced`, DECISIONS 054). Hecho el
   2026-10-21 en el emulador (la hoja de compartir sale con el fichero; "abrir con" no tiene apps allí); **pendiente el
   juez: que llegue al Karoo y al Fenix 5 del autor**. Guardar en Descargas se deja para si algún aparato lo pide.
+  La ruta lleva **marcas de sentido** (triángulos claros cada 2,5 km, `RouteMarks.Along`): el autor leyó las flechas del
+  viento como el sentido de marcha al comparar con Garmin Connect (2026-10-21; iban igual).
+  `docs/verificacion/2026-10-21-fase7-7e-emulador-marcas-de-sentido.png`.
   `docs/verificacion/2026-10-21-fase7-7f-emulador-gpx-botones.png`, `...-panel-gpx.png`.
 - [x] 7g. Opciones con un toque: duración (1 h a 5 h) y velocidad media (18-33 km/h) en un panel propio, recordadas entre
   sesiones; el abanico, PROPONER y las horas de paso van con ellas. La hora de salida ya estaba (panel SALIDA).
@@ -138,7 +141,9 @@ visto bueno del autor**:
   el consejo (sal ahora, tipo y km, sentido y ventaja, llegada) y los créditos. La consola `trace` escribe ahora ese
   mismo GPX. En el emulador: con la ruta aparece GPX junto a DETALLE; su panel espera al viento y la lluvia y luego COMPARTIR
   abre la hoja del sistema con `ida-y-vuelta-15km-S-20261021-1020.gpx`; el fichero de la caché tiene nombre, descripción
-  y créditos. Al cambiar la hora de salida nada se mueve abajo (antes los botones se iban y volvían).
+  y créditos. Al cambiar la hora de salida nada se mueve abajo (antes los botones se iban y volvían). **En el móvil**: ABRIR CON… abre
+  Garmin Connect con la vuelta de 89 km (mismo sentido que la app: horario; el GPX lo dice y el trazado lo confirma).
+  2 tests nuevos (634): marcas cada 2,5 km con el rumbo del tramo, al revés si la ruta se recorre al revés.
 - Paso 7a-1 (2026-10-19): 5 tests nuevos (596 en total): rutas, lluvia pedida una vez (también AROME, al pasar de 2 h)
   y las 9 salidas ordenadas, con cada opción apuntando a su rumbo y forma; sin radar, ordena igual y dice por qué; sin
   ninguna ruta válida, no pide la lluvia; con la salida más tarde, la lluvia se pide desde ahora; la hora tiene que ir en

@@ -47,6 +47,8 @@ public partial class MapPage : ContentPage
     private readonly TracedRideAdvisor _rides;
     private readonly MemoryLayer _fanLayer = new("Fan") { Style = FanStyle() };
     private readonly MemoryLayer _routeLayer = new("Route") { Style = RouteStyle() };
+    /// <summary>Which way the ride goes: small triangles on the track, each turned to its own bearing (a style per mark).</summary>
+    private readonly MemoryLayer _markLayer = new("Marks") { Style = null };
     private readonly MemoryLayer _viaLayer = new("Via") { Style = ViaStyle() };
     private readonly MemoryLayer _reachedLayer = new("Reached") { Style = ReachedStyle() };
     private readonly MemoryLayer _snapLayer = new("Snap") { Style = SnapStyle() };
@@ -104,6 +106,7 @@ public partial class MapPage : ContentPage
         MapView.Map.Layers.Add(tiles.CreateLayer());
         MapView.Map.Layers.Add(_fanLayer);
         MapView.Map.Layers.Add(_routeLayer);
+        MapView.Map.Layers.Add(_markLayer);
         MapView.Map.Layers.Add(_snapLayer);
         MapView.Map.Layers.Add(_windHaloLayer);
         foreach (var layer in _windLayers.Values)
@@ -696,6 +699,15 @@ public partial class MapPage : ContentPage
             ? []
             : [new GeometryFeature(new LineString(route.Points.Select(p => ToNts(p.Position)).ToArray()))];
         _routeLayer.DataHasChanged();
+        _markLayer.Features = route is null
+            ? []
+            : RouteMarks.Along(route).Select(m =>
+            {
+                var mark = new PointFeature(ToMercator(m.Position));
+                mark.Styles.Add(MarkStyle(m.BearingDegrees));
+                return mark;
+            }).ToList();
+        _markLayer.DataHasChanged();
         if (route is null)
         {
             _reachedLayer.Features = [];
@@ -784,6 +796,17 @@ public partial class MapPage : ContentPage
         Line = new Pen(ToMapsui(HudTheme.Guide, 230), 5),
         Fill = null,
         Outline = null,
+    };
+
+    /// <summary>A mark of the way round: a light triangle with a dark rim, pointing where the rider goes.</summary>
+    private static SymbolStyle MarkStyle(double bearingDegrees) => new()
+    {
+        SymbolType = SymbolType.Triangle,
+        SymbolScale = 0.45,
+        SymbolRotation = bearingDegrees,
+        RotateWithMap = true,
+        Fill = new Mapsui.Styles.Brush(ToMapsui(HudTheme.Text, 255)),
+        Outline = new Pen(ToMapsui(HudTheme.Background, 255), 1.5),
     };
 
     /// <summary>Home: a marker-colored dot with a light rim.</summary>
