@@ -155,7 +155,7 @@ public static class RouteLegs
     }
 
     // A value given at each track point (e.g. elevation), interpolated at km along the track.
-    private static double ValueAt(double[] values, double[] alongKm, double km)
+    internal static double ValueAt(double[] values, double[] alongKm, double km)
     {
         var i = Array.BinarySearch(alongKm, km);
         if (i >= 0)
