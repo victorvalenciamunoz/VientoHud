@@ -10,7 +10,7 @@ public readonly record struct ProfilePoint(double Km, double ElevationMeters);
 /// <param name="EndKm">Where it ends, along the track.</param>
 /// <param name="StartElevationMeters">Smoothed elevation at the start.</param>
 /// <param name="EndElevationMeters">Smoothed elevation at the end.</param>
-/// <param name="Band">How steep it is; every step inside the stretch falls in this band.</param>
+/// <param name="Band">How steep it is on the whole (a few steps of a neighbouring band may be inside).</param>
 public sealed record ProfileStretch(
     double StartKm,
     double EndKm,
@@ -32,7 +32,10 @@ public sealed record ProfileStretch(
 /// colours the track with its bands (DECISIONS 056: in the profile the GPX's own elevations rule).
 /// </summary>
 /// <param name="Points">The smoothed profile, one point per step, from km 0 to the end.</param>
-/// <param name="Stretches">Consecutive stretches by band, covering the whole route.</param>
+/// <param name="Stretches">
+/// Consecutive stretches by band, covering the whole route, none shorter than <see cref="MinStretchKm"/> (unless
+/// the route is).
+/// </param>
 /// <param name="AscentMeters">
 /// Total climb of the resampled (not smoothed) elevations, ignoring ups and downs smaller than
 /// <see cref="HysteresisMeters"/>.
@@ -58,6 +61,12 @@ public sealed record RouteProfile(
 
     /// <summary>Width of the moving average that smooths the elevations (centred on each point).</summary>
     public const double DefaultSmoothingKm = 0.3;
+
+    /// <summary>
+    /// A band has to last this long to show as a stretch of its own; shorter ones join a neighbour (a rolling road
+    /// painted in 100 m slivers flickered on the author's screen, 2026-10-23).
+    /// </summary>
+    public const double MinStretchKm = 0.3;
 
     /// <summary>
     /// Ups and downs smaller than this do not count towards the climb or the drop (a hysteresis, the same idea as
@@ -169,6 +178,7 @@ public sealed record RouteProfile(
             }
         }
         stretches.Add(Stretch(points, startIndex, count, band));
+        MergeShortStretches(stretches, points, Math.Max(MinStretchKm, step));
 
         // The climb and the drop come from the resampled points before smoothing: smoothing flattens the short
         // hills of a rolling road and lost a quarter of the climb on one recorded route (STATUS, phase 8 step 1).
@@ -197,6 +207,34 @@ public sealed record RouteProfile(
 
     private static ProfileStretch Stretch(ProfilePoint[] points, int from, int to, GradeBand band) =>
         new(points[from].Km, points[to].Km, points[from].ElevationMeters, points[to].ElevationMeters, band);
+
+    // A band has to last at least minKm to show: a shorter stretch joins the neighbour whose grade is closer to its
+    // own (the previous one when alone), shortest first, until none is left. The ends keep the route's ends.
+    private static void MergeShortStretches(List<ProfileStretch> stretches, ProfilePoint[] points, double minKm)
+    {
+        while (stretches.Count > 1)
+        {
+            var i = stretches.Select((s, k) => (s.LengthKm, k)).Where(x => x.LengthKm < minKm - 1e-9).OrderBy(x => x.LengthKm).Select(x => (int?)x.k).FirstOrDefault();
+            if (i is not { } index)
+            {
+                return;
+            }
+            var s = stretches[index];
+            var previous = index > 0 ? stretches[index - 1] : null;
+            var next = index < stretches.Count - 1 ? stretches[index + 1] : null;
+            var intoPrevious = previous is not null
+                && (next is null || Math.Abs(previous.GradePercent - s.GradePercent) <= Math.Abs(next.GradePercent - s.GradePercent));
+            if (intoPrevious)
+            {
+                stretches[index - 1] = previous! with { EndKm = s.EndKm, EndElevationMeters = s.EndElevationMeters };
+            }
+            else
+            {
+                stretches[index + 1] = next! with { StartKm = s.StartKm, StartElevationMeters = s.StartElevationMeters };
+            }
+            stretches.RemoveAt(index);
+        }
+    }
 
     // Total climb ignoring ups and downs smaller than the hysteresis: the elevation has to fall more than
     // HysteresisMeters below the highest point reached before the climb to it counts, and rise more than that above

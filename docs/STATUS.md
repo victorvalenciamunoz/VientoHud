@@ -13,6 +13,12 @@
   menos de 10 m, la misma idea que el "filtered ascend" de BRouter), altitud mínima y máxima y rampa máxima. Los
   umbrales y los colores (`GradeBands.Color`, "#rrggbb") viven en Core para que el perfil, el 3D y el mapa pinten
   igual. Textos en `RideText.Profile` y `RideText.Grade`. Null si a la ruta le falta alguna altura.
+- **Botón VER y vista PERFIL** (paso 2): VER junto a DETALLE y GPX en cuanto hay ruta; abre un panel bajo "VER LA RUTA"
+  con PERFIL y 3D (3D apagado hasta sus pasos). PERFIL es un panel bajo sobre el mapa, como el del GPX: la gráfica de
+  altitud (`GraphicsView` de MAUI, `Hud/ProfileDrawable`, solo dibujo) con el suelo coloreado por banda de pendiente,
+  los km, las alturas, una franja con el viento por tramos en los colores de las flechas y los avisos del GPX como
+  triángulos donde empiezan; debajo, la línea del perfil (`RideText.Profile`) y la leyenda de bandas. Nada se abre solo.
+  `docs/verificacion/2026-10-23-fase8-2-emulador-panel-ver.png`, `...-perfil.png`.
 
 ### Qué falta (fase 8)
 
@@ -21,7 +27,8 @@
   estado. Opciones y fuentes comprobadas el 2026-10-23 (licencias, mantenimiento, soporte en Android; tamaños y tiempos
   medidos contra las teselas Terrarium y el WCS del IGN).
 - [x] 1. Core: pendiente por tramo y rangos de color compartidos. Hecho el 2026-10-23; juez abajo.
-- [ ] 2. Botón VER con su panel y la vista PERFIL. Juez: el desnivel del perfil igual al del GPX; el ojo del autor.
+- [x] 2. Botón VER con su panel y la vista PERFIL. Hecho el 2026-10-23 en el emulador; juez abajo. **Pendiente el ojo
+  del autor en el móvil.**
 - [ ] 3. Prototipo 3D en línea (MapLibre empaquetado, terreno Terrarium, una ruta grabada). Medir: se ve, fps, MB
   descargados, lo que crece el APK.
 - [ ] 4. Corredor de relieve cacheado y servido al WebView; funciona en modo avión tras la primera carga.
@@ -48,6 +55,11 @@
   de toboganes cortos), así que el desnivel sale de los puntos remuestreados sin suavizar y el suavizado queda para
   dibujar y para las bandas. Las rutas cerradas bajan lo que suben (±4 m). El test exige quedar entre −20 % y +25 %
   de BRouter.
+- Paso 2, en el emulador (León, PROPONER, 49 km ida y vuelta): el perfil dice "Sube 341 m y baja 341 m, entre 830 y
+  1170 m; rampa máxima 6 %" y DETALLE (BRouter) "Desnivel 343 m": −0,6 %. Dos cosas corregidas al verlo: el panel
+  llenaba el mapa y una subida de 340 m parecía una montaña (ahora el panel es bajo y la gráfica tiene altura fija), y
+  una carretera de toboganes se pintaba en tiras de 100 m (ahora una banda tiene que durar 300 m, `MinStretchKm`,
+  o se une a la vecina; con test). Sin rachas ni lluvia ese día: los avisos del GPX quedan por ver con un día de viento.
 
 ### Riesgos y pendientes (fase 8)
 

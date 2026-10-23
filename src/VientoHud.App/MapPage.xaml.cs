@@ -72,6 +72,11 @@ public partial class MapPage : ContentPage
     private GeoCoordinate? _home;
     /// <summary>The ride as last judged (wind and rain in): what COMPARTIR GPX and ABRIR CON hand over.</summary>
     private TracedRide? _ride;
+    /// <summary>The ride as last shown, even with the rain still on its way: the profile marks its wind and warnings.</summary>
+    private TracedRide? _shown;
+    /// <summary>The altitude profile of the route on screen (phase 8), from Core; null without elevations.</summary>
+    private RouteProfile? _profile;
+    private readonly ProfileDrawable _profileDrawable = new();
     private bool _started;
     /// <summary>When to leave, as a time of day today; null for now.</summary>
     private TimeOnly? _departureAt;
@@ -176,10 +181,10 @@ public partial class MapPage : ContentPage
         }
         if (e.GestureType == GestureType.SingleTap)
         {
-            if (DetailPanel.IsVisible || OptionsPanel.IsVisible || GpxPanel.IsVisible)
+            if (DetailPanel.IsVisible || OptionsPanel.IsVisible || GpxPanel.IsVisible || ViewsPanel.IsVisible || ProfilePanel.IsVisible)
             {
                 e.Handled = true;
-                DetailPanel.IsVisible = GpxPanel.IsVisible = false;
+                DetailPanel.IsVisible = GpxPanel.IsVisible = ViewsPanel.IsVisible = ProfilePanel.IsVisible = false;
                 if (OptionsPanel.IsVisible)
                 {
                     OnCloseOptionsClicked(this, EventArgs.Empty);
@@ -352,6 +357,7 @@ public partial class MapPage : ContentPage
             ShowRoute(traced.Route);
             ShowReached(traced);
             ShowGpx.IsVisible = true;
+            ShowProfile(traced.Route, null);
             summary = RideText.TracedSummary(traced) + ". ";
             Status.Text = $"{summary}Pidiendo el viento…";
 
@@ -388,8 +394,10 @@ public partial class MapPage : ContentPage
         var option = ride.Ride;
         // The GPX waits for the rain: its waypoints warn of it.
         _ride = ride.RainPending ? null : ride;
+        _shown = ride;
         RefreshGpxPanel();
         ShowRoute(option.Route);
+        ShowProfile(option.Route, ride);
         ShowRideWind(WindArrows.AlongRide(option.Winds));
         // One idea per line: the way round and the advantage, each wind stretch, the gusts, the rain, the town, and
         // the route's figures (the summary's comma-separated parts, each on its own line).
@@ -414,10 +422,76 @@ public partial class MapPage : ContentPage
         _cancel = new CancellationTokenSource();
         Retry.IsVisible = false;
         Headline.IsVisible = ShowDetail.IsVisible = DetailPanel.IsVisible = false;
-        _ride = null;
+        _ride = _shown = null;
+        _profile = null;
         ShowGpx.IsVisible = GpxPanel.IsVisible = false;
+        ShowViews.IsVisible = ViewsPanel.IsVisible = ProfilePanel.IsVisible = false;
         return _cancel.Token;
     }
+
+    /// <summary>
+    /// The profile of the route on screen (phase 8): Core computes it from the engine's elevations; the panel draws it
+    /// with the wind and the warnings of <paramref name="ride"/> when it is judged. VER appears with the route.
+    /// </summary>
+    private void ShowProfile(Route route, TracedRide? ride)
+    {
+        _profile = RouteProfile.From(route);
+        _profileDrawable.Profile = _profile;
+        _profileDrawable.Winds = ride is null ? [] : WindStretches.Describe(ride.Ride.Winds);
+        _profileDrawable.Alerts = ride is null ? [] : RideAlerts.For(ride.Ride);
+        ProfileView.Drawable = _profileDrawable;
+        ProfileView.Invalidate();
+        ProfileSummary.Text = _profile is null ? "" : RideText.Profile(_profile);
+        if (ProfileLegend.Children.Count == 0)
+        {
+            foreach (var band in GradeBands.All)
+            {
+                var item = new HorizontalStackLayout { Spacing = 4, Margin = new Thickness(0, 0, 10, 0) };
+                item.Children.Add(new BoxView
+                {
+                    WidthRequest = 10, HeightRequest = 10, CornerRadius = 2, VerticalOptions = LayoutOptions.Center,
+                    Color = Microsoft.Maui.Graphics.Color.FromArgb(GradeBands.Color(band)),
+                });
+                item.Children.Add(new Label { Text = RideText.Grade(band), FontFamily = "OpenSansRegular", FontSize = 11, TextColor = HudTheme.TextMuted });
+                ProfileLegend.Children.Add(item);
+            }
+        }
+        ShowViews.IsVisible = true;
+        RefreshViewsPanel();
+    }
+
+    private void OnShowViewsClicked(object? sender, EventArgs e)
+    {
+        if (OptionsPanel.IsVisible)
+        {
+            OnCloseOptionsClicked(this, EventArgs.Empty);
+        }
+        DetailPanel.IsVisible = GpxPanel.IsVisible = ProfilePanel.IsVisible = false;
+        RefreshViewsPanel();
+        ViewsPanel.IsVisible = true;
+    }
+
+    private void OnCloseViewsClicked(object? sender, EventArgs e) => ViewsPanel.IsVisible = false;
+
+    /// <summary>The VER panel: PERFIL when the route has elevations; 3D off until its steps are done.</summary>
+    private void RefreshViewsPanel()
+    {
+        var hasProfile = _profile is not null;
+        OpenProfile.IsEnabled = hasProfile;
+        OpenProfile.Opacity = hasProfile ? 1 : 0.4;
+        ViewsNote.Text = hasProfile
+            ? (_shown is null ? "El perfil, con las subidas por color. El viento y los avisos llegan con el juicio." : "El perfil, con las subidas por color, el viento por tramos y los avisos del GPX.")
+            : "BRouter no dio alturas para esta ruta: sin perfil.";
+    }
+
+    private void OnOpenProfileClicked(object? sender, EventArgs e)
+    {
+        ViewsPanel.IsVisible = false;
+        ProfileView.Invalidate();
+        ProfilePanel.IsVisible = true;
+    }
+
+    private void OnCloseProfileClicked(object? sender, EventArgs e) => ProfilePanel.IsVisible = false;
 
     /// <summary>The bar over the map (headline and status) and the detail panel behind DETALLE.</summary>
     private void Show(string headline, string status, IReadOnlyList<(string Title, IReadOnlyList<string> Lines)> sections)
@@ -448,7 +522,7 @@ public partial class MapPage : ContentPage
         {
             OnCloseOptionsClicked(this, EventArgs.Empty);
         }
-        GpxPanel.IsVisible = false;
+        GpxPanel.IsVisible = ViewsPanel.IsVisible = ProfilePanel.IsVisible = false;
         DetailPanel.IsVisible = true;
     }
 
@@ -460,7 +534,7 @@ public partial class MapPage : ContentPage
         {
             OnCloseOptionsClicked(this, EventArgs.Empty);
         }
-        DetailPanel.IsVisible = false;
+        DetailPanel.IsVisible = ViewsPanel.IsVisible = ProfilePanel.IsVisible = false;
         RefreshGpxPanel();
         GpxPanel.IsVisible = true;
     }
@@ -552,7 +626,7 @@ public partial class MapPage : ContentPage
         _pendingSpeed = _speedKmh;
         BuildDepartureChips();
         BuildRideChips();
-        DetailPanel.IsVisible = GpxPanel.IsVisible = false;
+        DetailPanel.IsVisible = GpxPanel.IsVisible = ViewsPanel.IsVisible = ProfilePanel.IsVisible = false;
         OptionsPanel.IsVisible = true;
     }
 
