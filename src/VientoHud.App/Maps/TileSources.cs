@@ -30,6 +30,11 @@ public sealed class TileSources
 
     public string AttributionUrl => HasThunderforest ? "https://www.thunderforest.com" : "https://www.openstreetmap.org/copyright";
 
+    /// <summary>The same tiles for the 3D view (phase 8), as a URL template with {z}/{x}/{y} for MapLibre.</summary>
+    public string TileUrlTemplate => HasThunderforest
+        ? $"https://tile.thunderforest.com/cycle/{{z}}/{{x}}/{{y}}.png?apikey={_thunderforestKey}"
+        : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+
     /// <summary>
     /// The tile layer. Its own attribution box (white, Mapsui's) is switched off: the page shows the credit in the
     /// family's look, with the link the terms ask for.

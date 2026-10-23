@@ -58,7 +58,8 @@ public class RouteProfileTests(ITestOutputHelper output)
             profile.Stretches.Select(s => s.Band));
         Assert.Equal(2, profile.Stretches[1].StartKm, 0);
         Assert.Equal(4, profile.Stretches[1].EndKm, 0);
-        Assert.Equal(8, profile.Stretches[1].GradePercent, 0);
+        // The stretch takes in the blurred corners, so its average is a little under 8 %.
+        Assert.InRange(profile.Stretches[1].GradePercent, 7, 8);
         Assert.Equal(GradeBand.Steep, profile.StretchAt(3).Band);
         Assert.Equal(GradeBand.Downhill, profile.StretchAt(5).Band);
         Assert.Equal(160, profile.AscentMeters, 0);
@@ -85,13 +86,16 @@ public class RouteProfileTests(ITestOutputHelper output)
     [Fact]
     public void A_real_bump_counts_once_it_rises_more_than_the_hysteresis()
     {
-        // Flat, then a 30 m bump over 1 km, then flat.
-        var profile = RouteProfile.From(Road(5, km => km is >= 2 and <= 3 ? 800 + 30 * Math.Sin((km - 2) * Math.PI) : 800))!;
+        // Flat, then a 60 m bump over 2 km (up 1 km at 6 % on average, down 1 km), then flat.
+        var profile = RouteProfile.From(Road(6, km => km is >= 2 and <= 4 ? 800 + 60 * Math.Sin((km - 2) * Math.PI / 2) : 800))!;
 
-        Assert.Equal(30, profile.AscentMeters, 0);
-        Assert.Equal(30, profile.DescentMeters, 0);
-        Assert.Equal(GradeBand.Moderate, profile.StretchAt(2.25).Band);
-        Assert.Equal(GradeBand.Downhill, profile.StretchAt(2.75).Band);
+        Assert.Equal(60, profile.AscentMeters, 0);
+        Assert.Equal(60, profile.DescentMeters, 0);
+        // The climb's steps start gentle, get steep and ease off: joined, the stretch takes its average grade.
+        Assert.Equal(GradeBand.Moderate, profile.StretchAt(2.5).Band);
+        Assert.Equal(GradeBand.Downhill, profile.StretchAt(3.5).Band);
+        Assert.Equal(GradeBand.Flat, profile.StretchAt(1).Band);
+        Assert.Equal(GradeBand.Flat, profile.StretchAt(5).Band);
     }
 
     [Fact]

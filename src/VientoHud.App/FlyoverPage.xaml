@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="VientoHud.App.FlyoverPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{DynamicResource HudBackground}">
+
+    <!-- The 3D view (phase 8): MapLibre in a HybridWebView draws what Core composed. The bar above is the family's. -->
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" Padding="16,44,16,8" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+            <Label Text="3D" FontFamily="ChakraPetchBold" FontSize="18" CharacterSpacing="2"
+                   TextColor="{DynamicResource HudGuide}" VerticalOptions="Center" />
+            <Label Grid.Column="1" x:Name="Meter" FontFamily="OpenSansRegular" FontSize="12"
+                   TextColor="{DynamicResource HudTextMuted}" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+            <Button Grid.Column="2" Text="CERRAR" FontFamily="ChakraPetch" FontSize="11" BorderWidth="1" CornerRadius="6" Padding="10,4"
+                    MinimumHeightRequest="32" BackgroundColor="Transparent"
+                    TextColor="{DynamicResource HudGuide}" BorderColor="{DynamicResource HudGuide}" Clicked="OnCloseClicked" />
+        </Grid>
+        <HybridWebView Grid.Row="1" x:Name="Web" HybridRoot="wwwroot" DefaultFile="index.html"
+                       RawMessageReceived="OnRawMessageReceived" />
+    </Grid>
+</ContentPage>

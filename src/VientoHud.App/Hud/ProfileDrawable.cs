@@ -16,6 +16,9 @@ public sealed class ProfileDrawable : IDrawable
     private const float WindBand = 10;
     private const float Axis = 22;
 
+    /// <summary>How many times steeper than reality the drawing may be, at most (route sites use 10-30).</summary>
+    public const double MaxExaggeration = 30;
+
     public RouteProfile? Profile { get; set; }
 
     public IReadOnlyList<RideAlert> Alerts { get; set; } = [];
@@ -37,13 +40,13 @@ public sealed class ProfileDrawable : IDrawable
             return;
         }
 
-        // Heights: round the range out to a 50 m grid so the line never touches the edges.
+        // Heights: round the range out to a 50 m grid so the line never touches the edges, and never stretch it more
+        // than MaxExaggeration times the horizontal scale: filling the height made 150 m of rolling road over 80 km
+        // look like a mountain pass (the author, 2026-10-23).
         var lowest = Math.Floor(profile.MinElevationMeters / 50) * 50;
         var highest = Math.Ceiling(profile.MaxElevationMeters / 50) * 50;
-        if (highest - lowest < 100)
-        {
-            highest = lowest + 100;
-        }
+        var leastRange = profile.LengthKm * 1000 * (plotBottom - plotTop) / (plotRight - plotLeft) / MaxExaggeration;
+        highest = Math.Max(highest, lowest + Math.Ceiling(Math.Max(100, leastRange) / 50) * 50);
         float X(double km) => (float)(plotLeft + km / profile.LengthKm * (plotRight - plotLeft));
         float Y(double metres) => (float)(plotBottom - (metres - lowest) / (highest - lowest) * (plotBottom - plotTop));
 
