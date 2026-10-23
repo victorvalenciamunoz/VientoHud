@@ -7,7 +7,12 @@
 
 ### Qué funciona (fase 8)
 
-- Nada todavía: solo los documentos (paso 0).
+- **Pendiente por tramo y rangos de color** (paso 1): `RouteProfile.From(route)` da el perfil de altitud de la ruta con las
+  alturas que ya trae BRouter: puntos cada 100 m suavizados sobre 300 m, tramos por banda de pendiente (`GradeBand`:
+  bajada, llano, suave 2-4 %, media 4-7 %, dura 7-10 %, muy dura), desnivel subido y bajado (sin contar vaivenes de
+  menos de 10 m, la misma idea que el "filtered ascend" de BRouter), altitud mínima y máxima y rampa máxima. Los
+  umbrales y los colores (`GradeBands.Color`, "#rrggbb") viven en Core para que el perfil, el 3D y el mapa pinten
+  igual. Textos en `RideText.Profile` y `RideText.Grade`. Null si a la ruta le falta alguna altura.
 
 ### Qué falta (fase 8)
 
@@ -15,7 +20,7 @@
   decisiones 055 (MapLibre GL JS en el HybridWebView de MAUI) y 056 (relieve Terrarium, IGN a 5 m como mejora) y este
   estado. Opciones y fuentes comprobadas el 2026-10-23 (licencias, mantenimiento, soporte en Android; tamaños y tiempos
   medidos contra las teselas Terrarium y el WCS del IGN).
-- [ ] 1. Core: pendiente por tramo y rangos de color compartidos.
+- [x] 1. Core: pendiente por tramo y rangos de color compartidos. Hecho el 2026-10-23; juez abajo.
 - [ ] 2. Botón VER con su panel y la vista PERFIL. Juez: el desnivel del perfil igual al del GPX; el ojo del autor.
 - [ ] 3. Prototipo 3D en línea (MapLibre empaquetado, terreno Terrarium, una ruta grabada). Medir: se ve, fps, MB
   descargados, lo que crece el APK.
@@ -26,6 +31,23 @@
 ### Cómo se ha validado (fase 8)
 
 - Paso 0: sin código. Las medidas de las fuentes de relieve están en `DECISIONS.md` 056.
+- Paso 1: 26 tests (bandas y umbrales; subida constante en un solo tramo con su pendiente; cortes donde cambia la
+  banda; un vaivén de ±4 m no cuenta ni colorea; un repecho de 30 m sí; sin alturas no hay perfil; entradas malas).
+  **Juez: nuestro desnivel frente al "filtered ascend" de BRouter** en las cuatro rutas grabadas (tests, con la
+  salida en el log):
+
+  | Ruta | km | BRouter | Perfil (sube / baja) | Diferencia |
+  |---|---|---|---|---|
+  | León norte (vuelta) | 17,4 | 97 m | 115 / 111 m | +19 % |
+  | León este | 79,7 | 290 m | 302 / 302 m | +4 % |
+  | León sur | 21,3 | 142 m | 155 / 155 m | +9 % |
+  | Tres Cantos SO | 48,1 | 384 m | 374 / 371 m | −3 % |
+
+  El filtro de BRouter es algo más fuerte que nuestra histéresis de 10 m; la suma bruta de subidas daría 162-659 m
+  (el doble). Probado también calcular el desnivel sobre la serie suavizada: perdía un 28 % en Tres Cantos (carretera
+  de toboganes cortos), así que el desnivel sale de los puntos remuestreados sin suavizar y el suavizado queda para
+  dibujar y para las bandas. Las rutas cerradas bajan lo que suben (±4 m). El test exige quedar entre −20 % y +25 %
+  de BRouter.
 
 ### Riesgos y pendientes (fase 8)
 

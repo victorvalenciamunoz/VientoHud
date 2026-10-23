@@ -254,4 +254,22 @@ public static class RideText
             yield return OperaRadarSource.AttributionText;
         }
     }
+
+    /// <summary>One line on the altitude profile: climb, drop, range of heights and the steepest ramp.</summary>
+    public static string Profile(RouteProfile profile) =>
+        $"Sube {profile.AscentMeters.ToString("0", Spanish)} m y baja {profile.DescentMeters.ToString("0", Spanish)} m, " +
+        $"entre {profile.MinElevationMeters.ToString("0", Spanish)} y {profile.MaxElevationMeters.ToString("0", Spanish)} m; " +
+        $"rampa máxima {Math.Max(0, profile.MaxGradePercent).ToString("0", Spanish)} %.";
+
+    /// <summary>The name of a grade band for legends, with its range.</summary>
+    public static string Grade(GradeBand band) => band switch
+    {
+        GradeBand.Downhill => "Bajada",
+        GradeBand.Flat => "Llano",
+        GradeBand.Gentle => "Suave (2-4 %)",
+        GradeBand.Moderate => "Media (4-7 %)",
+        GradeBand.Steep => "Dura (7-10 %)",
+        GradeBand.VerySteep => "Muy dura (más de 10 %)",
+        _ => throw new ArgumentOutOfRangeException(nameof(band), band, "Unknown band."),
+    };
 }
