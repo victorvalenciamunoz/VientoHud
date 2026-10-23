@@ -51,18 +51,16 @@ public class RouteProfileTests(ITestOutputHelper output)
             _ => 800,
         }))!;
 
-        // The four pieces, in order; the smoothing blurs each corner over a couple of hundred metres, where short
-        // in-between bands may appear.
-        Assert.Equal(GradeBand.Flat, profile.StretchAt(1).Band);
+        // The four pieces, in order: the smoothing blurs each corner over a couple of hundred metres, but the short
+        // in-between bands that appear there join their neighbours (MinStretchKm).
+        Assert.Equal(
+            [GradeBand.Flat, GradeBand.Steep, GradeBand.Downhill, GradeBand.Flat],
+            profile.Stretches.Select(s => s.Band));
+        Assert.Equal(2, profile.Stretches[1].StartKm, 0);
+        Assert.Equal(4, profile.Stretches[1].EndKm, 0);
+        Assert.Equal(8, profile.Stretches[1].GradePercent, 0);
         Assert.Equal(GradeBand.Steep, profile.StretchAt(3).Band);
         Assert.Equal(GradeBand.Downhill, profile.StretchAt(5).Band);
-        Assert.Equal(GradeBand.Flat, profile.StretchAt(7).Band);
-        var main = profile.Stretches.Where(s => s.LengthKm > 1).ToList();
-        Assert.Equal([GradeBand.Flat, GradeBand.Steep, GradeBand.Downhill, GradeBand.Flat], main.Select(s => s.Band));
-        Assert.Equal(2, main[1].StartKm, 0);
-        Assert.Equal(4, main[1].EndKm, 0);
-        Assert.Equal(8, main[1].GradePercent, 0);
-        Assert.All(profile.Stretches.Except(main), s => Assert.True(s.LengthKm <= 0.3, $"{s.Band} {s.LengthKm} km"));
         Assert.Equal(160, profile.AscentMeters, 0);
         Assert.Equal(160, profile.DescentMeters, 0);
         Assert.Equal(880, profile.ElevationAt(3), 0);
@@ -77,11 +75,11 @@ public class RouteProfileTests(ITestOutputHelper output)
 
         Assert.Equal(0, profile.AscentMeters);
         Assert.Equal(0, profile.DescentMeters);
-        // Flat all along; at the very ends the smoothing has fewer points and a step or two may tip over.
-        var flat = profile.Stretches.Where(s => s.Band == GradeBand.Flat).ToList();
-        Assert.True(flat.Sum(s => s.LengthKm) >= 9.6, $"{string.Join(", ", profile.Stretches.Select(s => $"{s.Band} {s.LengthKm:0.0}"))}");
-        Assert.All(profile.Stretches.Except(flat), s => Assert.True(s.LengthKm <= 0.2 && (s.StartKm == 0 || s.EndKm >= 9.9)));
-        Assert.InRange(profile.StretchAt(5).GradePercent, -1, 1);
+        // Flat all along: at the very ends the smoothing has fewer points and a step may tip over, but a band too
+        // short to show joins its neighbour.
+        var stretch = Assert.Single(profile.Stretches);
+        Assert.Equal(GradeBand.Flat, stretch.Band);
+        Assert.InRange(stretch.GradePercent, -1, 1);
     }
 
     [Fact]
@@ -155,5 +153,9 @@ public class RouteProfileTests(ITestOutputHelper output)
         Assert.Equal(0, profile.Stretches[0].StartKm);
         Assert.Equal(profile.LengthKm, profile.Stretches[^1].EndKm, 6);
         Assert.All(profile.Stretches.Zip(profile.Stretches.Skip(1)), pair => Assert.Equal(pair.First.EndKm, pair.Second.StartKm));
+        // No stretch shorter than MinStretchKm, counted in steps (the step is the route length over a whole number).
+        var step = profile.Points[1].Km;
+        Assert.All(profile.Stretches, s => Assert.True(Math.Round(s.LengthKm / step) >= Math.Round(RouteProfile.MinStretchKm / step), $"{s.Band} {s.LengthKm} km"));
+        Assert.All(profile.Stretches, s => Assert.Equal(profile.ElevationAt(s.StartKm), s.StartElevationMeters, 6));
     }
 }

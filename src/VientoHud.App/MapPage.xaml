@@ -68,6 +68,8 @@
                             <!-- The GPX to the bike device (phase 7f), as soon as there is a route; its panel says when it is ready. -->
                             <Button x:Name="ShowGpx" Text="GPX" IsVisible="False" Style="{StaticResource Chip}"
                                     TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnShowGpxClicked" />
+                            <!-- Seeing the route (phase 8): the profile, and later the 3D flyover. Only if the user asks. -->
+                            <Button x:Name="ShowViews" Text="VER" IsVisible="False" Style="{StaticResource Chip}" Clicked="OnShowViewsClicked" />
                         </HorizontalStackLayout>
                         <Button x:Name="Retry" Text="REINTENTAR" IsVisible="False" Style="{StaticResource Chip}" Clicked="OnRetryClicked" />
                     </VerticalStackLayout>
@@ -146,6 +148,48 @@
                     </HorizontalStackLayout>
                     <Label x:Name="GpxNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
                 </VerticalStackLayout>
+            </Border>
+
+            <!-- VER (phase 8): which view of the route to open. Nothing opens on its own; the 3D flyover comes in later
+                 steps and stays off until then. -->
+            <Border x:Name="ViewsPanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
+                    BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Text="VER LA RUTA" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
+                               TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseViewsClicked" />
+                    </Grid>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button x:Name="OpenProfile" Text="PERFIL" Style="{StaticResource Chip}"
+                                TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnOpenProfileClicked" />
+                        <Button x:Name="OpenFlyover" Text="3D" Style="{StaticResource Chip}" IsEnabled="False" Opacity="0.4" />
+                    </HorizontalStackLayout>
+                    <Label x:Name="ViewsNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- PERFIL (phase 8, step 2): the altitude profile over the map, coloured by grade with Core's bands, the
+                 wind stretch by stretch under it and the GPX's warnings where they begin. -->
+            <Border x:Name="ProfilePanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
+                    BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <Grid RowDefinitions="Auto,*,Auto,Auto" RowSpacing="8">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Label Text="PERFIL" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
+                               TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
+                        <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseProfileClicked" />
+                    </Grid>
+                    <!-- A fixed height: filling the map made a 300 m climb look like a mountain (2026-10-23). -->
+                    <GraphicsView Grid.Row="1" x:Name="ProfileView" HeightRequest="190" />
+                    <Label Grid.Row="2" x:Name="ProfileSummary" FontFamily="OpenSansRegular" FontSize="14" TextColor="{DynamicResource HudTextSoft}" />
+                    <FlexLayout Grid.Row="3" x:Name="ProfileLegend" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
+                </Grid>
             </Border>
         </Grid>
 
