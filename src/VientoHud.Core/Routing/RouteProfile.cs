@@ -161,7 +161,7 @@ public sealed record RouteProfile(
             var to = Math.Min(count, k + 1 + half);
             return (smooth[to] - smooth[from]) / ((to - from) * step * 10);
         }
-        var stretches = new List<ProfileStretch>();
+        var runs = new List<(int From, int To, GradeBand Band)>();
         var startIndex = 0;
         var band = GradeBands.Of(GradeAt(0));
         var maxGrade = double.NegativeInfinity;
@@ -172,13 +172,14 @@ public sealed record RouteProfile(
             var next = GradeBands.Of(grade);
             if (next != band)
             {
-                stretches.Add(Stretch(points, startIndex, k, band));
+                runs.Add((startIndex, k, band));
                 startIndex = k;
                 band = next;
             }
         }
-        stretches.Add(Stretch(points, startIndex, count, band));
-        MergeShortStretches(stretches, points, Math.Max(MinStretchKm, step));
+        runs.Add((startIndex, count, band));
+        MergeShortRuns(runs, Math.Max(1, (int)Math.Round(MinStretchKm / step)));
+        var stretches = runs.Select(r => Stretch(points, r.From, r.To, r.Band)).ToList();
 
         // The climb and the drop come from the resampled points before smoothing: smoothing flattens the short
         // hills of a rolling road and lost a quarter of the climb on one recorded route (STATUS, phase 8 step 1).
@@ -208,31 +209,48 @@ public sealed record RouteProfile(
     private static ProfileStretch Stretch(ProfilePoint[] points, int from, int to, GradeBand band) =>
         new(points[from].Km, points[to].Km, points[from].ElevationMeters, points[to].ElevationMeters, band);
 
-    // A band has to last at least minKm to show: a shorter stretch joins the neighbour whose grade is closer to its
-    // own (the previous one when alone), shortest first, until none is left. The ends keep the route's ends.
-    private static void MergeShortStretches(List<ProfileStretch> stretches, ProfilePoint[] points, double minKm)
+    // A band has to last at least minSteps to show: a shorter run joins the neighbour whose band is nearest to its
+    // own (the longer neighbour on a tie, then the previous one), shortest run first, until none is left. Counted in
+    // steps, not km, so that the result is the same on every machine.
+    private static void MergeShortRuns(List<(int From, int To, GradeBand Band)> runs, int minSteps)
     {
-        while (stretches.Count > 1)
+        while (runs.Count > 1)
         {
-            var i = stretches.Select((s, k) => (s.LengthKm, k)).Where(x => x.LengthKm < minKm - 1e-9).OrderBy(x => x.LengthKm).Select(x => (int?)x.k).FirstOrDefault();
-            if (i is not { } index)
+            var index = -1;
+            for (var k = 0; k < runs.Count; k++)
+            {
+                var length = runs[k].To - runs[k].From;
+                if (length < minSteps && (index < 0 || length < runs[index].To - runs[index].From))
+                {
+                    index = k;
+                }
+            }
+            if (index < 0)
             {
                 return;
             }
-            var s = stretches[index];
-            var previous = index > 0 ? stretches[index - 1] : null;
-            var next = index < stretches.Count - 1 ? stretches[index + 1] : null;
-            var intoPrevious = previous is not null
-                && (next is null || Math.Abs(previous.GradePercent - s.GradePercent) <= Math.Abs(next.GradePercent - s.GradePercent));
+            var run = runs[index];
+            var hasPrevious = index > 0;
+            var hasNext = index < runs.Count - 1;
+            var intoPrevious = hasPrevious && (!hasNext || Prefer(runs[index - 1], runs[index + 1], run.Band));
             if (intoPrevious)
             {
-                stretches[index - 1] = previous! with { EndKm = s.EndKm, EndElevationMeters = s.EndElevationMeters };
+                runs[index - 1] = runs[index - 1] with { To = run.To };
             }
             else
             {
-                stretches[index + 1] = next! with { StartKm = s.StartKm, StartElevationMeters = s.StartElevationMeters };
+                runs[index + 1] = runs[index + 1] with { From = run.From };
             }
-            stretches.RemoveAt(index);
+            runs.RemoveAt(index);
+        }
+
+        static bool Prefer((int From, int To, GradeBand Band) previous, (int From, int To, GradeBand Band) next, GradeBand band)
+        {
+            var previousDistance = Math.Abs((int)previous.Band - (int)band);
+            var nextDistance = Math.Abs((int)next.Band - (int)band);
+            return previousDistance != nextDistance
+                ? previousDistance < nextDistance
+                : previous.To - previous.From >= next.To - next.From;
         }
     }
 

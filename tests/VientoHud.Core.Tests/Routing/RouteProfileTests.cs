@@ -153,7 +153,9 @@ public class RouteProfileTests(ITestOutputHelper output)
         Assert.Equal(0, profile.Stretches[0].StartKm);
         Assert.Equal(profile.LengthKm, profile.Stretches[^1].EndKm, 6);
         Assert.All(profile.Stretches.Zip(profile.Stretches.Skip(1)), pair => Assert.Equal(pair.First.EndKm, pair.Second.StartKm));
-        Assert.All(profile.Stretches, s => Assert.True(s.LengthKm >= RouteProfile.MinStretchKm - 1e-9, $"{s.Band} {s.LengthKm} km"));
+        // No stretch shorter than MinStretchKm, counted in steps (the step is the route length over a whole number).
+        var step = profile.Points[1].Km;
+        Assert.All(profile.Stretches, s => Assert.True(Math.Round(s.LengthKm / step) >= Math.Round(RouteProfile.MinStretchKm / step), $"{s.Band} {s.LengthKm} km"));
         Assert.All(profile.Stretches, s => Assert.Equal(profile.ElevationAt(s.StartKm), s.StartElevationMeters, 6));
     }
 }
