@@ -1,6 +1,39 @@
 # Estado
 
-**Fase actual: 7 — App MAUI (Android)** (en marcha)
+**Fase actual: 8 — Ver la ruta: perfil y sobrevuelo 3D** (en marcha). La Fase 7 queda **abierta solo por su juez**
+(7i, salidas reales con la app, cuando el autor pueda salir); se avanza mientras tanto (decisión del autor, 2026-10-23).
+
+## Fase 8
+
+### Qué funciona (fase 8)
+
+- Nada todavía: solo los documentos (paso 0).
+
+### Qué falta (fase 8)
+
+- [x] 0. Documentos: la fase en `PLAN.md` (dos vistas a elección del usuario, PERFIL y 3D, desde un botón VER),
+  decisiones 055 (MapLibre GL JS en el HybridWebView de MAUI) y 056 (relieve Terrarium, IGN a 5 m como mejora) y este
+  estado. Opciones y fuentes comprobadas el 2026-10-23 (licencias, mantenimiento, soporte en Android; tamaños y tiempos
+  medidos contra las teselas Terrarium y el WCS del IGN).
+- [ ] 1. Core: pendiente por tramo y rangos de color compartidos.
+- [ ] 2. Botón VER con su panel y la vista PERFIL. Juez: el desnivel del perfil igual al del GPX; el ojo del autor.
+- [ ] 3. Prototipo 3D en línea (MapLibre empaquetado, terreno Terrarium, una ruta grabada). Medir: se ve, fps, MB
+  descargados, lo que crece el APK.
+- [ ] 4. Corredor de relieve cacheado y servido al WebView; funciona en modo avión tras la primera carga.
+- [ ] 5. Cámara de sobrevuelo con play, pausa y arrastre; fps en el móvil del autor (objetivo ≥ 30).
+- [ ] 6. Viento por tramo a la hora de paso y avisos del GPX en el 3D. Juez completo.
+
+### Cómo se ha validado (fase 8)
+
+- Paso 0: sin código. Las medidas de las fuentes de relieve están en `DECISIONS.md` 056.
+
+### Riesgos y pendientes (fase 8)
+
+- Las teselas Terrarium las sirve AWS Open Data pero Mapzen cerró; el camino alternativo (IGN, Copernicus) está
+  pensado y el formato en local sería el mismo.
+- BRouter da alturas de SRTM 90 m y el relieve del 3D es de 30 m: el perfil (GPX) y el sobrevuelo no coincidirán al
+  100 %; el juez mide la diferencia.
+- El WebView del sistema varía con el móvil: fps por medir en el OPPO del autor.
 
 ## Fase 7
 
@@ -90,6 +123,9 @@
   que no sale al compartir un GPX pero sí lo abre ("Abrir con").
 
 ### Qué falta (fase 7)
+
+La fase queda **abierta solo por el juez 7i** (decisión del autor, 2026-10-23): 7h se da por hecha con la pantalla
+actual y el APK firmado de `DECISIONS.md` 052; el juez se hará en la primera salida real que pueda hacer el autor.
 
 Primera división (`DECISIONS.md` 047) superada por la decisión 048 (2026-10-19): la ruta la traza el usuario en el
 mapa. Lo hecho hasta entonces: 7a-1 (`RideAdvisor`, lo usa `route`) y la medida de 7b. División nueva, **pendiente del

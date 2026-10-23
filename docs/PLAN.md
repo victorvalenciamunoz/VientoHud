@@ -1,6 +1,6 @@
 # Plan
 
-**Fase actual: 7**
+**Fase actual: 8**
 
 ---
 
@@ -91,3 +91,63 @@ la dirección, el tiempo y el juicio. El generador automático de las fases 2 a 
 - Mandar el GPX al aparato de la bici, sea cual sea (compartir y abrir con).
 - **Juez:** salidas reales usando solo la app: segundos hasta la ruta, datos gastados, el GPX en el Karoo y en el Fenix,
   y el ojo del autor sobre lo que pasó con el viento y la lluvia.
+
+## Fase 8 — Ver la ruta: perfil y sobrevuelo 3D
+
+Añadida por el autor el 2026-10-23, con la Fase 7 abierta solo por su juez (7i, salidas reales con la app): se
+avanza mientras llega la ocasión de salir.
+
+Objetivo: antes de salir, **ver** la ruta, si el usuario quiere. Dos vistas, las dos a elección del usuario desde un
+botón VER junto a DETALLE y GPX (nada se abre solo); se encienden cuando la ruta ya está calculada:
+
+- **PERFIL:** la gráfica de altitud de la ruta, coloreada por pendiente, con los km, los avisos del GPX marcados y el
+  viento por tramo. Dibujada en la propia app, sin paquetes nuevos; con las alturas que ya da BRouter, así coincide
+  con el GPX.
+- **3D:** una cámara recorre el track sobre el terreno real; se ve el relieve, las rampas coloreadas por pendiente, el
+  viento previsto en cada tramo a la hora estimada de paso y los avisos que ya lleva el GPX. Play, pausa y arrastrar.
+
+Los **mismos rangos de color** por pendiente en las dos vistas (y en el mapa 2D si algún día se pide): los calcula
+Core una vez.
+
+### Cómo se dibuja el 3D (`DECISIONS.md` 055)
+
+Valoradas A) WebView con una librería de mapas 3D en JavaScript (MapLibre GL JS, CesiumJS) y B) render nativo desde
+C# (OpenGL ES con Silk.NET, Stride, MapLibre Native). Decisión: **A con MapLibre GL JS dentro del HybridWebView de
+MAUI**. El JavaScript es una capa fina de dibujo: recibe de Core GeoJSON ya calculado (color por pendiente, flechas,
+avisos, fotogramas de la cámara) y lo pinta. Toda la lógica queda en C#.
+
+### Datos del terreno (`DECISIONS.md` 056)
+
+Valoradas las teselas Terrarium (Mapzen, en AWS Open Data; SRTM 30 m, mundiales, sin clave), el MDT05/MDT25 del
+IGN/CNIG (5 y 25 m, solo España, CC BY 4.0; descarga por hojas o servicio WCS) y MapTiler Terrain RGB (clave, solo no
+comercial). Decisión: **Terrarium**, y la puerta abierta al IGN a 5 m para España convirtiéndolo en local al mismo
+formato. Solo hace falta el terreno alrededor de la ruta: Core descarga el corredor y lo cachea en fichero; el
+sobrevuelo funciona sin conexión una vez descargado.
+
+Coherencia con la altimetría de la app: BRouter calcula las alturas del GPX con SRTM de 90 m. En el 3D el track va
+pegado al relieve dibujado (MapLibre lo drapea) y las pendientes se muestrean sobre ese mismo relieve (30 m); el GPX
+sigue como está. **Manda el relieve dibujado en la vista 3D y el GPX en el perfil**; el juez mide la diferencia para
+decidir si más adelante se recalculan las alturas del GPX desde el relieve.
+
+### Pasos
+
+0. Documentos: esta fase en el plan, decisiones 055 y 056, STATUS.
+1. Core: pendiente por tramo y rangos de color compartidos.
+2. Botón VER con su panel y la vista PERFIL. Juez: el desnivel del perfil igual al del GPX; el ojo del autor en el móvil.
+3. Prototipo 3D en línea: HybridWebView con MapLibre empaquetado, terreno Terrarium y una ruta ya grabada, en el
+   emulador y en el móvil del autor. Medir: se ve, fotogramas por segundo, MB descargados, lo que crece el APK.
+4. Corredor de relieve cacheado: Core decide qué teselas cubren la ruta más X km, las baja a fichero y las sirve al
+   WebView interceptando sus peticiones. Medir: funciona en modo avión tras la primera carga; tamaño de la caché.
+5. Cámara de sobrevuelo: Core genera los fotogramas (posición, rumbo, inclinación, tiempo); JavaScript los reproduce
+   con play, pausa y arrastre. Medir fps en el móvil del autor.
+6. Viento por tramo a la hora de paso (reutilizando la fase 3) como flechas sobre el terreno, y avisos del GPX como
+   marcadores. Juez completo.
+
+### Juez
+
+- Desnivel acumulado y altitud máxima del perfil iguales a los del GPX; los del sobrevuelo dentro de ±5 % de los del
+  GPX, o documentada la diferencia (SRTM de 90 m frente a 30 m).
+- Pendientes máximas de 2-3 puertos conocidos coherentes con sus altimetrías publicadas.
+- El track va pegado al terreno: ni flota ni se hunde (comprobar en tramos de valle y de cresta).
+- Fluidez aceptable en el móvil real del autor (medir fps, objetivo ≥ 30).
+- Resultados en STATUS.md.

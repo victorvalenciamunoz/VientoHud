@@ -1236,3 +1236,59 @@ Formato: contexto → decisión → alternativas descartadas.
 - Alternativas: guardar en Descargas (pide el almacenamiento compartido por MediaStore y el usuario tendría que ir a
   buscarlo; se añadirá si algún aparato lo necesita); solo compartir (deja fuera a Garmin Connect); cola de envío por
   Bluetooth al aparato (cada marca tiene su protocolo cerrado: fuera de alcance).
+
+## 055 — El 3D de la ruta se dibuja con MapLibre GL JS dentro del HybridWebView de MAUI
+
+- Contexto: la Fase 8 quiere ver la ruta en 3D sobre el terreno real, a elección del usuario (botón VER). Criterios del
+  plan: cantidad de código que no es C#, rendimiento en el móvil del autor, funcionamiento sin conexión con datos
+  cacheados, licencias y mantenimiento. Comprobado en sus fuentes el 2026-10-23.
+- Decisión (del autor, 2026-10-23, con la recomendación): **MapLibre GL JS** (BSD de 3 cláusulas; 6.15.0 del
+  2026-10-18, una versión por semana) dentro del **HybridWebView** que trae MAUI en .NET 10 (sin NuGet nuevo). El
+  fichero JavaScript se empaqueta en el APK como recurso (menos de 1 MB), con su licencia; no se carga nada de la red
+  al arrancar. Trae terreno 3D de serie desde teselas de elevación PNG (`raster-dem`, codificaciones `terrarium` y
+  `mapbox`), drapea las líneas sobre el relieve, eleva símbolos sobre él y tiene cámara animada. Desde la versión 6
+  exige WebGL2, que el WebView de Android (Chromium) soporta. HybridWebView permite llamar de C# a JavaScript y al
+  revés, e interceptar las peticiones https del WebView (`WebResourceRequested`; en Android sí se puede, con esquemas
+  propios no): así el terreno y las teselas del mapa se sirven desde una caché nuestra en fichero y el sobrevuelo
+  funciona sin conexión una vez descargado el corredor.
+  **El JavaScript es una capa fina de dibujo**: recibe de Core GeoJSON ya calculado (color por pendiente, flechas de
+  viento, avisos, fotogramas de la cámara) y lo pinta con estilos guiados por datos. Nada de lógica en JavaScript.
+- Alternativas:
+  - CesiumJS (Apache 2.0; 1.146 del 2026-10-01): su terreno necesita teselas *quantized-mesh* (servidor propio o Cesium
+    ion, cuyo plan gratuito es solo para uso personal, con clave y 15 GB al mes) y no lee las teselas PNG públicas; es
+    un globo completo, mucho más pesado de lo que hace falta.
+  - Render nativo en C#: MapLibre Native **no tiene terreno 3D** (en marzo de 2026 el proyecto seguía buscando
+    cofinanciación), y el único paquete .NET que lo envuelve (MapLibreNative.Maui, BSD-2) es de una persona (4
+    estrellas). OpenGL ES a mano: .NET para Android dejó de incluir OpenTK en .NET 6; Silk.NET es MIT pero su rama 2.x
+    se mantiene "cuando hay esfuerzo disponible"; Stride es MIT con Android en beta, pero es un motor de juegos
+    entero. Habría que escribir malla del terreno, texturas, cámara y etiquetas: mucho más trabajo para un resultado
+    peor.
+- Riesgos: el WebView del sistema varía con el móvil (medir fps en el del autor, objetivo ≥ 30); el tamaño del APK
+  crece ~1 MB; si algún día MapLibre cambia la API, el JavaScript es pequeño y está aislado.
+
+## 056 — El relieve del 3D sale de las teselas Terrarium (AWS Open Data), con el IGN a 5 m como mejora para España
+
+- Contexto: el sobrevuelo necesita la elevación del terreno alrededor de la ruta. La app debe valer en cualquier sitio
+  (se valida en Madrid y León). Comprobado y medido el 2026-10-23.
+- Decisión (del autor, 2026-10-23, con la recomendación): **teselas Terrarium** de Mapzen en AWS Open Data
+  (`elevation-tiles-prod`, réplica en la UE; sin clave ni cuenta; PNG de 256 px, `altura = R·256 + G + B/256 − 32768`;
+  hasta zoom 15). Datos: SRTM de 30 m (EU-DEM en zoom 9); atribución obligatoria a USGS (SRTM) y Copernicus (EU-DEM).
+  Medido: 110-135 KB por tesela en 0,65 s; un corredor de 40 × 40 km a zoom 12 son unas 36 teselas, ~5 MB (menos que
+  el radar de una recomendación). MapLibre las lee tal cual (`encoding: terrarium`). Solo se descarga el corredor de
+  la ruta y se cachea en fichero.
+  **Puerta abierta al IGN/CNIG a 5 m** para España como mejora: Core pediría el corredor al servicio WCS del MDT
+  (`servicios.idee.es/wcs-inspire/mdt`, coberturas `Elevacion25830_5` y `_25`, CC BY 4.0, sin clave; TIFF de 16 bits
+  sin comprimir; tope de 4.096 px por petición) en trozos y lo convertiría en local a teselas Terrarium, con lo que
+  MapLibre no notaría el cambio. Medido: 5 × 5 km a 5 m, 2 MB en 0,4 s; 20 × 20 km a 5 m, 32 MB; 60 × 60 km a 25 m,
+  11,5 MB. Avisos: su certificado (GEANT/HARICA) no lo valida el curl de Windows (comprobar en Android), y a 5 m pesa
+  16 veces más que Terrarium.
+- Coherencia con la altimetría de la app: BRouter calcula las alturas del GPX con **SRTM de 90 m** (CGIAR v4.1).
+  **Manda el relieve dibujado en la vista 3D** (el track va drapeado y las pendientes se muestrean sobre ese relieve)
+  **y el GPX en el perfil**. El juez mide la diferencia de desnivel entre ambos para decidir si más adelante se
+  recalculan las alturas del GPX desde el relieve.
+- Alternativas: MDT05 descargable por hojas del CNIG (COG de 1 a 85 MB por hoja MTN50; habría que preparar y recortar
+  nosotros); MapTiler Terrain RGB (clave; gratuito solo para uso no comercial, 100.000 peticiones al mes); Copernicus
+  DEM GLO-30 (COG en AWS, habría que teselar nosotros).
+- Riesgos: Mapzen cerró en 2018 y el repositorio Joerd no se toca desde 2021, aunque AWS Open Data lo sigue sirviendo
+  y es la fuente de los ejemplos de MapLibre; si desapareciera, el camino del IGN (o Copernicus) ya está pensado y
+  el formato en local es el mismo.
