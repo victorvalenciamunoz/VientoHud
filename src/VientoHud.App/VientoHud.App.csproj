@@ -39,6 +39,8 @@
 		<MauiFont Include="Resources\Fonts\*" />
 		<!-- License texts that must travel with the app (OFL fonts, third-party notices). Taken from the repo root, not copied. -->
 		<MauiAsset Include="..\..\THIRD-PARTY-NOTICES.md;..\..\licenses\*.txt" LogicalName="licenses\%(Filename)%(Extension)" />
+		<!-- The 3D view's web content (phase 8): index.html, our thin JavaScript and MapLibre GL JS, served by the HybridWebView. -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>

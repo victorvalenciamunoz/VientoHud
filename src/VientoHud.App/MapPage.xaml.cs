@@ -7,6 +7,7 @@ using Mapsui.Styles;
 using NetTopologySuite.Geometries;
 using VientoHud.App.Hud;
 using VientoHud.App.Maps;
+using VientoHud.Core.Flyover;
 using VientoHud.Core.Gpx;
 using VientoHud.Core.Location;
 using VientoHud.Core.Routing;
@@ -76,6 +77,8 @@ public partial class MapPage : ContentPage
     private TracedRide? _shown;
     /// <summary>The altitude profile of the route on screen (phase 8), from Core; null without elevations.</summary>
     private RouteProfile? _profile;
+    /// <summary>The route on screen, as drawn (its better way round once judged): what the 3D view shows.</summary>
+    private Route? _shownRoute;
     private readonly ProfileDrawable _profileDrawable = new();
     private bool _started;
     /// <summary>When to leave, as a time of day today; null for now.</summary>
@@ -424,6 +427,7 @@ public partial class MapPage : ContentPage
         Headline.IsVisible = ShowDetail.IsVisible = DetailPanel.IsVisible = false;
         _ride = _shown = null;
         _profile = null;
+        _shownRoute = null;
         ShowGpx.IsVisible = GpxPanel.IsVisible = false;
         ShowViews.IsVisible = ViewsPanel.IsVisible = ProfilePanel.IsVisible = false;
         return _cancel.Token;
@@ -435,9 +439,11 @@ public partial class MapPage : ContentPage
     /// </summary>
     private void ShowProfile(Route route, TracedRide? ride)
     {
+        _shownRoute = route;
         _profile = RouteProfile.From(route);
         _profileDrawable.Profile = _profile;
         _profileDrawable.Winds = ride is null ? [] : WindStretches.Describe(ride.Ride.Winds);
+        ProfileWindLegend.IsVisible = ride is not null;
         _profileDrawable.Alerts = ride is null ? [] : RideAlerts.For(ride.Ride);
         ProfileView.Drawable = _profileDrawable;
         ProfileView.Invalidate();
@@ -473,15 +479,28 @@ public partial class MapPage : ContentPage
 
     private void OnCloseViewsClicked(object? sender, EventArgs e) => ViewsPanel.IsVisible = false;
 
-    /// <summary>The VER panel: PERFIL when the route has elevations; 3D off until its steps are done.</summary>
+    /// <summary>The VER panel: PERFIL when the route has elevations; 3D whenever there is a route (it needs the network).</summary>
     private void RefreshViewsPanel()
     {
         var hasProfile = _profile is not null;
         OpenProfile.IsEnabled = hasProfile;
         OpenProfile.Opacity = hasProfile ? 1 : 0.4;
+        OpenFlyover.IsEnabled = _shownRoute is not null;
+        OpenFlyover.Opacity = _shownRoute is not null ? 1 : 0.4;
         ViewsNote.Text = hasProfile
-            ? (_shown is null ? "El perfil, con las subidas por color. El viento y los avisos llegan con el juicio." : "El perfil, con las subidas por color, el viento por tramos y los avisos del GPX.")
-            : "BRouter no dio alturas para esta ruta: sin perfil.";
+            ? (_shown is null ? "PERFIL: las subidas por color (el viento y los avisos llegan con el juicio). 3D: la ruta sobre el relieve, con conexión." : "PERFIL: las subidas por color, el viento por tramos y los avisos del GPX. 3D: la ruta sobre el relieve, con conexión.")
+            : "BRouter no dio alturas para esta ruta: sin perfil. 3D: la ruta sobre el relieve, con conexión.";
+    }
+
+    /// <summary>The 3D view (phase 8): Core composes the scene from the route and its profile; the page draws it.</summary>
+    private async void OnOpenFlyoverClicked(object? sender, EventArgs e)
+    {
+        if (_shownRoute is not { } route)
+        {
+            return;
+        }
+        ViewsPanel.IsVisible = false;
+        await Navigation.PushModalAsync(new FlyoverPage(FlyoverScene.From(route, _profile), _tiles));
     }
 
     private void OnOpenProfileClicked(object? sender, EventArgs e)

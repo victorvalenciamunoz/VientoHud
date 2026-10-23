@@ -142,7 +142,7 @@ public static class RouteLegs
     }
 
     // The point at km along the track, on the great circle between the two track points around it.
-    private static Coordinate PointAt(Coordinate[] points, double[] alongKm, double km)
+    internal static Coordinate PointAt(Coordinate[] points, double[] alongKm, double km)
     {
         var i = Array.BinarySearch(alongKm, km);
         if (i >= 0)

@@ -150,8 +150,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- VER (phase 8): which view of the route to open. Nothing opens on its own; the 3D flyover comes in later
-                 steps and stays off until then. -->
+            <!-- VER (phase 8): which view of the route to open. Nothing opens on its own. -->
             <Border x:Name="ViewsPanel" IsVisible="False" VerticalOptions="End" Margin="12,0,12,8" Padding="14,12" StrokeThickness="1"
                     BackgroundColor="{DynamicResource HudBackground}" Stroke="{DynamicResource HudTextDim}">
                 <Border.StrokeShape>
@@ -166,7 +165,8 @@
                     <HorizontalStackLayout Spacing="8">
                         <Button x:Name="OpenProfile" Text="PERFIL" Style="{StaticResource Chip}"
                                 TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnOpenProfileClicked" />
-                        <Button x:Name="OpenFlyover" Text="3D" Style="{StaticResource Chip}" IsEnabled="False" Opacity="0.4" />
+                        <Button x:Name="OpenFlyover" Text="3D" Style="{StaticResource Chip}"
+                                TextColor="{DynamicResource HudGood}" BorderColor="{DynamicResource HudGood}" Clicked="OnOpenFlyoverClicked" />
                     </HorizontalStackLayout>
                     <Label x:Name="ViewsNote" FontFamily="OpenSansRegular" FontSize="12" TextColor="{DynamicResource HudTextMuted}" />
                 </VerticalStackLayout>
@@ -179,16 +179,23 @@
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <Grid RowDefinitions="Auto,*,Auto,Auto" RowSpacing="8">
+                <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" RowSpacing="8">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                         <Label Text="PERFIL" FontFamily="ChakraPetchBold" FontSize="12" CharacterSpacing="1"
                                TextColor="{DynamicResource HudTextSoft}" VerticalOptions="Center" />
                         <Button Grid.Column="1" Text="CERRAR" Style="{StaticResource Chip}" Clicked="OnCloseProfileClicked" />
                     </Grid>
                     <!-- A fixed height: filling the map made a 300 m climb look like a mountain (2026-10-23). -->
-                    <GraphicsView Grid.Row="1" x:Name="ProfileView" HeightRequest="190" />
+                    <GraphicsView Grid.Row="1" x:Name="ProfileView" HeightRequest="160" />
                     <Label Grid.Row="2" x:Name="ProfileSummary" FontFamily="OpenSansRegular" FontSize="14" TextColor="{DynamicResource HudTextSoft}" />
+                    <!-- What the colours mean: the ground by grade (Core's bands) and the band under it by wind, as the arrows. -->
                     <FlexLayout Grid.Row="3" x:Name="ProfileLegend" Wrap="Wrap" JustifyContent="Start" AlignItems="Center" />
+                    <HorizontalStackLayout Grid.Row="4" x:Name="ProfileWindLegend" IsVisible="False" Spacing="10">
+                        <Label Text="Franja de abajo, viento:" FontFamily="OpenSansRegular" FontSize="11" TextColor="{DynamicResource HudTextMuted}" />
+                        <Label Text="de cara" FontFamily="OpenSansSemibold" FontSize="11" TextColor="{DynamicResource HudAlert}" />
+                        <Label Text="a favor" FontFamily="OpenSansSemibold" FontSize="11" TextColor="{DynamicResource HudGood}" />
+                        <Label Text="de lado" FontFamily="OpenSansSemibold" FontSize="11" TextColor="{DynamicResource HudMarker}" />
+                    </HorizontalStackLayout>
                 </Grid>
             </Border>
         </Grid>

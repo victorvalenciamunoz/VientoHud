@@ -19,6 +19,17 @@
   los km, las alturas, una franja con el viento por tramos en los colores de las flechas y los avisos del GPX como
   triángulos donde empiezan; debajo, la línea del perfil (`RideText.Profile`) y la leyenda de bandas. Nada se abre solo.
   `docs/verificacion/2026-10-23-fase8-2-emulador-panel-ver.png`, `...-perfil.png`.
+  Visto en el móvil del autor el 2026-10-23: la gráfica estiraba la altura a todo el alto y 150 m de rango en 83 km
+  parecían "el Tourmalet" (`...-movil-perfil-exagerado.png`); ahora el dibujo exagera como mucho 30 veces la escala
+  horizontal (`ProfileDrawable.MaxExaggeration`), una banda tiene que durar 500 m y cada tramo toma el color de su
+  pendiente media una vez unido. Bajo la gráfica, la leyenda del viento de la franja (pedida por el autor).
+- **Prototipo 3D** (paso 3): el botón 3D del panel VER abre `FlyoverPage`: un HybridWebView de MAUI con MapLibre GL JS
+  6.15.0 empaquetado en el APK (`Resources/Raw/wwwroot`, +0,45 MB), el relieve de las teselas Terrarium, el mapa de
+  fondo de Thunderforest y la ruta coloreada por banda de pendiente encima. Core compone la escena (`FlyoverScene`:
+  GeoJSON por tramos, inicio, caja) y C# se la pasa al JavaScript, que solo dibuja y devuelve fps y teselas. En .NET 10
+  la página tiene que cargar `_framework/hybridwebview.js` y los mensajes del puente llegan en un hilo secundario (se
+  pasan al principal). `docs/verificacion/2026-10-23-fase8-3-movil-3d-lienzo.png` (el lienzo tal como lo pintó WebGL
+  en el móvil del autor).
 
 ### Qué falta (fase 8)
 
@@ -29,8 +40,8 @@
 - [x] 1. Core: pendiente por tramo y rangos de color compartidos. Hecho el 2026-10-23; juez abajo.
 - [x] 2. Botón VER con su panel y la vista PERFIL. Hecho el 2026-10-23 en el emulador; juez abajo. **Pendiente el ojo
   del autor en el móvil.**
-- [ ] 3. Prototipo 3D en línea (MapLibre empaquetado, terreno Terrarium, una ruta grabada). Medir: se ve, fps, MB
-  descargados, lo que crece el APK.
+- [x] 3. Prototipo 3D en línea (MapLibre empaquetado, terreno Terrarium, la ruta de la pantalla). Hecho el 2026-10-23;
+  medidas abajo.
 - [ ] 4. Corredor de relieve cacheado y servido al WebView; funciona en modo avión tras la primera carga.
 - [ ] 5. Cámara de sobrevuelo con play, pausa y arrastre; fps en el móvil del autor (objetivo ≥ 30).
 - [ ] 6. Viento por tramo a la hora de paso y avisos del GPX en el 3D. Juez completo.
@@ -60,6 +71,10 @@
   llenaba el mapa y una subida de 340 m parecía una montaña (ahora el panel es bajo y la gráfica tiene altura fija), y
   una carretera de toboganes se pintaba en tiras de 100 m (ahora una banda tiene que durar 300 m, `MinStretchKm`,
   o se une a la vecina; con test). Sin rachas ni lluvia ese día: los avisos del GPX quedan por ver con un día de viento.
+- Paso 3, **en el móvil del autor** (OPPO CPH2699, ida y vuelta desde Humanes): el relieve se ve con el mapa y la ruta
+  encima; **60 fps (media 58), 102 teselas**. En el emulador (API 34): MapLibre carga, pide 95 teselas (5,8 MB de red
+  con el mapa de fondo) y va a 60 fps, pero el lienzo queda vacío: la GPU emulada falla al subir texturas (errores de
+  OpenGL en su registro) y se cerró sola; el 3D se juzga en el móvil. APK de depuración: de 101,16 a 101,62 MB.
 
 ### Riesgos y pendientes (fase 8)
 
@@ -67,7 +82,9 @@
   pensado y el formato en local sería el mismo.
 - BRouter da alturas de SRTM 90 m y el relieve del 3D es de 30 m: el perfil (GPX) y el sobrevuelo no coincidirán al
   100 %; el juez mide la diferencia.
-- El WebView del sistema varía con el móvil: fps por medir en el OPPO del autor.
+- El WebView del sistema varía con el móvil: en el OPPO del autor, 60 fps. El emulador no sirve para el 3D (GPU).
+- `FlyoverPage` guarda una foto del lienzo (`flyover-snapshot.png`, ~0,5 MB) en la caché de la app cada vez que se
+  abre el 3D, para el juez; sobra cuando la fase cierre.
 
 ## Fase 7
 

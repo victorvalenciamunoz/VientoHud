@@ -64,9 +64,9 @@ public sealed record RouteProfile(
 
     /// <summary>
     /// A band has to last this long to show as a stretch of its own; shorter ones join a neighbour (a rolling road
-    /// painted in 100 m slivers flickered on the author's screen, 2026-10-23).
+    /// painted in 100 m slivers flickered on the author's screen, 2026-10-23; at 300 m it still did on the phone).
     /// </summary>
-    public const double MinStretchKm = 0.3;
+    public const double MinStretchKm = 0.5;
 
     /// <summary>
     /// Ups and downs smaller than this do not count towards the climb or the drop (a hysteresis, the same idea as
@@ -179,7 +179,23 @@ public sealed record RouteProfile(
         }
         runs.Add((startIndex, count, band));
         MergeShortRuns(runs, Math.Max(1, (int)Math.Round(MinStretchKm / step)));
-        var stretches = runs.Select(r => Stretch(points, r.From, r.To, r.Band)).ToList();
+        // Once joined, a stretch takes the band of its own average grade (what it joined may have pulled it up or
+        // down), and neighbours that end up in the same band become one.
+        var relabelled = runs
+            .Select(r => (r.From, r.To, Band: GradeBands.Of((smooth[r.To] - smooth[r.From]) / ((r.To - r.From) * step * 10))))
+            .ToList();
+        var stretches = new List<ProfileStretch>();
+        foreach (var run in relabelled)
+        {
+            if (stretches.Count > 0 && stretches[^1].Band == run.Band)
+            {
+                stretches[^1] = stretches[^1] with { EndKm = points[run.To].Km, EndElevationMeters = points[run.To].ElevationMeters };
+            }
+            else
+            {
+                stretches.Add(Stretch(points, run.From, run.To, run.Band));
+            }
+        }
 
         // The climb and the drop come from the resampled points before smoothing: smoothing flattens the short
         // hills of a rolling road and lost a quarter of the climb on one recorded route (STATUS, phase 8 step 1).
@@ -210,8 +226,9 @@ public sealed record RouteProfile(
         new(points[from].Km, points[to].Km, points[from].ElevationMeters, points[to].ElevationMeters, band);
 
     // A band has to last at least minSteps to show: a shorter run joins the neighbour whose band is nearest to its
-    // own (the longer neighbour on a tie, then the previous one), shortest run first, until none is left. Counted in
-    // steps, not km, so that the result is the same on every machine.
+    // own (the shorter neighbour on a tie, so that the pieces of a short climb gather into one before the flat
+    // around it swallows them; then the previous one), shortest run first, until none is left. Counted in steps,
+    // not km, so that the result is the same on every machine.
     private static void MergeShortRuns(List<(int From, int To, GradeBand Band)> runs, int minSteps)
     {
         while (runs.Count > 1)
@@ -250,7 +267,7 @@ public sealed record RouteProfile(
             var nextDistance = Math.Abs((int)next.Band - (int)band);
             return previousDistance != nextDistance
                 ? previousDistance < nextDistance
-                : previous.To - previous.From >= next.To - next.From;
+                : previous.To - previous.From <= next.To - next.From;
         }
     }
 

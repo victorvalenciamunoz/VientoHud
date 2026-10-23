@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>VientoHud 3D</title>
+  <link rel="stylesheet" href="lib/maplibre/maplibre-gl.css" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #0B1218; overflow: hidden; }
+    #map { position: absolute; inset: 0; }
+    .maplibregl-ctrl-attrib { font-size: 10px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <!-- The bridge to C#, served by MAUI's HybridWebView (.NET 10). -->
+  <script src="_framework/hybridwebview.js"></script>
+  <script type="module" src="flyover.js"></script>
+</body>
+</html>
