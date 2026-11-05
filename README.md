@@ -1,12 +1,16 @@
 <p align="center">
-  <img src="src/VientoHud.App/Resources/AppIcon/appiconfg.svg" width="112" alt="Icono de VientoHud: tres ráfagas de viento en cian" />
+  <img src="src/VientoHud.App/Resources/AppIcon/appiconfg.svg" width="112" alt="VientoHud icon: three cyan gusts of wind" />
 </p>
 
 <h1 align="center">VientoHud</h1>
 
 <p align="center">
-  <b>Antes de salir en bici: ¿salgo, cuándo y por dónde?</b><br/>
-  Mira el viento y la lluvia de ese momento, te dice hacia dónde conviene ir, trazas la ruta tocando el mapa y te la lleva al GPS de la bici en GPX.
+  <b>Before a bike ride: should I go, when, and which way?</b><br/>
+  It checks the wind and rain for that moment, tells you which way to head, lets you draw the route by tapping the map and sends it to your bike computer as a GPX file.
+</p>
+
+<p align="center">
+  <b>English</b> · <a href="README.es.md">Español</a>
 </p>
 
 <p align="center">
@@ -14,115 +18,120 @@
   <img alt=".NET MAUI Android" src="https://img.shields.io/badge/MAUI-Android-3DDC84?logo=android&logoColor=white" />
   <a href="https://github.com/victorvalenciamunoz/VientoHud/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/victorvalenciamunoz/VientoHud/actions/workflows/ci.yml/badge.svg" /></a>
   <img alt="Tests" src="https://img.shields.io/badge/tests-658-7CFFB2" />
-  <img alt="Sin backend" src="https://img.shields.io/badge/backend-ninguno-0B1218" />
-  <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-4DD2FF" /></a>
+  <img alt="No backend" src="https://img.shields.io/badge/backend-none-0B1218" />
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-4DD2FF" /></a>
 </p>
+
+> **Language note.** The app, the advice inside the GPX file and the project documentation in [`docs/`](docs/) are in
+> Spanish. This README is the English entry point; [`README.es.md`](README.es.md) is the Spanish one.
 
 ---
 
-## Qué es
+## What it is
 
-Solo bici de carretera, y nada de teclear: la ubicación sale del móvil y lo demás se elige tocando.
+Road bikes only, and no typing: your location comes from the phone and everything else is chosen by tapping.
 
-1. **Hacia dónde.** Con el viento previsto para las horas de la salida, la app dice hacia dónde conviene empezar (ida de cara, vuelta a favor) y lo pinta como un abanico en el mapa.
-2. **Por dónde.** Mantienes pulsado un punto del mapa (ida y vuelta) o dos o más (vuelta por ellos). Una petición a BRouter por carreteras asfaltadas, y en segundos: el sentido mejor para el viento, el viento tramo a tramo a la hora a la que pasarás (flechas de colores), la lluvia prevista en la ruta (radar a corto plazo y modelo después), los km de ciudad y la hora de llegada.
-3. **Cuándo.** "Sal ahora" o "mejor espera hasta las…" si así te mojas menos o evitas rachas de lado peligrosas. También puedes elegir la hora de salida de hoy.
-4. **El GPX es el producto.** La ruta, con el resumen y avisos en los puntos que importan, va al GPS de la bici (Hammerhead, Garmin o cualquiera). El móvil se queda guardado.
+1. **Which way.** Using the wind forecast for the hours of your ride, the app tells you which way to start (headwind on the way out, tailwind on the way back) and draws it as a fan on the map.
+2. **Which route.** Long-press one point on the map (out and back) or two or more (a loop through them). One request to BRouter over paved roads and, in seconds: the best direction for the wind, the wind on each stretch at the time you will ride it (coloured arrows), the rain forecast along the route (radar nowcast first, weather model after), the km through towns and your arrival time.
+3. **When.** "Go now" or "better wait until…" if waiting keeps you drier or avoids dangerous crosswind gusts. You can also pick today's start time.
+4. **The GPX is the product.** The route, with the summary and warnings at the points that matter, goes to your bike computer (Hammerhead, Garmin or any other). The phone stays in your pocket.
 
-| La ruta, con el viento y la lluvia | El GPX, al aparato | El perfil |
+| The route, with wind and rain | The GPX, to your device | The profile |
 | --- | --- | --- |
-| ![La ruta trazada y juzgada, con flechas de viento y gotas de lluvia](docs/capturas/1-ruta.png) | ![El panel GPX al aparato](docs/capturas/2-panel-gpx.png) | ![El perfil de la ruta por colores, con el viento por tramos](docs/capturas/3-perfil.png) |
+| ![The route drawn and judged, with wind arrows and rain drops](docs/capturas/1-ruta.png) | ![The "GPX to device" panel](docs/capturas/2-panel-gpx.png) | ![The route profile in colours, with the wind by stretch](docs/capturas/3-perfil.png) |
 
-Capturas en el emulador con un día grabado (19 de octubre de 2026, al pie del Mont Ventoux): la app vive aquel
-momento con la previsión y el radar que había entonces.
+Screenshots taken in the emulator with a recorded day (19 October 2026, at the foot of Mont Ventoux): the app relives
+that moment with the forecast and radar available back then.
 
-Hermano de [CieloHud](https://github.com/victorvalenciamunoz/CieloHud) y GincanaHud: misma estética, mismos principios.
+Sibling of [CieloHud](https://github.com/victorvalenciamunoz/CieloHud) and GincanaHud: same look, same principles.
 
-## Datos y servicios
+## Data and services
 
-Sin servidor propio: todo son servicios y datos públicos, detrás de interfaces y con sus licencias en
+No server of its own: everything comes from public services and data, behind interfaces, with their licenses in
 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
-| Pieza | Fuente |
+| Piece | Source |
 |---|---|
-| Viento y lluvia por horas | [Open-Meteo](https://open-meteo.com) (AROME en España, otros modelos de reserva) |
-| Lluvia a corto plazo | Radar de [EUMETNET OPERA](https://www.eumetnet.eu/activities/observations-programme/current-activities/opera/) (Open Radar Data), movido hacia delante |
-| Rutas | [BRouter](https://github.com/abrensch/brouter) con un perfil propio de bici de carretera sobre datos de OpenStreetMap |
-| Mapa de fondo | OpenCycleMap de [Thunderforest](https://www.thunderforest.com) (con clave) o, sin clave, OpenStreetMap |
+| Hourly wind and rain | [Open-Meteo](https://open-meteo.com) (AROME in Spain, other models as fallback) |
+| Short-term rain | [EUMETNET OPERA](https://www.eumetnet.eu/activities/observations-programme/current-activities/opera/) radar (Open Radar Data), moved forward in time |
+| Routing | [BRouter](https://github.com/abrensch/brouter) with a custom road-bike profile on OpenStreetMap data |
+| Base map | OpenCycleMap by [Thunderforest](https://www.thunderforest.com) (with a key) or, without one, OpenStreetMap |
 
-Y el tiempo es el juez: cada fase se ha contrastado con lo que pasó de verdad (estaciones, METAR, imágenes de radar
-posteriores). Las decisiones y cómo se comprobó cada una están en [`docs/DECISIONS.md`](docs/DECISIONS.md); el detalle de
-esas comprobaciones, con datos de sitios reales, se queda fuera del repo.
+And the weather is the judge: every phase has been checked against what actually happened (weather stations, METAR,
+later radar images). The decisions and how each one was checked are in [`docs/DECISIONS.md`](docs/DECISIONS.md) (in
+Spanish); the details of those checks, with data from real places, stay out of the repo.
 
-## Estructura
+## Structure
 
-| Proyecto | Qué es |
+| Project | What it is |
 |---|---|
-| `src/VientoHud.Core` | Todo el cálculo, sin interfaz: viento, radar y lluvia, rutas, puntuación, textos y GPX. |
-| `src/VientoHud.Console` | Consola para validar y para los jueces (`wind`, `route`, `trace`, `radar`, `verify`). Solo formatea lo que devuelve Core. |
-| `src/VientoHud.App` | La app .NET MAUI para Android. Solo muestra lo que devuelve Core. |
-| `tests/VientoHud.Core.Tests` | xUnit, con servicios falsos y respuestas reales grabadas. Las que dependen de sitios reales se quedan fuera del repo y solo corren en el equipo del autor. |
-| `docs/` | [Visión](docs/VISION.md), [plan por fases](docs/PLAN.md), [estado](docs/STATUS.md) y [decisiones](docs/DECISIONS.md), en español. |
+| `src/VientoHud.Core` | All the logic, no UI: wind, radar and rain, routing, scoring, texts and GPX. |
+| `src/VientoHud.Console` | Console app for validation and for the judges (`wind`, `route`, `trace`, `radar`, `verify`). It only formats what Core returns. |
+| `src/VientoHud.App` | The .NET MAUI app for Android. It only shows what Core returns. |
+| `tests/VientoHud.Core.Tests` | xUnit, with fake services and recorded real responses. Tests that depend on real places stay out of the repo and only run on the author's machine. |
+| `docs/` | [Vision](docs/VISION.md), [phased plan](docs/PLAN.md), [status](docs/STATUS.md) and [decisions](docs/DECISIONS.md), in Spanish. |
 
-## Compilar y probar
+## Build and test
 
-Hace falta el SDK de .NET 10 (`global.json` fija la versión) y, para la app, la carga de trabajo de Android.
+You need the .NET 10 SDK (`global.json` pins the version) and, for the app, the Android workload.
 
 ```bash
-dotnet build                      # Core, consola, tests y app (la app tarda un poco más)
-dotnet test                       # los tests de Core
-dotnet build src/VientoHud.App    # solo la app Android
+dotnet build                      # Core, console, tests and app (the app takes a bit longer)
+dotnet test                       # the Core tests
+dotnet build src/VientoHud.App    # the Android app only
 ```
 
-La consola, por ejemplo, para una ruta trazada por un punto (las coordenadas son de ejemplo):
+The console, for example, for a route drawn through one point (the coordinates are just an example):
 
 ```bash
 dotnet run --project src/VientoHud.Console -- trace --lat 45.0 --lon 1.0 --via "45.05,1.3"
 ```
 
-Claves y servicios, nunca en el repo:
+Keys and services, never in the repo:
 
-- `VIENTOHUD_THUNDERFOREST_KEY`: clave de Thunderforest, leída al compilar la app. Sin ella, el mapa es OpenStreetMap.
-- `VIENTOHUD_BROUTER_URL`: un BRouter propio para la consola (por defecto, brouter.de). Durante el desarrollo conviene uno local (p. ej. en el puerto 17777) para no cargar el servidor público.
-- `VIENTOHUD_APP_BROUTER_URL`: lo mismo para la app, leído al compilar (desde el emulador, `http://10.0.2.2:17777/`).
+- `VIENTOHUD_THUNDERFOREST_KEY`: Thunderforest key, read when building the app. Without it, the map is OpenStreetMap.
+- `VIENTOHUD_BROUTER_URL`: your own BRouter for the console (brouter.de by default). During development a local one (e.g. on port 17777) avoids loading the public server.
+- `VIENTOHUD_APP_BROUTER_URL`: the same for the app, read when building (from the emulator, `http://10.0.2.2:17777/`).
 
-## Instalar en tu móvil
+## Install on your phone
 
-Descarga el APK de la [última versión](https://github.com/victorvalenciamunoz/VientoHud/releases) desde el propio móvil
-(Android 8.0 o posterior) y ábrelo. Android pedirá permiso para instalar apps de origen desconocido, y Play Protect
-puede avisar de que no la conoce: es normal en una app que no está en Google Play.
+Download the APK from the [latest release](https://github.com/victorvalenciamunoz/VientoHud/releases) on the phone
+itself (Android 8.0 or later) and open it. Android will ask for permission to install apps from unknown sources, and
+Play Protect may warn that it doesn't know the app: that is normal for an app that is not on Google Play.
 
-Al abrirla pedirá la **ubicación** (es el punto de salida; no sale del móvil salvo para pedir el tiempo y las rutas).
-Necesita conexión: la previsión, el radar, las rutas y el mapa vienen de servicios públicos. Las versiones 0.x son
-*pre-release*: la fase 7 sigue abierta y conviene contrastar lo que dice con lo que luego pasa en la carretera.
+When it opens it asks for your **location** (it is the starting point; it only leaves the phone to request the weather
+and the routes). It needs a connection: the forecast, radar, routes and map come from public services. The 0.x
+versions are *pre-releases*: phase 7 is still open and it is worth comparing what the app says with what you then find
+on the road.
 
-## Llevar la ruta al GPS de la bici
+## Sending the route to your bike computer
 
-Con la ruta trazada y juzgada (viento y lluvia dentro), el botón **GPX** junto a DETALLE abre el panel "GPX al aparato".
-El fichero lleva el consejo entero en la descripción y los avisos de rachas y lluvia como puntos de paso.
+With the route drawn and judged (wind and rain included), the **GPX** button next to DETALLE (details) opens the "GPX
+al aparato" (GPX to device) panel. The file carries the full advice in its description and the gust and rain warnings
+as waypoints.
 
 ### Hammerhead Karoo
 
-1. **COMPARTIR**.
-2. En la hoja de Android, elige **Karoo Companion** (la app de Hammerhead).
-3. "Enviando a Karoo" y "Carga completa": la ruta ya está en tu lista de rutas de Hammerhead, y el Karoo la
-   descarga por wifi o por la app.
+1. **COMPARTIR** (share).
+2. In the Android share sheet, choose **Karoo Companion** (the Hammerhead app).
+3. "Sending to Karoo" and "Upload complete": the route is now in your Hammerhead route list, and the Karoo downloads
+   it over wifi or through the app.
 
-Vale igual para cualquier otra app que acepte un GPX compartido (Strava, komoot, Drive, el correo…).
+The same works for any other app that accepts a shared GPX (Strava, komoot, Drive, email…).
 
 ### Garmin (Fenix, Edge…)
 
-1. **ABRIR CON…**. Garmin Connect no sale en la hoja de compartir: solo acepta "abrir con". Si tienes varias apps que
-   abran GPX, Android pregunta cuál; si solo está Garmin Connect, se abre directamente.
-2. Garmin Connect pide el tipo de trayecto: **Ciclismo en ruta**.
-3. Muestra la ruta; con **Guardar** queda en tus trayectos, para mandarla al reloj o al ciclocomputador.
+1. **ABRIR CON…** (open with). Garmin Connect doesn't show up in the share sheet: it only accepts "open with". If you
+   have several apps that open GPX files, Android asks which one; if Garmin Connect is the only one, it opens directly.
+2. Garmin Connect asks for the course type: **Road cycling**.
+3. It shows the route; **Save** adds it to your courses, ready to send to your watch or bike computer.
 
-## Estado
+## Status
 
-Diez fases: nueve cerradas y la 7 (la app Android), abierta solo por su juez: salidas reales con la app. Lo que está
-en marcha, en [`docs/STATUS.md`](docs/STATUS.md).
+Ten phases: nine closed, and phase 7 (the Android app) open only for its judge: real rides with the app. What is in
+progress is in [`docs/STATUS.md`](docs/STATUS.md) (in Spanish).
 
-## Licencia
+## License
 
-MIT, ver [`LICENSE`](LICENSE). Las fuentes, datos y servicios de terceros tienen las suyas:
+MIT, see [`LICENSE`](LICENSE). Third-party fonts, data and services have their own:
 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
