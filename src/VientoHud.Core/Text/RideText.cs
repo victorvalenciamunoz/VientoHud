@@ -1,0 +1,371 @@
+using VientoHud.Core.Rain;
+using VientoHud.Core.Rain.Forecasts;
+using VientoHud.Core.Rain.Opera;
+using VientoHud.Core.Routing;
+using VientoHud.Core.Wind;
+using static VientoHud.Core.Text.SpanishText;
+
+namespace VientoHud.Core.Text;
+
+/// <summary>
+/// The sentences the console and the app show about a ride, in Spanish, so that both say exactly the same
+/// (DECISIONS 037, phase 7). Layout (what goes on which line, indentation) is up to the caller.
+/// </summary>
+public static class RideText
+{
+    /// <summary>The first line: leave now or wait, and why. <paramref name="fromNow"/>: the first departure is "ahora".</summary>
+    public static string Recommendation(DepartureAdvice advice, bool fromNow, TimeZoneInfo zone)
+    {
+        if (advice.Chosen.Best is null)
+        {
+            return "No hay ninguna vuelta válida.";
+        }
+        var first = fromNow ? "ahora" : $"a las {Local(advice.First.Departure, zone, "HH:mm")}";
+        if (!advice.Wait)
+        {
+            return $"Sal {first} ({Local(advice.Chosen.Departure, zone, "HH:mm")}).";
+        }
+        var reasons = new List<string>();
+        if (advice.GustyKmSaved > 0)
+        {
+            reasons.Add($"evitas {Km(advice.GustyKmSaved)} con rachas de lado peligrosas");
+        }
+        if (advice.RainKmSaved > 0)
+        {
+            reasons.Add($"te ahorras {Km(advice.RainKmSaved)} de lluvia probable");
+        }
+        return $"Mejor espera: sal a las {Local(advice.Chosen.Departure, zone, "HH:mm")} en vez de {first}; " +
+               $"{string.Join(" y ", reasons)}.";
+    }
+
+    /// <summary>
+    /// The app's headline: <see cref="Recommendation"/> without the why when it says to wait ("Espera: sal a las
+    /// 13:30."), which goes to <see cref="WaitReason"/>: the whole sentence took eight lines of the map in big
+    /// type (the author, 2026-10-26).
+    /// </summary>
+    public static string Headline(DepartureAdvice advice, bool fromNow, TimeZoneInfo zone) =>
+        advice.Chosen.Best is not null && advice.Wait
+            ? $"Espera: sal a las {Local(advice.Chosen.Departure, zone, "HH:mm")}."
+            : Recommendation(advice, fromNow, zone);
+
+    /// <summary>Why to wait, for the line under the headline: "En vez de ahora, te ahorras 32,1 km de lluvia probable"; null when not waiting.</summary>
+    public static string? WaitReason(DepartureAdvice advice, bool fromNow, TimeZoneInfo zone)
+    {
+        if (advice.Chosen.Best is null || !advice.Wait)
+        {
+            return null;
+        }
+        var first = fromNow ? "ahora" : $"las {Local(advice.First.Departure, zone, "HH:mm")}";
+        var reasons = new List<string>();
+        if (advice.GustyKmSaved > 0)
+        {
+            reasons.Add($"evitas {Km(advice.GustyKmSaved)} con rachas de lado");
+        }
+        if (advice.RainKmSaved > 0)
+        {
+            reasons.Add($"te ahorras {Km(advice.RainKmSaved)} de lluvia probable");
+        }
+        return reasons.Count == 0 ? null : $"En vez de {first}, {string.Join(" y ", reasons)}";
+    }
+
+    /// <summary>The wind at the start over the ride, and what it says about where to head.</summary>
+    public static string Wind(StartDirectionAdvice wind) => wind.Kind switch
+    {
+        StartAdviceKind.HeadIntoWind =>
+            $"Viento durante la salida: del {Point(wind.MeanWindFromDegrees!.Value)} " +
+            $"({wind.MeanWindFromDegrees.Value.ToString("0", Spanish)}°) a {Kmh(wind.MeanVectorSpeedKmh)} de media. " +
+            "Se buscan vueltas contra el viento: ida de cara, vuelta a favor.",
+        StartAdviceKind.Calm =>
+            $"Viento flojo durante la salida (media {wind.MeanSpeedKmh.ToString("0.0", Spanish)} km/h): da igual hacia dónde.",
+        StartAdviceKind.Variable =>
+            $"Viento variable durante la salida (media {Kmh(wind.MeanSpeedKmh)}, cambia mucho de dirección): " +
+            "no hay un rumbo claramente mejor.",
+        _ => throw new ArgumentOutOfRangeException(nameof(wind), wind.Kind, null),
+    };
+
+    /// <summary>The headline of the app: "Hacia el O", or that it does not matter.</summary>
+    public static string DirectionHeadline(StartDirectionAdvice wind) => wind.Kind switch
+    {
+        StartAdviceKind.HeadIntoWind => $"Hacia el {Point(wind.StartBearingDegrees!.Value)}",
+        StartAdviceKind.Calm => "Da igual hacia dónde",
+        StartAdviceKind.Variable => "Sin rumbo claro",
+        _ => throw new ArgumentOutOfRangeException(nameof(wind), wind.Kind, null),
+    };
+
+    public static string Advantage(RideScore score) =>
+        $"ventaja de viento {Signed(score.WindAdvantageKmh)} " +
+        $"({Along(score.FirstHalfHeadwindKmh)} en la 1.ª mitad, {Along(score.SecondHalfHeadwindKmh)} en la 2.ª)";
+
+    /// <summary>Wind along the road as it feels: in the face or from behind.</summary>
+    public static string Along(double headwindKmh) => Math.Round(headwindKmh) switch
+    {
+        > 0 => $"de cara {Kmh(headwindKmh)}",
+        < 0 => $"a favor {Kmh(-headwindKmh)}",
+        _ => "sin viento de cara ni a favor",
+    };
+
+    public static string Stretch(WindStretch s)
+    {
+        var feel = s.Feel switch
+        {
+            WindFeel.Headwind => "de cara",
+            WindFeel.Tailwind => "a favor",
+            WindFeel.FromRight => "de lado por la derecha",
+            WindFeel.FromLeft => "de lado por la izquierda",
+            _ => "flojo",
+        };
+        return $"km {s.StartKm.ToString("0", Spanish)}-{s.EndKm.ToString("0", Spanish)}: {feel} {Kmh(s.MeanKmh)}";
+    }
+
+    /// <summary>The wind stretch by stretch: "km 0-10: de cara 12 km/h · km 10-25: flojo 4 km/h".</summary>
+    public static string Stretches(IReadOnlyList<LegWind> winds) =>
+        string.Join(" · ", WindStretches.Describe(winds).Select(Stretch));
+
+    /// <summary>The dangerous gusts across the road, or that they could not be looked at; null when there are none.</summary>
+    public static string? Gusts(RideScore score)
+    {
+        if (score.GustyStretches.Count > 0)
+        {
+            return $"¡Ojo! Rachas de lado de más de {Kmh(RideRanking.DefaultMaxCrossGustKmh)}: " +
+                   string.Join(", ", score.GustyStretches.Select(s =>
+                       $"km {s.StartKm.ToString("0", Spanish)}-{s.EndKm.ToString("0", Spanish)} (hasta {Kmh(s.MaxCrossGustKmh)})")) + ".";
+        }
+        return score.GustsKnown ? null : "Sin previsión de rachas para alguna hora: no se puede avisar de las de lado.";
+    }
+
+    /// <summary>What the rain does on the ride: stretches with likely rain, possible rain and the warning for the area.</summary>
+    /// <param name="rainFailure">Why the rain could not be asked for, when it could not.</param>
+    /// <param name="rainPending">The rain was not asked for yet (the app shows the wind first).</param>
+    public static IEnumerable<string> RainLines(RideOption option, string? rainFailure, TimeZoneInfo zone, bool rainPending = false)
+    {
+        if (option.Rain is not { } rain)
+        {
+            yield return rainPending ? "Lluvia: pidiendo la previsión…"
+                : rainFailure is null ? "Lluvia: sin previsión." : "Lluvia: sin previsión (no se pudo pedir).";
+            yield break;
+        }
+        var likely = RideAlerts.For(option, int.MaxValue).Where(a => a.Kind == RideAlertKind.Rain).ToList();
+        var counted = rain.UncountedKm > 0 ? $" en los primeros {Km(rain.CountedKm)}" : "";
+        if (likely.Count == 0 && rain.PossibleKm == 0)
+        {
+            yield return $"Lluvia: no se espera{counted}.";
+        }
+        else
+        {
+            var parts = likely.Select(a =>
+                $"probable en km {a.StartKm.ToString("0", Spanish)}-{a.EndKm.ToString("0", Spanish)} hacia las {Local(a.Time, zone, "HH:mm")} ({Percent(a.Value)})")
+                .ToList();
+            if (rain.PossibleKm > 0)
+            {
+                parts.Add($"puede en {Km(rain.PossibleKm)}");
+            }
+            yield return $"Lluvia{counted}: {string.Join("; ", parts)}.";
+        }
+        if (rain.UncountedKm > 0)
+        {
+            yield return rain.AreaWarning is { } warning
+                ? $"Desde el km {rain.CountedKm.ToString("0", Spanish)} (más de 3 h): posibles chubascos en la zona desde las " +
+                  $"{Local(warning.From, zone, "HH:mm")} (hasta {Percent(warning.MaxProbability)})."
+                : $"Desde el km {rain.CountedKm.ToString("0", Spanish)} (más de 3 h): sin aviso de chubascos en la zona.";
+        }
+    }
+
+    /// <summary>
+    /// The card's warning line, short and in riding order: "Lluvia km 0-11 · rachas km 30-34 · chubascos desde km 43"
+    /// (the GPX's warnings); null with nothing to warn of. On the main screen the rain was nowhere to be seen once the
+    /// reason to wait moved to the detail (2026-10-27).
+    /// </summary>
+    public static string? Warnings(RideOption option, int maxShown = 3)
+    {
+        var parts = RideAlerts.For(option, int.MaxValue).Select(a => a.Kind switch
+        {
+            RideAlertKind.Rain => $"lluvia km {a.StartKm.ToString("0", Spanish)}-{a.EndKm.ToString("0", Spanish)}",
+            RideAlertKind.Gusts => $"rachas km {a.StartKm.ToString("0", Spanish)}-{a.EndKm.ToString("0", Spanish)}",
+            _ => $"chubascos desde km {a.StartKm.ToString("0", Spanish)}",
+        }).ToList();
+        if (parts.Count == 0)
+        {
+            return null;
+        }
+        var line = string.Join(" · ", parts.Take(maxShown));
+        return SpanishText.Capitalized(parts.Count > maxShown ? $"{line} y {parts.Count - maxShown} más" : line);
+    }
+
+    public static string Urban(UrbanMeasure urban) =>
+        $"Ciudad: {Km(urban.UrbanKm)} ({Percent(urban.UrbanFraction)}) por calles o travesías.";
+
+    public static string Arrival(RideOption option, TimeZoneInfo zone) =>
+        $"Llegada hacia las {Local(option.Winds[^1].Leg.EndTime, zone, "HH:mm")}.";
+
+    /// <summary>
+    /// The lines every ride shows after its heading: the wind stretch by stretch, the gusts if any, the rain and the
+    /// town. The caller adds the heading before and the summary and arrival after.
+    /// </summary>
+    public static IReadOnlyList<string> Lines(RideOption option, string? rainFailure, TimeZoneInfo zone, bool rainPending = false)
+    {
+        var lines = new List<string> { Stretches(option.Winds) };
+        if (Gusts(option.Score) is { } gusts)
+        {
+            lines.Add(gusts);
+        }
+        lines.AddRange(RainLines(option, rainFailure, zone, rainPending));
+        lines.Add(Urban(option.Urban));
+        return lines;
+    }
+
+    /// <summary>"ida y vuelta", "sentido horario" or "sentido antihorario".</summary>
+    public static string Turn(RideOption option, RouteShape shape) =>
+        shape == RouteShape.OutAndBack ? "ida y vuelta" : option.Route.TurnsClockwise() ? "sentido horario" : "sentido antihorario";
+
+    public static string Kind(RouteShape shape) => shape == RouteShape.OutAndBack ? "Ida y vuelta" : "Vuelta";
+
+    /// <summary>One line on a generated loop: distance, climb and what kind of roads; also the GPX description.</summary>
+    public static string LoopSummary(LoopCandidate c)
+    {
+        var a = c.Analysis;
+        var parts = new List<string>
+        {
+            $"{Km(c.Route.DistanceKm)} ({(c.DistanceError * 100).ToString("+0;-0;0", Spanish)} %)",
+        };
+        if (c.Route.AscentMeters is { } ascent)
+        {
+            parts.Add($"desnivel {ascent.ToString("0", Spanish)} m");
+        }
+        parts.Add($"nacionales (trunk) {Km(a.TrunkKm)}");
+        if (a.PavedTrackKm >= 0.05)
+        {
+            parts.Add($"caminos asfaltados {Km(a.PavedTrackKm)}");
+        }
+        parts.Add($"repite {(a.RepeatedFraction * 100).ToString("0", Spanish)} %");
+        return string.Join(", ", parts);
+    }
+
+    /// <summary>One line on a traced ride: distance, climb, roads and how far it passes from the points given.</summary>
+    public static string TracedSummary(TracedRide ride) => TracedSummary(ride.Route, ride.Analysis);
+
+    /// <summary>As <see cref="TracedSummary(TracedRide)"/>, for a route not yet judged for the weather.</summary>
+    public static string TracedSummary(TracedRoute traced) => TracedSummary(traced.Route, traced.Analysis);
+
+    private static string TracedSummary(Route route, RouteAnalysis a)
+    {
+        var parts = new List<string> { Km(route.DistanceKm) };
+        if (route.AscentMeters is { } ascent)
+        {
+            parts.Add($"desnivel {ascent.ToString("0", Spanish)} m");
+        }
+        parts.Add($"nacionales (trunk) {Km(a.TrunkKm)}");
+        // How much of the ride is ridden twice: an out and back repeats it all; a loop should repeat little.
+        parts.Add($"repite {(a.RepeatedFraction * 100).ToString("0", Spanish)} %");
+        if (a.PavedTrackKm >= 0.05)
+        {
+            parts.Add($"caminos asfaltados {Km(a.PavedTrackKm)}");
+        }
+        if (a.ForbiddenKm >= 0.05)
+        {
+            parts.Add($"¡tramos prohibidos (autovía o sin asfalto) {Km(a.ForbiddenKm)}!");
+        }
+        if (a.MaxWaypointOffsetKm >= 0.5)
+        {
+            parts.Add($"pasa a {Km(a.MaxWaypointOffsetKm)} de un punto (no hay asfalto más cerca)");
+        }
+        return string.Join(", ", parts);
+    }
+
+    /// <summary>What the generator got for one bearing, for the progress lines.</summary>
+    public static string Outcome(LoopResult r) => r switch
+    {
+        { Found: true, Best: { } best } => $"{Km(best.Route.DistanceKm)} ({r.Requests} peticiones)",
+        { EngineFailure: { } failure } => $"BRouter dejó de responder: {failure}",
+        { Best: { } best } => $"no válida ({r.Requests} peticiones; la más cercana falla por {Problems(best.Problems)})",
+        _ => $"BRouter no pudo unir los puntos en ningún rumbo cercano ({r.Requests} peticiones)",
+    };
+
+    private static readonly (LoopProblems Problem, string Name)[] ProblemNames =
+    [
+        (LoopProblems.Distance, "distancia"),
+        (LoopProblems.Spurs, "ramales (forma de estrella)"),
+        (LoopProblems.TurnBacks, "medias vueltas"),
+        (LoopProblems.Forbidden, "tramos prohibidos"),
+        (LoopProblems.Bearing, "se aleja del rumbo"),
+    ];
+
+    public static string Problems(LoopProblems problems) =>
+        string.Join(", ", ProblemNames.Where(p => problems.HasFlag(p.Problem)).Select(p => p.Name));
+
+    /// <summary>The credit lines the data licences ask for, for the GPX description.</summary>
+    public static IEnumerable<string> Attributions(Route route, RainOutlook? rain)
+    {
+        if (route.Attribution is { } attribution)
+        {
+            yield return attribution;
+        }
+        yield return OpenMeteoRainForecastSource.Attribution;
+        if (rain is not null)
+        {
+            yield return OperaRadarSource.AttributionText;
+        }
+    }
+
+    /// <summary>
+    /// One line on the altitude profile: climb, drop, range of heights and the steepest ramp, which says it is
+    /// measured over 300 m (the author's choice, 2026-10-26): climbing sites measure it over 100 m and give more on
+    /// hard passes (on one checked by hand: 13 % here, 15-17 % there), but over 100 m the engine's 90 m grid is noise on gentle ones.
+    /// </summary>
+    public static string Profile(RouteProfile profile) =>
+        $"Sube {profile.AscentMeters.ToString("0", Spanish)} m y baja {profile.DescentMeters.ToString("0", Spanish)} m, " +
+        $"entre {profile.MinElevationMeters.ToString("0", Spanish)} y {profile.MaxElevationMeters.ToString("0", Spanish)} m; " +
+        $"rampa máxima {Math.Max(0, profile.MaxGradePercent).ToString("0", Spanish)} % " +
+        $"(en {(RouteProfile.DefaultSmoothingKm * 1000).ToString("0", Spanish)} m).";
+
+    /// <summary>Where the flyover camera is: "km 23,4 · 845 m · +4 %" (just the km without elevations).</summary>
+    public static string FlyoverAt(VientoHud.Core.Flyover.CameraFrame frame) =>
+        frame.ElevationMeters is { } metres && frame.GradePercent is { } grade
+            ? $"{KmAt(frame.AtKm)} · {metres.ToString("0", Spanish)} m · {grade.ToString("+0;-0;0", Spanish)} %"
+            : KmAt(frame.AtKm);
+
+    /// <summary>
+    /// What the rider meets where the flyover camera is: "De cara 15 km/h · pasas hacia las 10:45 · rachas de lado de
+    /// hasta 48 km/h". Empty before the wind is in.
+    /// </summary>
+    public static string FlyoverWeatherAt(VientoHud.Core.Flyover.FlyoverMoment moment, TimeZoneInfo zone)
+    {
+        var parts = new List<string>();
+        if (moment.Wind is { } wind && moment.Feel is { } feel)
+        {
+            parts.Add(feel switch
+            {
+                WindFeel.Headwind => $"De cara {Kmh(wind.HeadwindKmh)}",
+                WindFeel.Tailwind => $"A favor {Kmh(-wind.HeadwindKmh)}",
+                WindFeel.FromRight => $"De lado por la derecha {Kmh(wind.CrosswindKmh)}",
+                WindFeel.FromLeft => $"De lado por la izquierda {Kmh(-wind.CrosswindKmh)}",
+                _ => $"Viento flojo ({Kmh(wind.Wind.SpeedKmh)})",
+            });
+        }
+        if (moment.Time is { } time)
+        {
+            parts.Add($"pasas hacia las {Local(time, zone, "HH:mm")}");
+        }
+        if (moment.Alert is { } alert)
+        {
+            parts.Add(alert.Kind switch
+            {
+                RideAlertKind.Gusts => $"rachas de lado de hasta {Kmh(alert.Value)}",
+                RideAlertKind.Rain => $"lluvia probable ({Percent(alert.Value)})",
+                _ => $"posibles chubascos en la zona (hasta {Percent(alert.Value)})",
+            });
+        }
+        return string.Join(" · ", parts);
+    }
+
+    /// <summary>The name of a grade band for legends, with its range.</summary>
+    public static string Grade(GradeBand band) => band switch
+    {
+        GradeBand.Downhill => "Bajada",
+        GradeBand.Flat => "Llano",
+        GradeBand.Gentle => "Suave (2-4 %)",
+        GradeBand.Moderate => "Media (4-7 %)",
+        GradeBand.Steep => "Dura (7-10 %)",
+        GradeBand.VerySteep => "Muy dura (más de 10 %)",
+        _ => throw new ArgumentOutOfRangeException(nameof(band), band, "Unknown band."),
+    };
+}

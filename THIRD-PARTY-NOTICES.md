@@ -12,6 +12,7 @@ VientoHud incluye o usa el siguiente software, datos, servicios y fuentes de ter
 | SkiaSharp | MIT | https://github.com/mono/SkiaSharp |
 | Microsoft.Extensions.Http.Resilience (sobre Polly) | MIT (Polly: BSD 3 cláusulas) | https://github.com/dotnet/extensions |
 | PureHDF | MIT | https://github.com/Apollo3zehn/PureHDF |
+| xUnit (solo tests) | Apache 2.0 | https://github.com/xunit/xunit |
 
 ## Fuentes tipográficas (incluidas en la app)
 
@@ -32,3 +33,4 @@ VientoHud incluye o usa el siguiente software, datos, servicios y fuentes de ter
   information funded by the European Union - EU-DEM layers.*
 - **Previsión de viento y lluvia:** Open-Meteo (https://open-meteo.com). *Weather data by Open-Meteo.com (CC BY 4.0).*
 - **Radar:** EUMETNET OPERA, Open Radar Data. *Radar: EUMETNET OPERA (CC BY 4.0).*
+- **Observaciones para los jueces** (solo en el ordenador): Iowa Environmental Mesonet (METAR, ASOS) y AEMET OpenData.
