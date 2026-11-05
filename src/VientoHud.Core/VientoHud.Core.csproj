@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <EmbeddedResource Include="Routing\BRouter\road-strict.brf" LogicalName="VientoHud.Core.Routing.BRouter.road-strict.brf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.11.0" />
+    <PackageReference Include="PureHDF" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>

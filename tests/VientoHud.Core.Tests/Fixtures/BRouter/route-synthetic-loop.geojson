@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "creator": "BRouter-1.7.10",
+        "name": "synthetic_loop",
+        "track-length": "10000",
+        "filtered ascend": "42",
+        "plain-ascend": "0",
+        "total-time": "1800",
+        "total-energy": "180000",
+        "cost": "15000",
+        "messages": [
+          ["Longitude", "Latitude", "Elevation", "Distance", "CostPerKm", "ElevCost", "TurnCost", "NodeCost", "InitialCost", "WayTags", "NodeTags", "Time", "Energy"],
+          ["1000000", "45011241", "205", "1250", "1200", "0", "0", "0", "0", "highway=residential surface=asphalt", "highway=traffic_signals", "225", "22500"],
+          ["1000000", "45022483", "212", "1250", "1180", "0", "0", "0", "0", "highway=tertiary surface=asphalt estimated_traffic_class=4", "", "450", "45000"],
+          ["1015898", "45022483", "222", "1250", "1180", "0", "0", "0", "0", "highway=tertiary surface=asphalt estimated_traffic_class=4", "highway=crossing crossing=uncontrolled", "675", "67500"],
+          ["1031795", "45022483", "230", "1250", "1180", "0", "0", "0", "0", "highway=secondary surface=asphalt estimated_traffic_class=5", "", "900", "90000"],
+          ["1031795", "45000000", "220", "2500", "1180", "0", "0", "0", "0", "highway=tertiary surface=asphalt smoothness=good", "", "1350", "135000"],
+          ["1015898", "45000000", "210", "1250", "1200", "0", "0", "0", "0", "highway=unclassified surface=asphalt", "", "1575", "157500"],
+          ["1000000", "45000000", "200", "1250", "1200", "0", "0", "0", "0", "highway=residential surface=asphalt", "", "1800", "180000"]
+        ],
+        "times": [0, 225, 450, 675, 900, 1350, 1575, 1800]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.000000, 45.000000, 200.0],
+          [1.000000, 45.011241, 205.0],
+          [1.000000, 45.022483, 212.0],
+          [1.015898, 45.022483, 222.0],
+          [1.031795, 45.022483, 230.0],
+          [1.031795, 45.000000, 220.0],
+          [1.015898, 45.000000, 210.0],
+          [1.000000, 45.000000, 200.0]
+        ]
+      }
+    }
+  ]
+}
