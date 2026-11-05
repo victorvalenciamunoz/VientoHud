@@ -40,6 +40,9 @@ Un solo repo público, sin datos de dónde vive ni por dónde sale el autor; lo 
   fechas y horas de chubascos); arreglados, y `historia.md` pasa entera a la carpeta privada (decisión del autor). El
   código entra en el repo público encima de su único commit (el de las descargas, con la versión 0.4.0), sin el historial
   anterior; el `.git` viejo queda guardado en la carpeta privada y `VientoHud-codigo`, archivado.
+- [x] 4. El README, en inglés (2026-11-05, `DECISIONS.md` 069): `README.md` en inglés y `README.es.md` en español,
+  enlazados entre sí. Cada cambio del README va en los dos. Validado: build y tests en verde (solo cambia
+  documentación) y la búsqueda de coordenadas en el diff, sin resultados.
 
 ## Fase 10
 

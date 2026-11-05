@@ -1501,3 +1501,14 @@ Formato: contexto → decisión → alternativas descartadas.
   rutas que solo difieren en una pizca de longitud lo fija; con el código anterior falla también en Windows.
 - Alternativas: redondear hacia abajo (3 puntos, un perfil más nervioso); dejarlo y cambiar el test (el defecto
   seguiría en la app).
+
+## 069 — El README, en inglés y en español
+
+- Contexto: el repo es público y su portada la lee gente de fuera de España, pero la norma del autor es documentar en
+  español y la app solo está en español (los textos, el consejo del GPX y las capturas).
+- Decisión (2026-11-05, del autor): `README.md` en inglés y `README.es.md` en español, con un enlace en la cabecera
+  de cada uno hacia el otro. El inglés avisa de que la app y `docs/` están en español y deja en español, con su
+  traducción al lado, los nombres de los botones (COMPARTIR, ABRIR CON…). El resto de `docs/` sigue en español. Cada
+  cambio del README va en los dos ficheros.
+- Alternativas: solo en inglés (un fichero, pero la instalación y el paso al Karoo o al Garmin quedarían en inglés
+  para quien usa la app en español); dejarlo en español (coherente con la app, pero se entiende menos fuera).
